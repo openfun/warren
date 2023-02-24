@@ -1,0 +1,441 @@
+# Configuration file anchors
+generate-version-file: &generate-version-file
+  run:
+    name: Create a version.json
+    command: |
+      # Create a version.json à-la-mozilla
+      # https://github.com/mozilla-services/Dockerflow/blob/master/docs/version_object.md
+      printf '{"commit":"%s","version":"%s","source":"https://github.com/%s/%s","build":"%s"}\n' \
+        "$CIRCLE_SHA1" \
+        "$CIRCLE_TAG" \
+        "$CIRCLE_PROJECT_USERNAME" \
+        "$CIRCLE_PROJECT_REPONAME" \
+        "$CIRCLE_BUILD_URL" > version.json
+
+docker-login: &docker-login
+  # Login to DockerHub
+  #
+  # Nota bene: you'll need to define the following secrets environment vars
+  # in CircleCI interface:
+  #
+  #   - DOCKER_HUB_USER
+  #   - DOCKER_HUB_PASSWORD
+  run:
+    name: Login to DockerHub
+    command: >
+      test -n "$DOCKER_HUB_USER" &&
+        echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USER" --password-stdin ||
+        echo "Docker Hub anonymous mode"
+
+version: 2.1
+jobs:
+  # Git jobs
+  # Check that the git history is clean and complies with our expectations
+  lint-git:
+    docker:
+      - image: cimg/python:3.11
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      # Make sure the changes don't add a "print" statement to the code base.
+      # We should exclude the ".circleci" folder from the search as the very command that checks
+      # the absence of "print" is including a "print(" itself.
+      - run:
+          name: enforce absence of print statements in code
+          command: |
+            ! git diff origin/main..HEAD -- . ':(exclude).circleci' | grep "print("
+      - run:
+          name: Check absence of fixup commits
+          command: |
+            ! git log --pretty=format:%s | grep 'fixup!'
+      - run:
+          name: Install gitlint
+          command: |
+            pip install --user gitlint requests
+      - run:
+          name: lint commit messages added to main
+          command: |
+            ~/.local/bin/gitlint --commits origin/main..HEAD
+
+  # Check that the CHANGELOG has been updated in the current branch
+  check-changelog:
+    docker:
+      - image: cimg/base:current
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - run:
+          name: Check that the CHANGELOG has been modified in the current branch
+          command: |
+            git whatchanged --name-only --pretty="" origin..HEAD | grep CHANGELOG
+
+  # Check that the CHANGELOG max line length does not exceed 80 characters
+  lint-changelog:
+    docker:
+      - image: debian:stretch
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - run:
+          name: Check CHANGELOG max line length
+          command: |
+            # Get the longuest line width (ignoring release links)
+            test $(cat CHANGELOG.md | grep -Ev "^\[.*\]: https://github.com/openfun" | wc -L) -le 80
+
+  # ---- Docker jobs ----
+  # Build the Docker image ready for production
+  build-docker:
+    docker:
+      - image: cimg/base:current
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      # Checkout repository sources
+      - checkout
+      # Generate a version.json file describing app release & login to DockerHub
+      - *generate-version-file
+      - *docker-login
+      # Activate docker-in-docker (with layers caching enabled)
+      - setup_remote_docker:
+          docker_layer_caching: true
+      # Each image is tagged with the current git commit sha1 to avoid
+      # collisions in parallel builds.
+      - run:
+          name: Build production image
+          command: |
+            WARREN_BACK_IMAGE_BUILD_TARGET=production \
+            WARREN_IMAGE_TAG=${CIRCLE_SHA1} \
+              make build
+      - run:
+          name: Check built image availability
+          command: docker images "warren-back:${CIRCLE_SHA1}*"
+
+  # ---- Backend jobs ----
+  # Build backend development environment
+  build:
+    parameters:
+      python-image:
+        type: string
+    docker:
+      - image: cimg/<< parameters.python-image >>
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-<< parameters.python-image >>-{{ .Revision }}
+      - run:
+          name: Install development dependencies
+          command: pip install --user .[dev]
+          working_directory: src/backend
+      - save_cache:
+          paths:
+            - ~/.local
+          key: v1-dependencies-<< parameters.python-image >>-{{ .Revision }}
+
+  lint:
+    docker:
+      - image: cimg/python:3.11
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-python:3.11-{{ .Revision }}
+      - run:
+          name: Lint code with flake8
+          command: ~/.local/bin/flake8
+          working_directory: src/backend
+      - run:
+          name: Lint code with isort
+          command: ~/.local/bin/isort --recursive --check-only .
+          working_directory: src/backend
+      - run:
+          name: Lint code with black
+          command: ~/.local/bin/black . --check
+          working_directory: src/backend
+      - run:
+          name: Lint code with pylint
+          command: ~/.local/bin/pylint warren tests
+          working_directory: src/backend
+      - run:
+          name: Lint code with bandit
+          command: ~/.local/bin/bandit -qr warren
+          working_directory: src/backend
+      - run:
+          name: Lint code with pydocstyle
+          command: ~/.local/bin/pydocstyle
+          working_directory: src/backend
+
+  test:
+    parameters:
+      python-image:
+        type: string
+    docker:
+      - image: cimg/<< parameters.python-image >>
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+        environment:
+          RALPH_APP_DIR: ~/fun/.ralph
+      - image: elasticsearch:8.6.2
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+        environment:
+          discovery.type: single-node
+          xpack.security.enabled: "false"
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-<< parameters.python-image >>-{{ .Revision }}
+      - run:
+          name: Run tests
+          command: |
+            dockerize \
+              -wait tcp://${HOSTNAME}:9200 \
+              -timeout 60s \
+              ~/.local/bin/pytest
+          working_directory: src/backend
+
+  # ---- Packaging jobs ----
+  package:
+    docker:
+      - image: cimg/python:3.11
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-python:3.11-{{ .Revision }}
+      - attach_workspace:
+          at: ~/fun
+      - run:
+          name: Build python package
+          command: python -m build
+          working_directory: src/backend
+      # Persist build packages to the workspace
+      - persist_to_workspace:
+          root: ~/fun
+          paths:
+            - src/backend/dist
+      # Store packages as artifacts to download/test them
+      - store_artifacts:
+          path: ~/fun/src/backend/dist
+
+  # Publishing to PyPI requires that:
+  #   * you already registered to pypi.org
+  #   * you have define both the TWINE_USERNAME & TWINE_PASSWORD secret
+  #     environment variables in CircleCI UI (with your PyPI credentials)
+  pypi:
+    docker:
+      - image: cimg/python:3.11
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      # Restore built python packages
+      - attach_workspace:
+          at: ~/fun
+      - run:
+          name: List built packages
+          command: ls src/backend/dist/*
+      - run:
+          name: Install base requirements (twine)
+          command: pip install --user .[ci]
+          working_directory: src/backend
+      - run:
+          name: Upload built packages to PyPI
+          command: ~/.local/bin/twine upload dist/*
+          working_directory: src/backend
+
+  # ---- DockerHub publication job ----
+  hub:
+    docker:
+      - image: cimg/base:current
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      # Checkout repository sources
+      - checkout
+      # Generate a version.json file describing app release & login to DockerHub
+      - *generate-version-file
+      - *docker-login
+      # Activate docker-in-docker (with layers caching enabled)
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build production image
+          command: |
+            WARREN_BACKEND_IMAGE_BUILD_TARGET=production \
+            WARREN_BACKEND_IMAGE_TAG=${CIRCLE_SHA1} \
+              make build
+      - run:
+          name: Check built image availability
+          command: docker images "warren-back:${CIRCLE_SHA1}*"
+      # Tag docker images with the same pattern used in Git (Semantic Versioning)
+      #
+      # Git tag: v1.0.1
+      # Docker tag: 1.0.1(-ci)
+      - run:
+          name: Tag images
+          command: |
+            docker images fundocker/ralph
+            DOCKER_TAG=$([[ -z "$CIRCLE_TAG" ]] && echo $CIRCLE_BRANCH || echo ${CIRCLE_TAG} | sed 's/^v//')
+            RELEASE_TYPE=$([[ -z "$CIRCLE_TAG" ]] && echo "branch" || echo "tag ")
+            # Display either:
+            # - DOCKER_TAG: main (Git branch)
+            # or
+            # - DOCKER_TAG: 1.1.2 (Git tag v1.1.2)
+            echo "DOCKER_TAG: ${DOCKER_TAG} (Git ${RELEASE_TYPE}${CIRCLE_TAG})"
+            docker tag ralph:${CIRCLE_SHA1} fundocker/ralph:${DOCKER_TAG}
+            if [[ -n "$CIRCLE_TAG" ]]; then
+                docker tag ralph:${CIRCLE_SHA1} fundocker/ralph:latest
+            fi
+            docker images | grep -E "^fundocker/ralph\s*(${DOCKER_TAG}.*|latest|main)"
+
+      # Publish images to DockerHub
+      #
+      # Nota bene: logged user (see "Login to DockerHub" step) must have write
+      # permission for the project's repository; this also implies that the
+      # DockerHub repository already exists.
+      - run:
+          name: Publish images
+          command: |
+            DOCKER_TAG=$([[ -z "$CIRCLE_TAG" ]] && echo $CIRCLE_BRANCH || echo ${CIRCLE_TAG} | sed 's/^v//')
+            RELEASE_TYPE=$([[ -z "$CIRCLE_TAG" ]] && echo "branch" || echo "tag ")
+            # Display either:
+            # - DOCKER_TAG: main (Git branch)
+            # or
+            # - DOCKER_TAG: 1.1.2 (Git tag v1.1.2)
+            echo "DOCKER_TAG: ${DOCKER_TAG} (Git ${RELEASE_TYPE}${CIRCLE_TAG})"
+            docker push fundocker/ralph:${DOCKER_TAG}
+            if [[ -n "$CIRCLE_TAG" ]]; then
+              docker push fundocker/ralph:latest
+            fi
+
+
+workflows:
+  version: 2
+
+  warren:
+    jobs:
+      # Git jobs
+      #
+      # Check validity of git history
+      - lint-git:
+          filters:
+            tags:
+              only: /.*/
+      # Check CHANGELOG update
+      - check-changelog:
+          filters:
+            branches:
+              ignore: main
+            tags:
+              only: /(?!^v).*/
+      - lint-changelog:
+          filters:
+            branches:
+              ignore: main
+            tags:
+              only: /.*/
+
+      # Docker jobs
+      #
+      # Build images
+      - build-docker:
+          filters:
+            tags:
+              only: /.*/
+
+      # Backend jobs
+      #
+      # Build, lint and test production and development Docker images
+      # (debian-based)
+      - build:
+          matrix:
+            parameters:
+              python-image: [python:3.8, python:3.9, python:3.10, python:3.11]
+          filters:
+            tags:
+              only: /.*/
+      - lint:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /.*/
+      - test:
+          matrix:
+            parameters:
+              python-image: [python:3.8, python:3.9, python:3.10, python:3.11]
+          requires:
+            - build
+          filters:
+            tags:
+              only: /.*/
+
+      # Packaging: python
+      #
+      # Build the python package
+      - package:
+          requires:
+            - lint
+            - test
+          filters:
+            tags:
+              only: /.*/
+
+      # DockerHub publication.
+      #
+      # Publish docker images only if all build, lint and test jobs succeed
+      # and it has been tagged with a tag starting with the letter v or is on
+      # the main branch
+      - hub:
+          requires:
+            - build-docker
+          filters:
+            branches:
+              only: main
+            tags:
+              only: /^v.*/
+
+      # PyPI publication.
+      #
+      # Publish python package to PYPI only if all build, lint and test jobs
+      # succeed and it has been tagged with a tag starting with the letter v
+      - pypi:
+          requires:
+            - package
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
