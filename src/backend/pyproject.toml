@@ -1,0 +1,104 @@
+#
+# Warren package
+#
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "warren"
+description = "A visualization platform for your learning analytics"
+readme = "README.md"
+authors = [
+  { name="Open FUN (France Universite Numerique)", email="fun.dev@fun-mooc.fr" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.7"
+license = {file = "LICENSE.md"}
+keywords = ["Analytics", "xAPI", "LRS", "LTI"]
+dependencies = [
+    "elasticsearch==8.6.2",
+    "fastapi==0.92.0",
+    "pydantic==1.10.5",
+    "sentry-sdk[fastapi]==1.15.0",
+    "uvicorn[standard]==0.20.0",
+]
+dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://github.com/openfun/warren"
+"Bug Tracker" = "https://github.com/openfun/warren/issues"
+
+[project.optional-dependencies]
+dev = [
+    "bandit==1.7.4",
+    "black==23.1.0",
+    "build==0.10.0",
+    "factory-boy==3.2.1",
+    "Faker==17.0.0",
+    "Flake8-pyproject==1.2.2",
+    "flake8==6.0.0",
+    "httpx==0.23.3",
+    "ipdb==0.13.11",
+    "ipython==8.10.0",
+    "isort==5.12.0",
+    "pydocstyle==6.3.0",
+    "pylint==2.16.2",
+    "pytest==7.2.1",
+    "pytest-asyncio==0.20.3",
+    "pytest-cov==4.0.0",
+]
+ci = [
+    "twine==4.0.2",
+]
+
+[tool.setuptools.dynamic]
+version = { attr = "warren.__version__" }
+
+
+# Third party packages configuration
+[tool.flake8]
+max-line-length = 88
+extend-ignore = ["E203"]
+exclude = [
+    "build",
+    "__pycache__",
+]
+
+[tool.pydocstyle]
+convention = "google"
+match_dir = "^(?!tests|venv|build|scripts).*"
+
+[tool.isort]
+known_warren = ["warren"]
+sections = [
+    "FUTURE",
+    "STDLIB",
+    "THIRDPARTY",
+    "WARREN",
+    "FIRSTPARTY",
+    "LOCALFOLDER",
+]
+skip_glob = ["venv"]
+profile = "black"
+
+[tool.pytest.ini_options]
+addopts = "-v --cov-report term-missing --cov=warren"
+python_files = [
+    "test_*.py",
+    "tests.py",
+]
+testpaths = [
+    "tests",
+]

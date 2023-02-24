@@ -1,0 +1,43 @@
+# Python
+__pycache__
+*.pyc
+**/__pycache__
+**/*.pyc
+build/
+dist/
+*.egg-info
+**/*.egg-info
+venv
+.venv
+tests
+
+# System-specific files
+.DS_Store
+**/.DS_Store
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.*
+
+# Docs
+docs
+*.md
+*.log
+
+# Build
+bin/
+Makefile
+
+# Development/test cache & configurations
+.cache
+.circleci
+.coverage
+.env
+.env.dist
+.git
+.gitignore
+.pylint.d
+.pylintrc
+.pytest_cache
+.vscode

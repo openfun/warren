@@ -1,0 +1,44 @@
+version: '3.4'
+
+services:
+  backend:
+    build:
+      context: src/backend
+      target: "${WARREN_BACKEND_IMAGE_BUILD_TARGET:-development}"
+      args:
+        DOCKER_USER: ${DOCKER_USER:-1000}
+    user: ${DOCKER_USER:-1000}
+    image: "${WARREN_BACKEND_IMAGE_NAME:-warren-backend}:${WARREN_BACKEND_IMAGE_TAG:-development}"
+    env_file:
+      - .env
+    environment:
+      PYLINTHOME: /app/.pylint.d
+    ports:
+      - "${WARREN_BACKEND_SERVER_PORT:-8100}:${WARREN_BACKEND_SERVER_PORT:-8100}"
+    command:
+      - uvicorn
+      - "warren.api:app"
+      - "--proxy-headers"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "${WARREN_BACKEND_SERVER_PORT:-8100}"
+      - "--reload"
+    volumes:
+      - ./src/backend:/app
+    depends_on:
+      - elasticsearch
+
+  # -- backends
+  elasticsearch:
+    image: elasticsearch:8.6.2
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+    ports:
+      - "9200:9200"
+    mem_limit: 2g
+
+  # -- tools
+  dockerize:
+    image: jwilder/dockerize
