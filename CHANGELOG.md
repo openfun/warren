@@ -8,4 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Bootstrap base backend boilerplate
+
 [unreleased]: https://github.com/openfun/warren
