@@ -202,6 +202,9 @@ jobs:
         environment:
           discovery.type: single-node
           xpack.security.enabled: "false"
+    environment:
+      - WARREN_ES_HOSTS: http://localhost:9200
+      - WARREN_ES_INDEX: test-statements
     working_directory: ~/fun
     steps:
       - checkout

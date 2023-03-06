@@ -26,6 +26,7 @@ services:
       - "--reload"
     volumes:
       - ./src/backend:/app
+      - ./bin/patch_statements_date.py:/opt/src/patch_statements_date.py
     depends_on:
       - elasticsearch
 
@@ -40,5 +41,8 @@ services:
     mem_limit: 2g
 
   # -- tools
+  ralph:
+    image: fundocker/ralph
+
   dockerize:
     image: jwilder/dockerize

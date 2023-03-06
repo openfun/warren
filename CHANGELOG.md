@@ -11,5 +11,6 @@ and this project adheres to
 ### Added
 
 - Bootstrap base backend boilerplate
+- Implement video views endpoint
 
 [unreleased]: https://github.com/openfun/warren

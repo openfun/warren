@@ -40,3 +40,7 @@ venv.bak/
 .coverage
 .pylint.d
 .pytest_cache
+
+# Project
+bin/patch_statements_date.py
+data
