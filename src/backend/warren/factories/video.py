@@ -1,0 +1,54 @@
+"""Factories for video xAPI events."""
+
+from ralph.models.xapi.video.statements import VideoPlayed
+
+from .base import BaseXapiStatementFactory
+
+
+class VideoPlayedFactory(BaseXapiStatementFactory):
+    """VideoPlayed xAPI statement factory."""
+
+    template: dict = {
+        "verb": {
+            "id": "https://w3id.org/xapi/video/verbs/played",
+            "display": {"en-US": "played"},
+        },
+        "context": {
+            "extensions": {
+                "https://w3id.org/xapi/video/extensions/session-id": (
+                    "1be53154-aed0-5aab-9485-b773e7efaf24"
+                )
+            },
+            "contextActivities": {
+                "category": [{"id": "https://w3id.org/xapi/video"}],
+                "parent": [
+                    {
+                        "id": "course-v1:FUN-MOOC+00001+session01",
+                        "objectType": "Activity",
+                        "definition": {
+                            "type": "http://adlnet.gov/expapi/activities/course"
+                        },
+                    }
+                ],
+            },
+        },
+        "result": {"extensions": {"https://w3id.org/xapi/video/extensions/time": 10.0}},
+        "id": "2140967b-563b-464b-90c0-2e114bd8e133",
+        "actor": {
+            "objectType": "Agent",
+            "account": {
+                "name": "d5b3733b-ccd9-4ab1-bb29-22e3c2f2e592",
+                "homePage": "http://lms.example.org",
+            },
+        },
+        "object": {
+            "definition": {
+                "type": "https://w3id.org/xapi/video/activity-type/video",
+                "name": {"en-US": "Learning analytics 101"},
+            },
+            "id": "uuid://dd38149d-956a-483d-8975-c1506de1e1a9",
+            "objectType": "Activity",
+        },
+        "timestamp": "2021-12-01T08:17:47.150905+00:00",
+    }
+    model: VideoPlayed = VideoPlayed

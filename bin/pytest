@@ -3,4 +3,8 @@
 declare DOCKER_USER
 DOCKER_USER="$(id -u):$(id -g)"
 
-DOCKER_USER=${DOCKER_USER} docker compose run --rm backend pytest "$@"
+DOCKER_USER=${DOCKER_USER} docker compose run \
+  --rm \
+  -e WARREN_ES_INDEX=test-statements \
+  backend \
+  pytest "$@"

@@ -7,15 +7,20 @@ DOCKER_UID           = $(shell id -u)
 DOCKER_GID           = $(shell id -g)
 DOCKER_USER          = $(DOCKER_UID):$(DOCKER_GID)
 COMPOSE              = DOCKER_USER=$(DOCKER_USER) docker compose
-COMPOSE_RUN          = $(COMPOSE) run --rm
+COMPOSE_RUN          = $(COMPOSE) run --rm --no-deps
 COMPOSE_RUN_BACKEND  = $(COMPOSE_RUN) backend
 
+# -- Potsie
+POTSIE_RELEASE = 0.6.0
+
 # -- Elasticsearch
-ES_PROTOCOL = http
-ES_HOST     = localhost
-ES_PORT     = 9200
-ES_INDEX    = statements
-ES_URL      = $(ES_PROTOCOL)://$(ES_HOST):$(ES_PORT)
+ES_PROTOCOL        = http
+ES_HOST            = localhost
+ES_COMPOSE_SERVICE = elasticsearch
+ES_PORT            = 9200
+ES_INDEX           = statements
+ES_URL             = $(ES_PROTOCOL)://$(ES_HOST):$(ES_PORT)
+ES_COMPOSE_URL     = $(ES_PROTOCOL)://$(ES_COMPOSE_SERVICE):$(ES_PORT)
 
 # -- WARREN
 WARREN_BACKEND_IMAGE_NAME         ?= warren-backend
@@ -32,12 +37,25 @@ default: help
 .env:
 	cp .env.dist .env
 
+bin/patch_statements_date.py:
+	curl \
+		https://raw.githubusercontent.com/openfun/potsie/v$(POTSIE_RELEASE)/scripts/patch_statements_date.py \
+		-o bin/patch_statements_date.py
+
+data/statements.jsonl.gz:
+	mkdir -p data
+	curl \
+		https://raw.githubusercontent.com/openfun/potsie/v$(POTSIE_RELEASE)/fixtures/elasticsearch/lrs.json.gz \
+		-o data/statements.jsonl.gz
 
 # -- Docker/compose
 bootstrap: ## bootstrap the project for development
 bootstrap: \
   .env \
-  build
+  bin/patch_statements_date.py \
+  data/statements.jsonl.gz \
+  build \
+  fixtures
 .PHONY: bootstrap
 
 build: ## build the app container
@@ -63,6 +81,7 @@ run: run-backend
 run-backend: ## run the backend server (development mode)
 	@$(COMPOSE) up -d backend
 	@echo "Waiting for backend to be up and running..."
+	@$(COMPOSE_RUN) dockerize -wait tcp://$(ES_COMPOSE_SERVICE):$(ES_PORT) -timeout 60s
 	@$(COMPOSE_RUN) dockerize -wait tcp://backend:$(WARREN_BACKEND_SERVER_PORT) -timeout 60s
 .PHONY: run-backend
 
@@ -73,6 +92,29 @@ status: ## an alias for "docker compose ps"
 stop: ## stop backend server
 	@$(COMPOSE) stop
 .PHONY: stop
+
+# -- Provisioning
+fixtures: ## load test data
+fixtures: \
+  bin/patch_statements_date.py \
+  data/statements.jsonl.gz \
+	run-backend
+	curl -X DELETE "$(ES_URL)/$(ES_INDEX)?pretty" || true
+	curl -X PUT "$(ES_URL)/$(ES_INDEX)?pretty"
+	curl -X PUT $(ES_URL)/$(ES_INDEX)/_settings \
+		-H 'Content-Type: application/json' \
+		-d '{"index": {"number_of_replicas": 0}}'
+	zcat data/statements.jsonl.gz | \
+		$(COMPOSE) exec -T backend python /opt/src/patch_statements_date.py | \
+		sed "s/@timestamp/timestamp/g" | \
+		$(COMPOSE_RUN) -T ralph ralph push \
+	    --backend es \
+	    --es-index "$(ES_INDEX)" \
+	    --es-hosts "$(ES_COMPOSE_URL)" \
+	    --chunk-size 300 \
+	    --es-op-type create
+.PHONY: fixtures
+
 
 # -- Linters
 #
