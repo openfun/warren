@@ -25,6 +25,16 @@ class Settings(BaseSettings):
     ES_INDEX_TIMESTAMP_FIELD: str = "@timestamp"
     ES_CLIENT_OPTIONS: ESClientOptions = ESClientOptions()
 
+    # Warren server
+    SERVER_PROTOCOL: str = "http"
+    SERVER_HOST: str = "localhost"
+    SERVER_PORT: int = 8100
+
+    @property
+    def SERVER_URL(self):
+        """Get the full server URL."""
+        return f"{self.SERVER_PROTOCOL}://{self.SERVER_HOST}:{self.SERVER_PORT}"
+
     # pylint: disable=invalid-name
     @cached_property
     def ES_CLIENT(self) -> AsyncElasticsearch:
