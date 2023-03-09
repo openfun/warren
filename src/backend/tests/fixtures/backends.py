@@ -18,3 +18,4 @@ async def es():
         await client.indices.create(index=settings.ES_INDEX)
     yield client
     await client.indices.delete(index=settings.ES_INDEX)
+    await client.close()
