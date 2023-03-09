@@ -34,36 +34,35 @@ class VideoViews(BaseModel):
 async def views(video_id: IRI) -> VideoViews:
     """Video views."""
     query = {
-        "query": {
-            "bool": {
-                "must": [
-                    {"match": {"verb.display.en-US.keyword": "played"}},
-                    {"match": {"object.id.keyword": video_id}},
-                ],
-                "filter": [
-                    {
-                        "range": {
-                            (
-                                "result.extensions."
-                                "https://w3id.org/xapi/video/extensions/time"
-                            ): {"lte": 30}
-                        }
-                    },
-                ],
+        "bool": {
+            "must": [
+                {"match": {"verb.display.en-US.keyword": "played"}},
+                {"match": {"object.id.keyword": video_id}},
+            ],
+            "filter": [
+                {
+                    "range": {
+                        (
+                            "result.extensions."
+                            "https://w3id.org/xapi/video/extensions/time"
+                        ): {"lte": 30}
+                    }
+                },
+            ],
+        }
+    }
+    aggs = {
+        "daily_views": {
+            "date_histogram": {
+                "field": settings.ES_INDEX_TIMESTAMP_FIELD,
+                "calendar_interval": "day",
             }
-        },
-        "aggs": {
-            "daily_views": {
-                "date_histogram": {
-                    "field": settings.ES_INDEX_TIMESTAMP_FIELD,
-                    "calendar_interval": "day",
-                }
-            }
-        },
-        "size": 0,
+        }
     }
     # pylint: disable=unexpected-keyword-arg
-    docs = await es_client.search(body=query, index=settings.ES_INDEX)
+    docs = await es_client.search(
+        query=query, aggs=aggs, size=0, index=settings.ES_INDEX
+    )
     video_views = VideoViews(total=docs["hits"]["total"]["value"], daily_views=[])
     for bucket in docs["aggregations"]["daily_views"]["buckets"]:
         video_views.daily_views.append(
