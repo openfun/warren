@@ -34,6 +34,9 @@ class VideoViews(BaseModel):
 async def views(video_id: IRI) -> VideoViews:
     """Video views."""
     query = {
+        # FIXME
+        # - Use term search
+        # - Unpack the search_parms dict
         "bool": {
             "must": [
                 {"match": {"verb.display.en-US.keyword": "played"}},
