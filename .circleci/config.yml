@@ -116,14 +116,14 @@ jobs:
           command: |
             WARREN_BACK_IMAGE_BUILD_TARGET=production \
             WARREN_IMAGE_TAG=${CIRCLE_SHA1} \
-              make build
+              make build-docker-backend
       - run:
           name: Check built image availability
           command: docker images "warren-back:${CIRCLE_SHA1}*"
 
   # ---- Backend jobs ----
   # Build backend development environment
-  build:
+  build-backend:
     parameters:
       python-image:
         type: string
@@ -147,7 +147,7 @@ jobs:
             - ~/.local
           key: v1-dependencies-<< parameters.python-image >>-{{ .Revision }}
 
-  lint:
+  lint-backend:
     docker:
       - image: cimg/python:3.11
         auth:
@@ -184,7 +184,7 @@ jobs:
           command: ~/.local/bin/pydocstyle
           working_directory: src/backend
 
-  test:
+  test-backend:
     parameters:
       python-image:
         type: string
@@ -220,8 +220,49 @@ jobs:
               ~/.local/bin/pytest
           working_directory: src/backend
 
+  # ---- Frontend jobs ----
+  lint-frontend:
+    docker:
+      - image: cimg/node:lts
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - run:
+          name: Install development dependencies
+          command: yarn install
+          working_directory: src/frontend
+      - run:
+          name: Lint code using turbo utility
+          command: yarn lint
+          working_directory: src/frontend
+      - run:
+          name: Check formatting using prettier
+          command: yarn run prettier -c "**/*.{ts,tsx,md}"
+          working_directory: src/frontend
+
+  build-frontend:
+    docker:
+      - image: cimg/node:lts
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - run:
+          name: Install development dependencies
+          command: yarn install
+          working_directory: src/frontend
+      - run:
+          name: Build project using turbo utilitity
+          command: yarn build
+          working_directory: src/frontend
+
   # ---- Packaging jobs ----
-  package:
+  package-backend:
     docker:
       - image: cimg/python:3.11
         auth:
@@ -382,25 +423,37 @@ workflows:
       #
       # Build, lint and test production and development Docker images
       # (debian-based)
-      - build:
+      - build-backend:
           matrix:
             parameters:
               python-image: [python:3.8, python:3.9, python:3.10, python:3.11]
           filters:
             tags:
               only: /.*/
-      - lint:
+      - lint-backend:
           requires:
-            - build
+            - build-backend
           filters:
             tags:
               only: /.*/
-      - test:
+      - test-backend:
           matrix:
             parameters:
               python-image: [python:3.8, python:3.9, python:3.10, python:3.11]
           requires:
-            - build
+            - build-backend
+          filters:
+            tags:
+              only: /.*/
+
+      # Frontend jobs
+      #
+      # Build, lint and test frontend sources
+      - lint-frontend:
+          filters:
+            tags:
+              only: /.*/
+      - build-frontend:
           filters:
             tags:
               only: /.*/
@@ -408,10 +461,10 @@ workflows:
       # Packaging: python
       #
       # Build the python package
-      - package:
+      - package-backend:
           requires:
-            - lint
-            - test
+            - lint-backend
+            - test-backend
           filters:
             tags:
               only: /.*/
@@ -436,7 +489,7 @@ workflows:
       # succeed and it has been tagged with a tag starting with the letter v
       - pypi:
           requires:
-            - package
+            - package-backend
           filters:
             branches:
               ignore: /.*/

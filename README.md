@@ -14,12 +14,15 @@ Make target:
 $ make bootstrap
 ```
 
-Once the backend Docker image has been built, you can start the backend server
-using:
+Once frontend and backend Docker images have been built, you can start the
+backend and frontend development servers using:
 
 ```
 $ make run
 ```
+
+You may now take a look at the frontend development server at:
+[http://localhost:3000](http://localhost:3000)
 
 To run tests and linters, there are commands for that! You can list them using:
 
