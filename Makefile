@@ -9,6 +9,7 @@ DOCKER_USER          = $(DOCKER_UID):$(DOCKER_GID)
 COMPOSE              = DOCKER_USER=$(DOCKER_USER) docker compose
 COMPOSE_RUN          = $(COMPOSE) run --rm --no-deps
 COMPOSE_RUN_BACKEND  = $(COMPOSE_RUN) backend
+COMPOSE_RUN_FRONTEND = $(COMPOSE_RUN) frontend
 
 # -- Potsie
 POTSIE_RELEASE = 0.6.0
@@ -23,10 +24,15 @@ ES_URL             = $(ES_PROTOCOL)://$(ES_HOST):$(ES_PORT)
 ES_COMPOSE_URL     = $(ES_PROTOCOL)://$(ES_COMPOSE_SERVICE):$(ES_PORT)
 
 # -- WARREN
-WARREN_BACKEND_IMAGE_NAME         ?= warren-backend
-WARREN_BACKEND_IMAGE_TAG          ?= development
-WARREN_BACKEND_IMAGE_BUILD_TARGET ?= development
-WARREN_BACKEND_SERVER_PORT        ?= 8100
+WARREN_BACKEND_IMAGE_NAME          ?= warren-backend
+WARREN_BACKEND_IMAGE_TAG           ?= development
+WARREN_BACKEND_IMAGE_BUILD_TARGET  ?= development
+WARREN_BACKEND_SERVER_PORT         ?= 8100
+WARREN_FRONTEND_IMAGE_NAME         ?= warren-frontend
+WARREN_FRONTEND_IMAGE_TAG          ?= development
+WARREN_FRONTEND_IMAGE_BUILD_TARGET ?= development
+WARREN_FRONTEND_SERVER_PORT        ?= 3000
+WARREN_FRONTEND_DOCS_PORT          ?= 3001
 
 
 # ==============================================================================
@@ -58,13 +64,32 @@ bootstrap: \
   fixtures
 .PHONY: bootstrap
 
-build: ## build the app container
-build: .env
+build: ## build the app containers
+build: \
+  build-docker-backend \
+  build-docker-frontend
+.PHONY: build
+
+build-docker-backend: ## build the backend container
+build-docker-backend: .env
 	WARREN_BACKEND_IMAGE_BUILD_TARGET=$(WARREN_BACKEND_IMAGE_BUILD_TARGET) \
 	WARREN_BACKEND_IMAGE_NAME=$(WARREN_BACKEND_IMAGE_NAME) \
 	WARREN_BACKEND_IMAGE_TAG=$(WARREN_BACKEND_IMAGE_TAG) \
 	  $(COMPOSE) build backend
-.PHONY: build
+.PHONY: build-docker-backend
+
+build-docker-frontend: ## build the frontend container
+build-docker-frontend: .env
+	WARREN_FRONTEND_IMAGE_BUILD_TARGET=$(WARREN_FRONTEND_IMAGE_BUILD_TARGET) \
+	WARREN_FRONTEND_IMAGE_NAME=$(WARREN_FRONTEND_IMAGE_NAME) \
+	WARREN_FRONTEND_IMAGE_TAG=$(WARREN_FRONTEND_IMAGE_TAG) \
+	  $(COMPOSE) build frontend
+	@$(COMPOSE_RUN_FRONTEND) yarn install
+.PHONY: build-docker-frontend
+
+build-frontend: ## build the frontend application
+	@$(COMPOSE_RUN_FRONTEND) yarn build
+.PHONY: build-frontend
 
 down: ## stop and remove backend containers
 	@$(COMPOSE) down
@@ -74,8 +99,16 @@ logs-backend: ## display backend logs (follow mode)
 	@$(COMPOSE) logs -f backend
 .PHONY: logs-backend
 
+logs-frontend: ## display frontend logs (follow mode)
+	@$(COMPOSE) logs -f frontend
+.PHONY: logs-frontend
+
+logs: ## display frontend/backend logs (follow mode)
+	@$(COMPOSE) logs -f backend frontend
+.PHONY: logs
+
 run: ## run the whole stack
-run: run-backend
+run: run-frontend
 .PHONY: run
 
 run-backend: ## run the backend server (development mode)
@@ -84,6 +117,14 @@ run-backend: ## run the backend server (development mode)
 	@$(COMPOSE_RUN) dockerize -wait tcp://$(ES_COMPOSE_SERVICE):$(ES_PORT) -timeout 60s
 	@$(COMPOSE_RUN) dockerize -wait tcp://backend:$(WARREN_BACKEND_SERVER_PORT) -timeout 60s
 .PHONY: run-backend
+
+run-frontend: ## run the frontend server (development mode)
+run-frontend: run-backend
+	@$(COMPOSE) up -d frontend
+	@echo "Waiting for frontend to be up and running..."
+	@$(COMPOSE_RUN) dockerize -wait tcp://frontend:$(WARREN_FRONTEND_SERVER_PORT) -timeout 60s
+	@$(COMPOSE_RUN) dockerize -wait tcp://frontend:$(WARREN_FRONTEND_DOCS_PORT) -timeout 60s
+.PHONY: run-frontend
 
 status: ## an alias for "docker compose ps"
 	@$(COMPOSE) ps
@@ -126,8 +167,11 @@ lint: \
   lint-flake8 \
   lint-pylint \
   lint-bandit \
-  lint-pydocstyle
+  lint-pydocstyle \
+	lint-frontend
 .PHONY: lint
+
+### Backend ###
 
 lint-black: ## lint backend python sources with black
 	@echo 'lint:black started…'
@@ -158,6 +202,18 @@ lint-pydocstyle: ## lint Python docstrings with pydocstyle
 	@echo 'lint:pydocstyle started…'
 	@$(COMPOSE_RUN_BACKEND) pydocstyle
 .PHONY: lint-pydocstyle
+
+### Frontend ###
+
+lint-frontend: ## lint frontend sources
+	@echo 'lint:frontend started…'
+	@$(COMPOSE_RUN_FRONTEND) yarn lint
+.PHONY: lint-frontend
+
+format-frontend: ## use prettier to format frontend sources
+	@echo 'format:frontend started…'
+	@$(COMPOSE_RUN_FRONTEND) yarn format
+.PHONY: format-frontend
 
 ## -- Tests
 
