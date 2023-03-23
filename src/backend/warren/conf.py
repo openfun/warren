@@ -28,6 +28,12 @@ class Settings(BaseSettings):
     SERVER_HOST: str = "localhost"
     SERVER_PORT: int = 8100
 
+    # Securiry
+    ALLOWED_HOSTS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+    ]
+
     # pylint: disable=invalid-name
     @property
     def SERVER_URL(self):
