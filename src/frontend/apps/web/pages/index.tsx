@@ -1,5 +1,8 @@
+import type { ReactElement } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import Layout from "../components/Layout";
+import type { NextPageWithLayout } from "./_app";
 
 import { DailyViews } from "ui";
 
@@ -11,7 +14,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export default function Web() {
+const Web: NextPageWithLayout = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <h1>Warren.</h1>
@@ -20,4 +23,10 @@ export default function Web() {
       <ReactQueryDevtools initialIsOpen />
     </QueryClientProvider>
   );
-}
+};
+
+Web.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};
+
+export default Web;
