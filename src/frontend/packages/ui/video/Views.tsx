@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts-for-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
 
 import axios from "axios";
 
@@ -12,14 +12,18 @@ type DailyViewsResponseItem = {
   views: number;
 };
 
-type DailyViewsProps = {
-  videoId: string;
+type VideoViewsResponse = {
+  total: number;
+  daily_views: Array<DailyViewsResponseItem>;
 };
 
-export const DailyViews = ({ videoId }: DailyViewsProps) => {
+type DailyViewsProps = {
+  videoIds: Array<string>;
+};
+
+export const DailyViews = ({ videoIds }: DailyViewsProps) => {
   const baseOption: EChartsOption = {
-    title: { text: `Daily views for video: ${videoId}` },
-    grid: { top: 80, right: 8, bottom: 100, left: 36 },
+    grid: { top: 80, right: 8, bottom: 100, left: 50 },
     xAxis: {
       type: "category",
       data: [],
@@ -37,40 +41,67 @@ export const DailyViews = ({ videoId }: DailyViewsProps) => {
       type: "value",
       name: "# views",
     },
-    series: [
-      {
-        data: [],
-        type: "bar",
-        smooth: true,
-      },
-    ],
+    series: [],
     tooltip: {
       trigger: "axis",
     },
-  };
-  const [option, setOption] = useState(baseOption);
-  const { isLoading, error, data, isFetching } = useQuery({
-    queryKey: [`videoViews-${videoId}`],
-    queryFn: () =>
-      axios
-        .get(
-          `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views`
-        )
-        .then((res) => res.data),
-    onSuccess: (data) => {
-      const newOption = cloneDeep(option);
-      const daily_views: Array<DailyViewsResponseItem> = data.daily_views;
-      newOption.xAxis.data = daily_views.map((d) => d.day);
-      newOption.series[0].data = daily_views.map((d) => d.views);
-      setOption(newOption);
-      return data;
+    textStyle: {
+      fontFamily: "Roboto, sans-serif",
     },
+  };
+
+  const [option, setOption] = useState(baseOption);
+
+  const newOption = cloneDeep(option);
+
+  function getVideoViews(videoId: string) {
+    return axios
+      .get(
+        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views`
+      )
+      .then((res) => res.data);
+  }
+
+  function addOneSeries(
+    videoId: string,
+    daily_views: Array<DailyViewsResponseItem>
+  ) {
+    newOption.xAxis.data = daily_views.map((d) => d.day);
+    newOption.series.push({
+      name: videoId,
+      data: daily_views.map((d) => d.views),
+      type: "line",
+      smooth: 0.2,
+      symbol: "none",
+      areaStyle: {},
+      stack: "Total",
+      emphasis: {
+        focus: "series",
+      },
+    });
+    setOption(newOption);
+  }
+
+  const results = useQueries({
+    queries: videoIds.map((videoId) => {
+      return {
+        queryKey: [`videoViews-${videoId}`],
+        queryFn: () => getVideoViews(videoId),
+        onSuccess: (data: VideoViewsResponse) => {
+          addOneSeries(videoId, data.daily_views);
+          return data;
+        },
+      };
+    }),
   });
 
-  if (isLoading) return <span>Loading...</span>;
+  if (results.some((result) => result.isLoading))
+    return <span>Loading...</span>;
 
-  if (error instanceof Error)
-    return <span>An error has occurred: {error.message}</span>;
-
-  return <ReactECharts option={option} />;
+  return (
+    <>
+      <div className="chart-title">Video: daily views</div>
+      <ReactECharts option={option} style={{ height: 500 }} />
+    </>
+  );
 };
