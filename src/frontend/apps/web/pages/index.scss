@@ -1,0 +1,16 @@
+@import "@openfun/cunningham-react/fonts";
+@import "@openfun/cunningham-react/style";
+@import "cunningham-tokens";
+
+:root {
+  @extend .bg-greyscale-100;
+  font-family: Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  height: 100vh;
+}
+
+a {
+  text-decoration: none;
+}
