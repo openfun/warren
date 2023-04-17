@@ -30,7 +30,7 @@ class VideoViews(BaseModel):
 
 
 @router.get("/{video_id:path}/views")
-async def views(video_id: IRI) -> VideoViews:
+async def views(video_id: IRI, since: int = 0, until: int = 9999999999999) -> VideoViews:
     """Video views."""
     query_params = {
         "query": {
@@ -72,8 +72,13 @@ async def views(video_id: IRI) -> VideoViews:
         index=settings.ES_INDEX,
     )
     video_views = VideoViews(total=docs["hits"]["total"]["value"], daily_views=[])
+
     for bucket in docs["aggregations"]["daily_views"]["buckets"]:
+        # sub-optimal query filter, both lines bellow should be in the  query
+        if bucket['key'] < since: continue
+        if bucket['key'] > until: break
         video_views.daily_views.append(
+
             VideoDayViews(day=bucket["key"], views=bucket["doc_count"])
         )
     return video_views
