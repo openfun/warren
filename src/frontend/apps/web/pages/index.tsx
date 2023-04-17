@@ -4,7 +4,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import Layout from "../components/Layout";
 import type { NextPageWithLayout } from "./_app";
 
-import { DailyViews } from "ui";
+import { DailyViews, DateRangePicker } from "ui";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,11 +27,16 @@ const Web: NextPageWithLayout = () => {
     "uuid://dd38149d-956a-483d-8975-c1506de1e1a9",
     "uuid://e151ee65-7a72-478c-ac57-8a02f19e748b",
   ];
+  const title: String = "filter dates:"
   return (
-    <QueryClientProvider client={queryClient}>
-      <DailyViews videoIds={videoIds} since_unix_ms={0} until_unix_ms={9999999999999} />
-      <ReactQueryDevtools initialIsOpen />
-    </QueryClientProvider>
+    <>
+      <DateRangePicker title={title} />
+      <QueryClientProvider client={queryClient}>
+        <DailyViews videoIds={videoIds} since_unix_ms={0} until_unix_ms={9999999999999} />
+        <ReactQueryDevtools initialIsOpen />
+      </QueryClientProvider>
+    </>
+
   );
 };
 
