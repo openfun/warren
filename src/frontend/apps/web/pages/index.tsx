@@ -29,7 +29,7 @@ const Web: NextPageWithLayout = () => {
   ];
   return (
     <QueryClientProvider client={queryClient}>
-      <DailyViews videoIds={videoIds} />
+      <DailyViews videoIds={videoIds} since_unix_ms={0} until_unix_ms={9999999999999} />
       <ReactQueryDevtools initialIsOpen />
     </QueryClientProvider>
   );
