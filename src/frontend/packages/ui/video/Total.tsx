@@ -51,7 +51,7 @@ export const Total = ({ videoIds }: Total) => {
     queries: 
       videoIds.map((videoId) => {
         return {
-          queryKey: [`videoViews-${videoId}`, sinceUnixMs, untilUnixMs],
+          queryKey: [`videoViews-${videoId}`, since, until],
           queryFn: () => getVideoViews(videoId, sinceUnixMs, untilUnixMs),
           onSuccess: (data: VideoViewsResponse) => {
             videoViewStore[videoId] = data.daily_views
@@ -81,8 +81,12 @@ export const Total = ({ videoIds }: Total) => {
     const videos = Object.entries(videoViewStore)
     if (videos.length > 1){
       const firstVideoDailyViews = videos[0][1]
-      const since = new Date(firstVideoDailyViews[0].day).getTime()
-      const until = new Date(firstVideoDailyViews[ firstVideoDailyViews.length -1 ].day).getTime()
+      const since = firstVideoDailyViews.length > 0 ? 
+                      new Date(firstVideoDailyViews[0].day).getTime() 
+                      : 0
+      const until = firstVideoDailyViews.length > 0 ? 
+                      new Date(firstVideoDailyViews[firstVideoDailyViews.length -1].day).getTime() 
+                      : 0
       return {since, until}
     } else {
       return {since: 0, until: 0}
@@ -91,7 +95,7 @@ export const Total = ({ videoIds }: Total) => {
   
 
   // FIXME: race condition ( see ViewsAreaGraph )
-  useEffect( () => { 
+  useEffect( () => {
     setTotalVideoViews(0)
   }, [videoIds, sinceUnixMs, untilUnixMs])
 
