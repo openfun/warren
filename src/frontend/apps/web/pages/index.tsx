@@ -1,11 +1,11 @@
 import type { ReactElement } from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import Layout from "../components/Layout";
 import type { NextPageWithLayout } from "./_app";
 
-import { Total, DailyViews, DateRangePicker, DailyViewsAreaGraph } from "ui";
+import { Total, DateRangePicker, DailyViewsAreaGraph } from "ui";
 import { DateContext } from "ui/DateContext";
 
 const queryClient = new QueryClient({
@@ -15,7 +15,6 @@ const queryClient = new QueryClient({
     },
   },
 });
-
 
 
 const Web: NextPageWithLayout = () => {
