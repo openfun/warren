@@ -36,13 +36,11 @@ export const Total = ({ videoIds }: Total) => {
   const [totalVideoViews, setTotalVideoViews] = useState(0)
 
   const {since, until} = useContext(DateContext)
-  const sinceUnixMs = since
-  const untilUnixMs = until
 
-  function getVideoViews(videoId: string, sinceUnixMs: number , untilUnixMs: number) {
+  function getVideoViews(videoId: string, since: number , until: number) {
     return axios
       .get(
-        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${sinceUnixMs}&until=${untilUnixMs}`
+        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since}&until=${until}`
       )
       .then((res) => res.data);
   }
@@ -52,7 +50,7 @@ export const Total = ({ videoIds }: Total) => {
       videoIds.map((videoId) => {
         return {
           queryKey: [`videoViews-${videoId}`, since, until],
-          queryFn: () => getVideoViews(videoId, sinceUnixMs, untilUnixMs),
+          queryFn: () => getVideoViews(videoId, since, until),
           onSuccess: (data: VideoViewsResponse) => {
             videoViewStore[videoId] = data.daily_views
             return data;
@@ -97,7 +95,7 @@ export const Total = ({ videoIds }: Total) => {
   // FIXME: race condition ( see ViewsAreaGraph )
   useEffect( () => {
     setTotalVideoViews(0)
-  }, [videoIds, sinceUnixMs, untilUnixMs])
+  }, [videoIds, since, until])
 
   if (results.some((result) => result.isLoading))
     return <span>Loading...</span>;
@@ -105,7 +103,7 @@ export const Total = ({ videoIds }: Total) => {
   return (
     <>
       <h1>Total Views</h1>
-      <h2>{calculateTotalViewOnDateRange(videoViewStore, videoIds, sinceUnixMs, untilUnixMs)} Views</h2>
+      <h2>{calculateTotalViewOnDateRange(videoViewStore, videoIds, since, until)} Views</h2>
       <h2>for {videoIds.length} Videos</h2>
       <h2>over {daysBetween(getDateRange(videoViewStore))} days</h2>
       
