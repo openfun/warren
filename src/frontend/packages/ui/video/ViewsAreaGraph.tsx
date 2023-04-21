@@ -63,14 +63,12 @@ export const DailyViewsAreaGraph = ({ videoIds }: DailyViewsProps) => {
   const newOption = cloneDeep(option);
 
   const {since, until} = useContext(DateContext)
-  const since_unix_ms = since
-  const until_unix_ms = until
 
 
-  function getVideoViews(videoId: string, since_unix_ms: number, until_unix_ms: number) {
+  function getVideoViews(videoId: string, since: number, until: number) {
     return axios
       .get(
-        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since_unix_ms}&until=${until_unix_ms}`
+        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since}&until=${until}`
       )
       .then((res) => res.data);
   }
@@ -102,14 +100,16 @@ export const DailyViewsAreaGraph = ({ videoIds }: DailyViewsProps) => {
   useEffect( () => { 
     newOption.series = []
     option.series = []
-  }, [videoIds])
+    console.log("new since")
+    console.log(since)
+  }, [videoIds, since, until])
 
   const results = useQueries({
   queries: 
     videoIds.map((videoId) => {
       return {
-        queryKey: [`videoViews-${videoId}`, since_unix_ms, until_unix_ms],
-        queryFn: () => getVideoViews(videoId, since_unix_ms, until_unix_ms),
+        queryKey: [`videoViews-${videoId}`, since, until],
+        queryFn: () => getVideoViews(videoId, since, until),
         onSuccess: (data: VideoViewsResponse) => {
           addOneSeries(videoId, data.daily_views);
           videoViewStore[videoId] = data.daily_views 
