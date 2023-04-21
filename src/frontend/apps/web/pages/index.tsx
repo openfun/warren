@@ -1,10 +1,12 @@
 import type { ReactElement } from "react";
+import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import Layout from "../components/Layout";
 import type { NextPageWithLayout } from "./_app";
 
-import { DailyViews, DateRangePicker } from "ui";
+import { Total, DateRangePicker, DailyViewsAreaGraph } from "ui";
+import { DateContext } from "ui/DateContext";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -13,6 +15,8 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+
 
 const Web: NextPageWithLayout = () => {
   const videoIds = [
@@ -28,12 +32,24 @@ const Web: NextPageWithLayout = () => {
     "uuid://e151ee65-7a72-478c-ac57-8a02f19e748b",
   ];
   const title: String = "filter dates:"
+
+  const [since, setSince] = useState(0)
+  const [until, setUntil] = useState(9999999999999)
+
+  const updateSinceAndUntil = (newStartingDateUnixMs: number, newEndDateUnixMs: number) => {
+    setSince(newStartingDateUnixMs);
+    setUntil(newEndDateUnixMs);
+  }
+
   return (
     <>
-      <DateRangePicker title={title} />
+      <DateRangePicker title={title} onDateChange={updateSinceAndUntil} />
       <QueryClientProvider client={queryClient}>
-        <DailyViews videoIds={videoIds} since_unix_ms={0} until_unix_ms={9999999999999} />
-        <ReactQueryDevtools initialIsOpen />
+        <DateContext.Provider value={{since, until}}>
+          <DailyViewsAreaGraph videoIds={videoIds}/>
+          <Total videoIds={videoIds} />
+          <ReactQueryDevtools initialIsOpen />
+        </DateContext.Provider>
       </QueryClientProvider>
     </>
 
