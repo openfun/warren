@@ -5,7 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import Layout from "../components/Layout";
 import type { NextPageWithLayout } from "./_app";
 
-import { Total, DateRangePicker, DailyViewsAreaGraph } from "ui";
+import { Total, DailyViews, DateRangePicker, DailyViewsAreaGraph } from "ui";
 import { DateContext } from "ui/DateContext";
 
 const queryClient = new QueryClient({
@@ -45,7 +45,7 @@ const Web: NextPageWithLayout = () => {
     <>
       <DateRangePicker title={title} onDateChange={updateSinceAndUntil} />
       <QueryClientProvider client={queryClient}>
-        <DateContext.Provider value={{since, until}}>
+        <DateContext.Provider value={{since, until}}>          
           <DailyViewsAreaGraph videoIds={videoIds}/>
           <Total videoIds={videoIds} />
           <ReactQueryDevtools initialIsOpen />

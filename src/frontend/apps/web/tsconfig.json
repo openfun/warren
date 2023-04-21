@@ -1,5 +1,5 @@
 {
   "extends": "tsconfig/nextjs.json",
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "../../packages/ui/DateContext.ts"],
   "exclude": ["node_modules"]
 }
