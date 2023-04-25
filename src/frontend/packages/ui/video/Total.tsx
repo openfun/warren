@@ -83,9 +83,11 @@ export const Total = ({ videoIds }: Total) => {
   return (
     <>
       <h1>Total Views</h1>
-      <h2>{calculateTotal(videoViewStore)} Views</h2>
-      <h2>for {videoIds.length} Videos</h2>
-      <h2>over {daysBetween({since, until})} days</h2>
+      <h2>{calculateTotal(videoViewStore)} views in total</h2>
+      {Object.entries(videoViewStore).map( ([vid, views]) => (
+        <p>{views.total} total views for {vid}</p>
+      )
+      )}
     </>
   );
 };
