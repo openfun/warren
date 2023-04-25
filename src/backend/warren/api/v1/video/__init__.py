@@ -42,7 +42,7 @@ async def views(video_id: IRI, since: int = 0, until: int = 9999999999999) -> Vi
                                 "result.extensions."
                                 "https://w3id.org/xapi/video/extensions/time"
                             ): {"lte": 30}
-                        }
+                        },
                     },
                     {
                         "term": {
@@ -53,6 +53,16 @@ async def views(video_id: IRI, since: int = 0, until: int = 9999999999999) -> Vi
                         "term": {
                             "object.id.keyword": video_id,
                         }
+                    },
+                    {
+                      "range": {
+                        "timestamp": {"lt": until}
+                      }
+                    },
+                    {
+                      "range": {
+                        "timestamp": {"gt": since}
+                      }
                     },
                 ],
             }
@@ -74,11 +84,7 @@ async def views(video_id: IRI, since: int = 0, until: int = 9999999999999) -> Vi
     video_views = VideoViews(total=docs["hits"]["total"]["value"], daily_views=[])
 
     for bucket in docs["aggregations"]["daily_views"]["buckets"]:
-        # sub-optimal query filter, both lines bellow should be in the  query
-        if bucket['key'] < since: continue
-        if bucket['key'] > until: break
         video_views.daily_views.append(
-
             VideoDayViews(day=bucket["key"], views=bucket["doc_count"])
         )
     return video_views
