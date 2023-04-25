@@ -61,14 +61,6 @@ export const Total = ({ videoIds }: Total) => {
       }),
   });
 
-
-  function daysBetween({since, until}: DateRange){
-    const millisecondsPerDay = 1000 * 60 * 60 * 24;
-    const differenceInMilliseconds = Math.abs(until.getTime() - since.getTime());
-    const differenceInDays = differenceInMilliseconds / millisecondsPerDay;
-    return Math.round(differenceInDays);
-  }
-
   function calculateTotal(videoViews: VideoViewStore){
     return Object.entries(videoViews).reduce(
       (acc: number, [vid, views]) => acc + views.total ,
