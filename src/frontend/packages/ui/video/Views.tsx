@@ -19,11 +19,11 @@ type VideoViewsResponse = {
 
 type DailyViewsProps = {
   videoIds: Array<string>;
-  since_unix_ms: number;
-  until_unix_ms: number;
+  since: Date;
+  until: Date;
 };
 
-export const DailyViews = ({ videoIds, since_unix_ms = 0, until_unix_ms = 9999999999999 }: DailyViewsProps) => {
+export const DailyViews = ({ videoIds, since_unix_ms, until_unix_ms }: DailyViewsProps) => {
   const baseOption: EChartsOption = {
     grid: { top: 80, right: 8, bottom: 100, left: 50 },
     xAxis: {
@@ -56,7 +56,7 @@ export const DailyViews = ({ videoIds, since_unix_ms = 0, until_unix_ms = 999999
 
   const newOption = cloneDeep(option);
 
-  function getVideoViews(videoId: string, since_unix_ms: number , until_unix_ms: number) {
+  function getVideoViews(videoId: string, since: Date , until: Date) {
     return axios
       .get(
         `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since_unix_ms}&until=${until_unix_ms}`
