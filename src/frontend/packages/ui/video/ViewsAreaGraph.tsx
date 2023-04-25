@@ -65,10 +65,10 @@ export const DailyViewsAreaGraph = ({ videoIds }: DailyViewsProps) => {
   const {since, until} = useContext(DateContext)
 
 
-  function getVideoViews(videoId: string, since: number, until: number) {
+  function getVideoViews(videoId: string, since: Date, until: Date) {
     return axios
       .get(
-        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since}&until=${until}`
+        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since.getTime()}&until=${until.getTime()}`
       )
       .then((res) => res.data);
   }

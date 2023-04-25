@@ -1,7 +1,9 @@
 import { createContext } from 'react';
 
 type DateContext = {
-    since: number,
-    until: number,
+    since: Date,
+    until: Date,
 }
-export const DateContext = createContext({since:0, until:9999999999999});
+const now = new Date()
+const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000 )
+export const DateContext = createContext({since: oneWeekAgo, until: now});

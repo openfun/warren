@@ -16,8 +16,8 @@ type VideoViewsResponse = {
 };
 
 type DateRange = {
-  since: number;
-  until: number;
+  since: Date;
+  until: Date;
 }
 
 type Total = {
@@ -37,10 +37,11 @@ export const Total = ({ videoIds }: Total) => {
 
   const {since, until} = useContext(DateContext)
 
-  function getVideoViews(videoId: string, since: number , until: number) {
+  function getVideoViews(videoId: string, since: Date , until: Date) {
+
     return axios
       .get(
-        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since}&until=${until}`
+        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since.getTime()}&until=${until.getTime()}`
       )
       .then((res) => res.data);
   }
@@ -48,6 +49,7 @@ export const Total = ({ videoIds }: Total) => {
   const results = useQueries({
     queries: 
       videoIds.map((videoId) => {
+       
         return {
           queryKey: [`videoViews-${videoId}`, since, until],
           queryFn: () => getVideoViews(videoId, since, until),
@@ -62,7 +64,7 @@ export const Total = ({ videoIds }: Total) => {
 
   function daysBetween({since, until}: DateRange){
     const millisecondsPerDay = 1000 * 60 * 60 * 24;
-    const differenceInMilliseconds = Math.abs(until - since);
+    const differenceInMilliseconds = Math.abs(until.getTime() - since.getTime());
     const differenceInDays = differenceInMilliseconds / millisecondsPerDay;
     return Math.round(differenceInDays);
   }
@@ -74,6 +76,7 @@ export const Total = ({ videoIds }: Total) => {
       )
   }
 
+
   if (results.some((result) => result.isLoading))
     return <span>Loading...</span>;
 
@@ -83,7 +86,6 @@ export const Total = ({ videoIds }: Total) => {
       <h2>{calculateTotal(videoViewStore)} Views</h2>
       <h2>for {videoIds.length} Videos</h2>
       <h2>over {daysBetween({since, until})} days</h2>
-      
     </>
   );
 };

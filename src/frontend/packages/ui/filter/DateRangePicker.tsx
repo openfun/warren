@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useContext, useState, useEffect } from "react";
 
 import { DateRangePicker as RSuiteDateRangePicker } from 'rsuite';
 import { DateRange } from "rsuite/esm/DateRangePicker";
 import '../styles/main.css';
 
+
+import { DateContext } from "../DateContext";
+
 type DateRangePickerProps = {
   title: String
-  onDateChange: (since: number, until: number) => void
+  onDateChange: (since: Date, until: Date) => void
 }
 
 // TODO: add format, start and end date in props
@@ -14,15 +17,19 @@ export const DateRangePicker = ({title = "Filter by date", onDateChange}: DateRa
 
   const onDateValueChange = (value: DateRange | null, event: React.SyntheticEvent<Element, Event>) => {
     if (value) {
-      onDateChange(value[0].getTime(), value[1].getTime())
+      onDateChange(value[0], value[1])
     }
   }
+
+  const {since, until} = useContext(DateContext)
+
 return (
      <>
         <p>{title}</p>
         <RSuiteDateRangePicker
           format="yyyy-MM-dd HH:mm:ss"
-          defaultCalendarValue={[new Date('2023-03-01 00:00:00'), new Date('2022-05-01 23:59:59')]}
+
+          defaultCalendarValue={[since, until]}
           onChange={onDateValueChange}
           
       />;

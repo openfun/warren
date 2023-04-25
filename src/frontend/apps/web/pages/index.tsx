@@ -31,20 +31,22 @@ const Web: NextPageWithLayout = () => {
     "uuid://e151ee65-7a72-478c-ac57-8a02f19e748b",
   ];
   const title: String = "filter dates:"
+  const now = new Date()
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000 )
 
-  const [since, setSince] = useState(0)
-  const [until, setUntil] = useState(9999999999999)
+  const [since, setSince] = useState(oneWeekAgo)
+  const [until, setUntil] = useState(now)
 
-  const updateSinceAndUntil = (newStartingDateUnixMs: number, newEndDateUnixMs: number) => {
-    setSince(newStartingDateUnixMs);
-    setUntil(newEndDateUnixMs);
+  const updateSinceAndUntil = (newStartingDate: Date, newEndDate: Date) => {
+    setSince(newStartingDate);
+    setUntil(newEndDate);
   }
 
   return (
     <>
       <DateRangePicker title={title} onDateChange={updateSinceAndUntil} />
       <QueryClientProvider client={queryClient}>
-        <DateContext.Provider value={{since, until}}>          
+        <DateContext.Provider value={{since, until}}>
           <DailyViewsAreaGraph videoIds={videoIds}/>
           <Total videoIds={videoIds} />
           <ReactQueryDevtools initialIsOpen />

@@ -23,7 +23,7 @@ type DailyViewsProps = {
   until: Date;
 };
 
-export const DailyViews = ({ videoIds, since_unix_ms, until_unix_ms }: DailyViewsProps) => {
+    export const DailyViews = ({ videoIds, since, until }: DailyViewsProps) => {
   const baseOption: EChartsOption = {
     grid: { top: 80, right: 8, bottom: 100, left: 50 },
     xAxis: {
@@ -59,7 +59,7 @@ export const DailyViews = ({ videoIds, since_unix_ms, until_unix_ms }: DailyView
   function getVideoViews(videoId: string, since: Date , until: Date) {
     return axios
       .get(
-        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since_unix_ms}&until=${until_unix_ms}`
+        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since.getTime()}&until=${until.getTime()}`
       )
       .then((res) => res.data);
   }
@@ -88,7 +88,7 @@ export const DailyViews = ({ videoIds, since_unix_ms, until_unix_ms }: DailyView
     queries: videoIds.map((videoId) => {
       return {
         queryKey: [`videoViews-${videoId}`],
-        queryFn: () => getVideoViews(videoId, since_unix_ms, until_unix_ms),
+        queryFn: () => getVideoViews(videoId, since, until),
         onSuccess: (data: VideoViewsResponse) => {
           addOneSeries(videoId, data.daily_views);
           return data;
