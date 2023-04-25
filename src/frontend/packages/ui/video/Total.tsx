@@ -60,7 +60,6 @@ export const Total = ({ videoIds }: Total) => {
   });
 
 
-
   function daysBetween({since, until}: DateRange){
     const millisecondsPerDay = 1000 * 60 * 60 * 24;
     const differenceInMilliseconds = Math.abs(until - since);
