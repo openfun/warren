@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useState, useContext, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts-for-react";
-import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
+import { useQueries } from "@tanstack/react-query";
+import { getVideoViews } from "./fetchVideoViews"
 
 import axios from "axios";
 
 import cloneDeep from "lodash.clonedeep";
+
+import { DateContext } from "../DateContext";
 
 type DailyViewsResponseItem = {
   day: string;
@@ -17,13 +20,11 @@ type VideoViewsResponse = {
   daily_views: Array<DailyViewsResponseItem>;
 };
 
-type DailyViewsProps = {
+type DailyViewsAreaGraphProps = {
   videoIds: Array<string>;
-  since: Date;
-  until: Date;
 };
 
-    export const DailyViews = ({ videoIds, since, until }: DailyViewsProps) => {
+export const DailyViewsAreaGraph = ({ videoIds }: DailyViewsAreaGraphProps) => {
   const baseOption: EChartsOption = {
     grid: { top: 80, right: 8, bottom: 100, left: 50 },
     xAxis: {
@@ -53,16 +54,15 @@ type DailyViewsProps = {
   };
 
   const [option, setOption] = useState(baseOption);
+  type videoViewStoreType = {
+    [key: string]: Array<DailyViewsResponseItem>;
+  };
+
+  const [videoViewStore, setVideoViewStore] = useState<videoViewStoreType>({});
 
   const newOption = cloneDeep(option);
 
-  function getVideoViews(videoId: string, since: Date , until: Date) {
-    return axios
-      .get(
-        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since.getTime()}&until=${until.getTime()}`
-      )
-      .then((res) => res.data);
-  }
+  const { since, until } = useContext(DateContext);
 
   function addOneSeries(
     videoId: string,
@@ -84,13 +84,23 @@ type DailyViewsProps = {
     setOption(newOption);
   }
 
+  // # FIXME: Race condition
+  // some data are lost if useQueries fetch data before useEffect is triggered
+  // even if its unlikely we should not rely on that
+  // Use chained queries instead ?
+  useEffect(() => {
+    newOption.series = [];
+    option.series = [];
+  }, [videoIds, since, until]);
+
   const results = useQueries({
     queries: videoIds.map((videoId) => {
       return {
-        queryKey: [`videoViews-${videoId}`],
+        queryKey: [`videoViews-${videoId}`, since, until],
         queryFn: () => getVideoViews(videoId, since, until),
         onSuccess: (data: VideoViewsResponse) => {
           addOneSeries(videoId, data.daily_views);
+          videoViewStore[videoId] = data.daily_views;
           return data;
         },
       };
@@ -102,8 +112,10 @@ type DailyViewsProps = {
 
   return (
     <>
+      <h1>Daily Views</h1>
       <div className="chart-title">Video: daily views</div>
       <ReactECharts option={option} style={{ height: 500 }} />
     </>
   );
 };
+

@@ -3,6 +3,7 @@ import { useQueries } from "@tanstack/react-query";
 
 import axios from "axios";
 
+import { getVideoViews } from "./fetchVideoViews";
 import { DateContext } from "../DateContext";
 
 type DailyViewsResponseItem = {
@@ -18,56 +19,41 @@ type VideoViewsResponse = {
 type DateRange = {
   since: Date;
   until: Date;
-}
+};
 
 type Total = {
   videoIds: Array<string>;
 };
 
-
 type VideoViewStore = {
-    [key: string] :  VideoViewsResponse
-}
-
+  [key: string]: VideoViewsResponse;
+};
 
 export const Total = ({ videoIds }: Total) => {
+  const [videoViewStore, setVideoViewStore] = useState<VideoViewStore>({});
 
-
-  const [videoViewStore, setVideoViewStore] = useState<VideoViewStore>({}) 
-
-  const {since, until} = useContext(DateContext)
-
-  function getVideoViews(videoId: string, since: Date , until: Date) {
-
-    return axios
-      .get(
-        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views?since=${since.getTime()}&until=${until.getTime()}`
-      )
-      .then((res) => res.data);
-  }
+  const { since, until } = useContext(DateContext);
 
   const results = useQueries({
-    queries: 
-      videoIds.map((videoId) => {
-       
-        return {
-          queryKey: [`videoViews-${videoId}`, since, until],
-          queryFn: () => getVideoViews(videoId, since, until),
-          onSuccess: (data: VideoViewsResponse) => {
-            videoViewStore[videoId] = data
-            return data;
-          },
-        };
-      }),
+    queries: videoIds.map((videoId) => {
+      return {
+        queryKey: [`videoViews-${videoId}`, since, until],
+        queryFn: () => getVideoViews(videoId, since, until),
+        onSuccess: (data: VideoViewsResponse) => {
+          console.log(data);
+          videoViewStore[videoId] = data;
+          return data;
+        },
+      };
+    }),
   });
 
-  function calculateTotal(videoViews: VideoViewStore){
+  function calculateTotal(videoViews: VideoViewStore) {
     return Object.entries(videoViews).reduce(
-      (acc: number, [vid, views]) => acc + views.total ,
+      (acc: number, [vid, views]) => acc + views.total,
       0
-      )
+    );
   }
-
 
   if (results.some((result) => result.isLoading))
     return <span>Loading...</span>;
@@ -76,10 +62,11 @@ export const Total = ({ videoIds }: Total) => {
     <>
       <h1>Total Views</h1>
       <h2>{calculateTotal(videoViewStore)} views in total</h2>
-      {Object.entries(videoViewStore).map( ([vid, views]) => (
-        <p key={vid}>{views.total} total views for {vid}</p>
-      )
-      )}
+      {Object.entries(videoViewStore).map(([vid, views]) => (
+        <p key={vid}>
+          {views.total} total views for {vid}
+        </p>
+      ))}
     </>
   );
 };
