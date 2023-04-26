@@ -77,7 +77,7 @@ export const Total = ({ videoIds }: Total) => {
       <h1>Total Views</h1>
       <h2>{calculateTotal(videoViewStore)} views in total</h2>
       {Object.entries(videoViewStore).map( ([vid, views]) => (
-        <p>{views.total} total views for {vid}</p>
+        <p key={vid}>{views.total} total views for {vid}</p>
       )
       )}
     </>
