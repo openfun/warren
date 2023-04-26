@@ -10,6 +10,15 @@ and this project adheres to
 
 ### Added
 
+- Date picker filter
+- Total views component
+- Daily views area graph component
+
+
+## [Unreleased]
+
+### Added
+
 - Bootstrap base backend boilerplate
 - Implement video views endpoint
 - Bootstrap base frontend boilerplate using turborepo
