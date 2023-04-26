@@ -36,9 +36,9 @@ const Web: NextPageWithLayout = () => {
   const [since, setSince] = useState(oneWeekAgo);
   const [until, setUntil] = useState(now);
 
-  const updateSinceAndUntil = (newStartingDate: Date, newEndDate: Date) => {
-    setSince(newStartingDate);
-    setUntil(newEndDate);
+  const updateSinceAndUntil = (newSince: Date, newUntil: Date) => {
+    setSince(newSince);
+    setUntil(newUntil);
   };
 
   return (

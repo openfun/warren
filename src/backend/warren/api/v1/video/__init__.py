@@ -35,14 +35,13 @@ async def views(
     since: Optional[datetime] = Query(
         None,
         description=(
-            "Only views stored since the "
-            "specified Timestamp (exclusive) are returned"
+            "Filter events that occurred after that timestamp (included)"
         ),
     ),
     until: Optional[datetime] = Query(
         None,
         description=(
-            "Only views stored at or before the specified Timestamp are returned"
+            "Filter events that occurred before that timestamp (included)"
         ),
     ),
 ) -> VideoViews:
@@ -69,7 +68,7 @@ async def views(
                             "object.id.keyword": video_id,
                         }
                     },
-                    {"range": {"timestamp": {"gt": since}}},
+                    {"range": {"timestamp": {"gte": since}}},
                     {"range": {"timestamp": {"lte": until}}},
                 ],
             }
