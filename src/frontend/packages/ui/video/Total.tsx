@@ -40,7 +40,7 @@ export const Total = ({ videoIds }: Total) => {
         queryKey: [`videoViews-${videoId}`, since, until],
         queryFn: () => getVideoViews(videoId, since, until),
         onSuccess: (data: VideoViewsResponse) => {
-          console.log(data);
+          // console.log(data);
           videoViewStore[videoId] = data;
           return data;
         },

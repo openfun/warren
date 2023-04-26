@@ -5,11 +5,15 @@
   "types": "./index.tsx",
   "license": "MIT",
   "scripts": {
-    "lint": "eslint \"**/*.ts*\""
+    "lint": "eslint \"**/*.ts*\"",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "devDependencies": {
     "@tanstack/react-query": "^4.28.0",
     "@tanstack/react-query-devtools": "^4.28.0",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@types/jest": "^29.5.1",
     "@types/lodash.clonedeep": "^4.5.7",
     "@types/react": "^18.0.22",
     "axios": "^1.3.4",
@@ -17,8 +21,11 @@
     "echarts-for-react": "^3.0.2",
     "eslint": "^7.32.0",
     "eslint-config-custom": "*",
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
     "lodash.clonedeep": "^4.5.0",
     "react": "^18.2.0",
+    "ts-jest": "^29.1.0",
     "tsconfig": "*",
     "typescript": "^4.5.2"
   },
