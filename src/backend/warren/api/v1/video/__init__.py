@@ -1,9 +1,9 @@
 """Warren API v1 video router."""
 
-import datetime
-from typing import List
+from datetime import datetime, date
+from typing import List, Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from pydantic import BaseModel
 
 from warren import backends
@@ -18,7 +18,7 @@ router = APIRouter(
 class VideoDayViews(BaseModel):
     """Model to represent video views for a date."""
 
-    day: datetime.date
+    day: date
     views: int
 
 
@@ -30,7 +30,22 @@ class VideoViews(BaseModel):
 
 
 @router.get("/{video_id:path}/views")
-async def views(video_id: IRI, since: int = 0, until: int = 9999999999999) -> VideoViews:
+async def views(
+video_id: IRI,
+since: Optional[datetime] = Query(
+    None,
+    description=(
+        "Only views stored since the "
+        "specified Timestamp (exclusive) are returned"
+    ),
+),
+until: Optional[datetime] = Query(
+    None,
+    description=(
+        "Only views stored at or " "before the specified Timestamp are returned"
+    ),
+),
+) -> VideoViews:
     """Video views."""
     query_params = {
         "query": {
@@ -54,16 +69,8 @@ async def views(video_id: IRI, since: int = 0, until: int = 9999999999999) -> Vi
                             "object.id.keyword": video_id,
                         }
                     },
-                    {
-                      "range": {
-                        "timestamp": {"lt": until}
-                      }
-                    },
-                    {
-                      "range": {
-                        "timestamp": {"gt": since}
-                      }
-                    },
+                    {"range": {"timestamp": {"lt": until}}},
+                    {"range": {"timestamp": {"gt": since}}},
                 ],
             }
         },
