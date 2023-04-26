@@ -9,5 +9,3 @@ export function getVideoViews(videoId: string, since: Date, until: Date) {
     )
     .then((res) => res.data);
 }
-
-

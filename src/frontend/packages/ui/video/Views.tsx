@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts-for-react";
 import { useQueries } from "@tanstack/react-query";
-import { getVideoViews } from "./fetchVideoViews"
+import { getVideoViews } from "./fetchVideoViews";
 
 import axios from "axios";
 
@@ -118,4 +118,3 @@ export const DailyViewsAreaGraph = ({ videoIds }: DailyViewsAreaGraphProps) => {
     </>
   );
 };
-

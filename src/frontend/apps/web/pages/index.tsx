@@ -16,7 +16,6 @@ const queryClient = new QueryClient({
   },
 });
 
-
 const Web: NextPageWithLayout = () => {
   const videoIds = [
     "uuid://0aecfa93-cef3-45ae-b7f5-a603e9e45f50",
@@ -30,30 +29,29 @@ const Web: NextPageWithLayout = () => {
     "uuid://dd38149d-956a-483d-8975-c1506de1e1a9",
     "uuid://e151ee65-7a72-478c-ac57-8a02f19e748b",
   ];
-  const title: String = "filter dates:"
-  const now = new Date()
-  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000 )
+  const title: String = "filter dates:";
+  const now = new Date();
+  const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-  const [since, setSince] = useState(oneWeekAgo)
-  const [until, setUntil] = useState(now)
+  const [since, setSince] = useState(oneWeekAgo);
+  const [until, setUntil] = useState(now);
 
   const updateSinceAndUntil = (newStartingDate: Date, newEndDate: Date) => {
     setSince(newStartingDate);
     setUntil(newEndDate);
-  }
+  };
 
   return (
     <>
       <DateRangePicker title={title} onDateChange={updateSinceAndUntil} />
       <QueryClientProvider client={queryClient}>
-        <DateContext.Provider value={{since, until}}>
-          <DailyViewsAreaGraph videoIds={videoIds}/>
+        <DateContext.Provider value={{ since, until }}>
+          <DailyViewsAreaGraph videoIds={videoIds} />
           <Total videoIds={videoIds} />
           <ReactQueryDevtools initialIsOpen />
         </DateContext.Provider>
       </QueryClientProvider>
     </>
-
   );
 };
 
