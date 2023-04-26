@@ -31,20 +31,20 @@ class VideoViews(BaseModel):
 
 @router.get("/{video_id:path}/views")
 async def views(
-video_id: IRI,
-since: Optional[datetime] = Query(
-    None,
-    description=(
-        "Only views stored since the "
-        "specified Timestamp (exclusive) are returned"
+    video_id: IRI,
+    since: Optional[datetime] = Query(
+        None,
+        description=(
+            "Only views stored since the "
+            "specified Timestamp (exclusive) are returned"
+        ),
     ),
-),
-until: Optional[datetime] = Query(
-    None,
-    description=(
-        "Only views stored at or " "before the specified Timestamp are returned"
+    until: Optional[datetime] = Query(
+        None,
+        description=(
+            "Only views stored at or before the specified Timestamp are returned"
+        ),
     ),
-),
 ) -> VideoViews:
     """Video views."""
     query_params = {
@@ -69,8 +69,8 @@ until: Optional[datetime] = Query(
                             "object.id.keyword": video_id,
                         }
                     },
-                    {"range": {"timestamp": {"lt": until}}},
                     {"range": {"timestamp": {"gt": since}}},
+                    {"range": {"timestamp": {"lte": until}}},
                 ],
             }
         },
