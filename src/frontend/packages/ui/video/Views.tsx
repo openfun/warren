@@ -20,11 +20,11 @@ type VideoViewsResponse = {
   daily_views: Array<DailyViewsResponseItem>;
 };
 
-type DailyViewsAreaGraphProps = {
+type DailyViewsProps = {
   videoIds: Array<string>;
 };
 
-export const DailyViewsAreaGraph = ({ videoIds }: DailyViewsAreaGraphProps) => {
+export const DailyViews = ({ videoIds }: DailyViewsProps) => {
   const baseOption: EChartsOption = {
     grid: { top: 80, right: 8, bottom: 100, left: 50 },
     xAxis: {
