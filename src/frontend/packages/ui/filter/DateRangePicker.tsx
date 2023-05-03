@@ -11,28 +11,38 @@ type DateRangePickerProps = {
   onDateChange: (since: Date, until: Date) => void;
 };
 
-// TODO: add format, start and end date in props
 export const DateRangePicker = ({
   title = "Filter by date",
   onDateChange,
 }: DateRangePickerProps) => {
+
+  const { since, until } = useContext(DateContext);
+
+  const [dateRange, setDateRange] = useState<DateRange|null>([since, until])
+
+  useEffect( () => {
+    setDateRange([since, until])
+  }, [])
+
+
   const onDateValueChange = (
     value: DateRange | null,
     event: React.SyntheticEvent<Element, Event>
   ) => {
     if (value) {
+      setDateRange(value)
       onDateChange(value[0], value[1]);
     }
   };
 
-  const { since, until } = useContext(DateContext);
+
 
   return (
     <>
       <p>{title}</p>
       <RSuiteDateRangePicker
         format="yyyy-MM-dd HH:mm:ss"
-        defaultCalendarValue={[since, until]}
+        defaultValue={dateRange}
         onChange={onDateValueChange}
       />
       ;
