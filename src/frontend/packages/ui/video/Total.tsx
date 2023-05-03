@@ -1,7 +1,5 @@
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useContext } from "react";
 import { useQueries } from "@tanstack/react-query";
-
-import axios from "axios";
 
 import { getVideoViews } from "./fetchVideoViews";
 import { DateContext } from "../DateContext";

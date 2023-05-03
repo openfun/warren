@@ -29,6 +29,7 @@ const Web: NextPageWithLayout = () => {
     "uuid://dd38149d-956a-483d-8975-c1506de1e1a9",
     "uuid://e151ee65-7a72-478c-ac57-8a02f19e748b",
   ];
+
   const title: String = "filter dates:";
   const now = new Date();
   const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);

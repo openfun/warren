@@ -15,27 +15,23 @@ export const DateRangePicker = ({
   title = "Filter by date",
   onDateChange,
 }: DateRangePickerProps) => {
-
   const { since, until } = useContext(DateContext);
 
-  const [dateRange, setDateRange] = useState<DateRange|null>([since, until])
+  const [dateRange, setDateRange] = useState<DateRange | null>([since, until]);
 
-  useEffect( () => {
-    setDateRange([since, until])
-  }, [])
-
+  useEffect(() => {
+    setDateRange([since, until]);
+  }, []);
 
   const onDateValueChange = (
     value: DateRange | null,
     event: React.SyntheticEvent<Element, Event>
   ) => {
     if (value) {
-      setDateRange(value)
+      setDateRange(value);
       onDateChange(value[0], value[1]);
     }
   };
-
-
 
   return (
     <>
