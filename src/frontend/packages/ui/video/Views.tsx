@@ -25,6 +25,33 @@ type DailyViewsProps = {
 type videoViewStoreType = {
   [key: string]: Array<DailyViewsResponseItem>;
 };
+const generateBaseOption: () => EChartsOption = () => ({
+  grid: { top: 80, right: 8, bottom: 100, left: 50 },
+  xAxis: {
+    type: 'category',
+    data: [],
+    axisTick: {
+      alignWithLabel: true,
+      interval: 0,
+    },
+    axisLabel: {
+      interval: 0,
+      rotate: 45,
+      height: 200,
+    },
+  },
+  yAxis: {
+    type: 'value',
+    name: '# views',
+  },
+  series: [],
+  tooltip: {
+    trigger: 'axis',
+  },
+  textStyle: {
+    fontFamily: 'Roboto, sans-serif',
+  },
+});
 
 export const DailyViews = ({ videoIds }: DailyViewsProps) => {
   const baseOption: EChartsOption = {
@@ -81,9 +108,8 @@ export const DailyViews = ({ videoIds }: DailyViewsProps) => {
 
   function dataToEChatsOption(
     videoViews: videoViewStoreType,
-    baseOption: EChartsOption
+    option: EChartsOption
   ) {
-    const option = cloneDeep(baseOption);
     Object.entries(videoViews).map(([vid, daily_views]) => {
       option.xAxis.data = daily_views.map((d) => d.day);
       option.series.push({
@@ -111,7 +137,7 @@ export const DailyViews = ({ videoIds }: DailyViewsProps) => {
       <div className="chart-title">Video: daily views</div>
       {/* <ReactECharts option={option} style={{ height: 500 }} /> */}
       <ReactECharts
-        option={dataToEChatsOption(videoViewStore, baseOption)}
+        option={dataToEChatsOption(videoViewStore, generateBaseOption())}
         style={{ height: 500 }}
       />
       <h2>{dataToEChatsOption(videoViewStore, baseOption).series.length} </h2>
