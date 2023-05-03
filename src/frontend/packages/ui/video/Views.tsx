@@ -1,10 +1,8 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useMemo } from "react";
 import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts-for-react";
 import { useQueries } from "@tanstack/react-query";
 import { getVideoViews } from "./fetchVideoViews";
-
-import cloneDeep from "lodash.clonedeep";
 
 import { DateContext } from "../DateContext";
 
@@ -25,6 +23,7 @@ type DailyViewsProps = {
 type videoViewStoreType = {
   [key: string]: Array<DailyViewsResponseItem>;
 };
+
 const generateBaseOption: () => EChartsOption = () => ({
   grid: { top: 80, right: 8, bottom: 100, left: 50 },
   xAxis: {
@@ -88,45 +87,40 @@ export const DailyViews = ({ videoIds }: DailyViewsProps) => {
 
   const results = useQueries({
     queries: videoIds.map((videoId) => {
-      console.log("query");
-      console.log(
-        `${
-          process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL
-        }/api/v1/video/${videoId}/views?since=${since.toISOString()}&until=${until.toISOString()}`
-      );
-      console.log(since.toISOString());
       return {
         queryKey: [`videoViews-${videoId}`, since, until],
         queryFn: () => getVideoViews(videoId, since, until),
         onSuccess: (data: VideoViewsResponse) => {
-          videoViewStore[videoId] = data.daily_views;
+          setVideoViewStore((prev) => ({ ...prev, [videoId]: data.daily_views }));
           return data;
         },
       };
     }),
   });
 
-  function dataToEChatsOption(
-    videoViews: videoViewStoreType,
-    option: EChartsOption
-  ) {
-    Object.entries(videoViews).map(([vid, daily_views]) => {
+  const chartOption = useMemo(() => {
+    const baseOption = generateBaseOption();
+    const option = { ...baseOption, xAxis: { ...baseOption.xAxis, data: [] }, series: [] };
+
+    Object.entries(videoViewStore).forEach(([videoId, daily_views]) => {
       option.xAxis.data = daily_views.map((d) => d.day);
       option.series.push({
-        name: vid,
+        name: videoId,
         data: daily_views.map((d) => d.views),
-        type: "line",
+        type: 'line',
         smooth: 0.2,
-        symbol: "none",
+        symbol: 'none',
         areaStyle: {},
-        stack: "Total",
+        stack: 'Total',
         emphasis: {
-          focus: "series",
+          focus: 'series',
         },
       });
     });
+
     return option;
-  }
+  }, [videoViewStore]);
+
 
   if (results.some((result) => result.isLoading))
     return <span>Loading...</span>;
@@ -135,12 +129,10 @@ export const DailyViews = ({ videoIds }: DailyViewsProps) => {
     <>
       <h1>Daily Views</h1>
       <div className="chart-title">Video: daily views</div>
-      {/* <ReactECharts option={option} style={{ height: 500 }} /> */}
       <ReactECharts
-        option={dataToEChatsOption(videoViewStore, generateBaseOption())}
+        option={chartOption}
         style={{ height: 500 }}
       />
-      <h2>{dataToEChatsOption(videoViewStore, baseOption).series.length} </h2>
     </>
   );
 };
