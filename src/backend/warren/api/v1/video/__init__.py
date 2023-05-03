@@ -1,6 +1,6 @@
 """Warren API v1 video router."""
 
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import List, Optional
 
 from fastapi import APIRouter, Query
@@ -27,6 +27,10 @@ class VideoViews(BaseModel):
 
     total: int
     daily_views: List[VideoDayViews]
+
+
+def days_between(since: datetime, until: datetime) -> int:
+    return (until.date() - since.date()).days + 1
 
 
 @router.get("/{video_id:path}/views")
@@ -69,7 +73,7 @@ async def views(
                             "object.id.keyword": video_id,
                         }
                     },
-                    {"range": {"timestamp": {"gt": since}}},
+                    {"range": {"timestamp": {"gte": since}}},
                     {"range": {"timestamp": {"lte": until}}},
                 ],
             }
@@ -88,10 +92,30 @@ async def views(
         **query_params,
         index=settings.ES_INDEX,
     )
+
+    buckets = docs["aggregations"]["daily_views"]["buckets"]
     video_views = VideoViews(total=docs["hits"]["total"]["value"], daily_views=[])
 
-    for bucket in docs["aggregations"]["daily_views"]["buckets"]:
-        video_views.daily_views.append(
-            VideoDayViews(day=bucket["key"], views=bucket["doc_count"])
-        )
+    # sync the buckets and received date range
+    # as ES "trim" the buckets from videos with 0 views,
+    # sometime not all the date from the date_range are
+    # contained in the buckets ( len(buckets) <= len(date_range))
+
+    date_range = [
+        since.date() + timedelta(days=i)
+        for i in range((until.date() - since.date()).days + 1)
+    ]  # +1 for an inclusive range
+    for date in date_range:
+        date_ts = int(datetime(date.year, date.month, date.day).timestamp()) * 1000
+        # TODO: could improve performance by not using a filter
+        bucket = list(filter(lambda v: v["key"] == date_ts, buckets))
+        if len(bucket) == 1:
+            video_views.daily_views.append(
+                VideoDayViews(day=date_ts, views=bucket[0]["doc_count"])
+            )
+        elif len(bucket) == 0:
+            video_views.daily_views.append(VideoDayViews(day=date_ts, views=0))
+        else:
+            raise ValueError(("filtered bucket should return only one or zero element"))
+
     return video_views
