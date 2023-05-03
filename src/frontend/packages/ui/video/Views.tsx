@@ -4,8 +4,6 @@ import type { EChartsOption } from "echarts-for-react";
 import { useQueries } from "@tanstack/react-query";
 import { getVideoViews } from "./fetchVideoViews";
 
-import axios from "axios";
-
 import cloneDeep from "lodash.clonedeep";
 
 import { DateContext } from "../DateContext";
@@ -22,6 +20,10 @@ type VideoViewsResponse = {
 
 type DailyViewsProps = {
   videoIds: Array<string>;
+};
+
+type videoViewStoreType = {
+  [key: string]: Array<DailyViewsResponseItem>;
 };
 
 export const DailyViews = ({ videoIds }: DailyViewsProps) => {
@@ -53,59 +55,52 @@ export const DailyViews = ({ videoIds }: DailyViewsProps) => {
     },
   };
 
-  const [option, setOption] = useState(baseOption);
-  type videoViewStoreType = {
-    [key: string]: Array<DailyViewsResponseItem>;
-  };
-
   const [videoViewStore, setVideoViewStore] = useState<videoViewStoreType>({});
-
-  const newOption = cloneDeep(option);
 
   const { since, until } = useContext(DateContext);
 
-  function addOneSeries(
-    videoId: string,
-    daily_views: Array<DailyViewsResponseItem>
-  ) {
-    newOption.xAxis.data = daily_views.map((d) => d.day);
-    newOption.series.push({
-      name: videoId,
-      data: daily_views.map((d) => d.views),
-      type: "line",
-      smooth: 0.2,
-      symbol: "none",
-      areaStyle: {},
-      stack: "Total",
-      emphasis: {
-        focus: "series",
-      },
-    });
-    setOption(newOption);
-  }
-
-  // # FIXME: Race condition
-  // some data are lost if useQueries fetch data before useEffect is triggered
-  // even if its unlikely we should not rely on that
-  // Use chained queries instead ?
-  useEffect(() => {
-    newOption.series = [];
-    option.series = [];
-  }, [videoIds, since, until]);
-
   const results = useQueries({
     queries: videoIds.map((videoId) => {
+      console.log("query");
+      console.log(
+        `${
+          process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL
+        }/api/v1/video/${videoId}/views?since=${since.toISOString()}&until=${until.toISOString()}`
+      );
+      console.log(since.toISOString());
       return {
         queryKey: [`videoViews-${videoId}`, since, until],
         queryFn: () => getVideoViews(videoId, since, until),
         onSuccess: (data: VideoViewsResponse) => {
-          addOneSeries(videoId, data.daily_views);
           videoViewStore[videoId] = data.daily_views;
           return data;
         },
       };
     }),
   });
+
+  function dataToEChatsOption(
+    videoViews: videoViewStoreType,
+    baseOption: EChartsOption
+  ) {
+    const option = cloneDeep(baseOption);
+    Object.entries(videoViews).map(([vid, daily_views]) => {
+      option.xAxis.data = daily_views.map((d) => d.day);
+      option.series.push({
+        name: vid,
+        data: daily_views.map((d) => d.views),
+        type: "line",
+        smooth: 0.2,
+        symbol: "none",
+        areaStyle: {},
+        stack: "Total",
+        emphasis: {
+          focus: "series",
+        },
+      });
+    });
+    return option;
+  }
 
   if (results.some((result) => result.isLoading))
     return <span>Loading...</span>;
@@ -114,7 +109,12 @@ export const DailyViews = ({ videoIds }: DailyViewsProps) => {
     <>
       <h1>Daily Views</h1>
       <div className="chart-title">Video: daily views</div>
-      <ReactECharts option={option} style={{ height: 500 }} />
+      {/* <ReactECharts option={option} style={{ height: 500 }} /> */}
+      <ReactECharts
+        option={dataToEChatsOption(videoViewStore, baseOption)}
+        style={{ height: 500 }}
+      />
+      <h2>{dataToEChatsOption(videoViewStore, baseOption).series.length} </h2>
     </>
   );
 };
