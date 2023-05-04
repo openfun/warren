@@ -29,6 +29,22 @@ docker-login: &docker-login
 
 version: 2.1
 jobs:
+  test-jest:
+    docker:
+      - image: cimg/node:16.18
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - run:
+          name: Install development dependencies
+          command: yarn install
+          working_directory: src/frontend/packages/ui
+      - run:
+          name: Run Jest tests
+          command: yarn test
+          working_directory: src/frontend/packages/ui
+
+
   # Git jobs
   # Check that the git history is clean and complies with our expectations
   lint-git:
@@ -390,6 +406,10 @@ workflows:
 
   warren:
     jobs:
+      - test-jest:
+          filters:
+            tags:
+              only: /.*/
       # Git jobs
       #
       # Check validity of git history

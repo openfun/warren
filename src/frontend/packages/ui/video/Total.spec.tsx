@@ -76,7 +76,7 @@ describe("Total component", () => {
     }
   );
 
-  test("renders without throwing an error", () => {
+  it("should renders without throwing an error", () => {
     render(
       <DateContext.Provider value={{ since, until }}>
         <Total videoIds={videoIds} />
@@ -85,7 +85,7 @@ describe("Total component", () => {
     );
   });
 
-  test("contains text", async () => {
+  it("should contain text and calculate total views correctly", async () => {
     render(
       <DateContext.Provider value={{ since, until }}>
         <Total videoIds={videoIds} />
