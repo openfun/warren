@@ -23,7 +23,6 @@
     "eslint-config-custom": "*",
     "jest": "^29.5.0",
     "jest-environment-jsdom": "^29.5.0",
-    "lodash.clonedeep": "^4.5.0",
     "react": "^18.2.0",
     "ts-jest": "^29.1.0",
     "tsconfig": "*",
@@ -31,6 +30,7 @@
   },
   "dependencies": {
     "@openfun/cunningham-react": "^0.1.1",
+    "@testing-library/react": "^14.0.0",
     "rsuite": "^5.31.1"
   }
 }
