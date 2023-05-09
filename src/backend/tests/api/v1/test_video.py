@@ -111,6 +111,61 @@ async def test_views_backend_query(es_client, http_client):
     daily_views = response.json()
     assert daily_views.get("total") == 2
     assert daily_views.get("daily_views") == [{"day": "2021-12-01", "views": 2}]
+
+@pytest.mark.anyio
+async def test_views_backend_query_date_in_human_format(es_client, http_client):
+    """Test the video views endpoint backend query results."""
+
+    await VideoPlayedFactory.save_many(
+        es_client,
+        [
+            VideoPlayedFactory.build(
+                [
+                    {"object": {"id": "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"}},
+                    {
+                        "result": {
+                            "extensions": {
+                                "https://w3id.org/xapi/video/extensions/time": 0.3
+                            }
+                        }
+                    },
+                ]
+            ),
+            VideoPlayedFactory.build(
+                [
+                    {"object": {"id": "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"}},
+                    {
+                        "result": {
+                            "extensions": {
+                                "https://w3id.org/xapi/video/extensions/time": 12.4
+                            }
+                        }
+                    },
+                ]
+            ),
+            VideoPlayedFactory.build(
+                [
+                    {"object": {"id": "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"}},
+                    {
+                        "result": {
+                            "extensions": {
+                                "https://w3id.org/xapi/video/extensions/time": 33.1
+                            }
+                        }
+                    },
+                ]
+            ),
+            VideoPlayedFactory.build(
+                [
+                    {"object": {"id": "uuid://8efd1802-dce0-4e81-88e4-39760e683fd8"}},
+                ]
+            ),
+        ],
+    )
+    await es_client.indices.refresh(index=settings.ES_INDEX)
+
+    response = await http_client.get(
+        "/api/v1/video/uuid://ba4252ce-d042-43b0-92e8-f033f45612ee/views?since=1w&until=3d"
     )
     assert response.status_code == 200
     daily_views = response.json()
