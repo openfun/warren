@@ -39,15 +39,17 @@ async def test_views_invalid_video_id_path(video_id, parsed_video_id, http_clien
     ],
 )
 async def test_views_valid_video_id_path_but_no_matching_video(
-    video_id, es_client, http_client
+    video_id, es_client, http_client, last_week_views
 ):
     """Test the video views endpoint with a valid "video_id" but no results."""
 
-    no_statements_response = {"daily_views": [], "total": 0}
+    empty_week = last_week_views()
 
     response = await http_client.get(f"/api/v1/video/{video_id}/views")
     assert response.status_code == 200
-    assert response.json() == no_statements_response
+    assert response.json()["total"] == 0
+    assert len(response.json()["daily_views"]) == 8
+    assert response.json()["daily_views"] == empty_week
 
 
 @pytest.mark.anyio
@@ -103,7 +105,12 @@ async def test_views_backend_query(es_client, http_client):
     await es_client.indices.refresh(index=settings.ES_INDEX)
 
     response = await http_client.get(
-        "/api/v1/video/uuid://ba4252ce-d042-43b0-92e8-f033f45612ee/views"
+        "/api/v1/video/uuid://ba4252ce-d042-43b0-92e8-f033f45612ee/views?since=2021-12-01T00:00:00.000Z&until=2021-12-01T23:00:00.000Z"
+    )
+    assert response.status_code == 200
+    daily_views = response.json()
+    assert daily_views.get("total") == 2
+    assert daily_views.get("daily_views") == [{"day": "2021-12-01", "views": 2}]
     )
     assert response.status_code == 200
     daily_views = response.json()
