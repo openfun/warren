@@ -27,7 +27,7 @@ type videoViewStoreType = {
 const generateBaseOption: () => EChartsOption = () => ({
   grid: { top: 80, right: 8, bottom: 100, left: 50 },
   xAxis: {
-    type: 'category',
+    type: "category",
     data: [],
     axisTick: {
       alignWithLabel: true,
@@ -40,15 +40,15 @@ const generateBaseOption: () => EChartsOption = () => ({
     },
   },
   yAxis: {
-    type: 'value',
-    name: '# views',
+    type: "value",
+    name: "# views",
   },
   series: [],
   tooltip: {
-    trigger: 'axis',
+    trigger: "axis",
   },
   textStyle: {
-    fontFamily: 'Roboto, sans-serif',
+    fontFamily: "Roboto, sans-serif",
   },
 });
 
@@ -91,7 +91,10 @@ export const DailyViews = ({ videoIds }: DailyViewsProps) => {
         queryKey: [`videoViews-${videoId}`, since, until],
         queryFn: () => getVideoViews(videoId, since, until),
         onSuccess: (data: VideoViewsResponse) => {
-          setVideoViewStore((prev) => ({ ...prev, [videoId]: data.daily_views }));
+          setVideoViewStore((prev) => ({
+            ...prev,
+            [videoId]: data.daily_views,
+          }));
           return data;
         },
       };
@@ -100,27 +103,30 @@ export const DailyViews = ({ videoIds }: DailyViewsProps) => {
 
   const chartOption = useMemo(() => {
     const baseOption = generateBaseOption();
-    const option = { ...baseOption, xAxis: { ...baseOption.xAxis, data: [] }, series: [] };
+    const option = {
+      ...baseOption,
+      xAxis: { ...baseOption.xAxis, data: [] },
+      series: [],
+    };
 
     Object.entries(videoViewStore).forEach(([videoId, daily_views]) => {
       option.xAxis.data = daily_views.map((d) => d.day);
       option.series.push({
         name: videoId,
         data: daily_views.map((d) => d.views),
-        type: 'line',
+        type: "line",
         smooth: 0.2,
-        symbol: 'none',
+        symbol: "none",
         areaStyle: {},
-        stack: 'Total',
+        stack: "Total",
         emphasis: {
-          focus: 'series',
+          focus: "series",
         },
       });
     });
 
     return option;
   }, [videoViewStore]);
-
 
   if (results.some((result) => result.isLoading))
     return <span>Loading...</span>;
@@ -129,10 +135,7 @@ export const DailyViews = ({ videoIds }: DailyViewsProps) => {
     <>
       <h1>Daily Views</h1>
       <div className="chart-title">Video: daily views</div>
-      <ReactECharts
-        option={chartOption}
-        style={{ height: 500 }}
-      />
+      <ReactECharts option={chartOption} style={{ height: 500 }} />
     </>
   );
 };
