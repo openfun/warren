@@ -1,9 +1,11 @@
 """Warren API v1 video router."""
 
-from datetime import datetime, date, timedelta
+import re
+from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 
-from fastapi import APIRouter, Query
+import dateparser
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from warren import backends
@@ -36,20 +38,66 @@ def days_between(since: datetime, until: datetime) -> int:
 @router.get("/{video_id:path}/views")
 async def views(
     video_id: IRI,
-    since: Optional[datetime] = Query(
+    since: Optional[str] = Query(
         None,
-        description=(
-            "Filter events that occurred after that timestamp (included)"
-        ),
+        description=("Filter events that occurred after that timestamp (included)"),
     ),
-    until: Optional[datetime] = Query(
+    until: Optional[str] = Query(
         None,
-        description=(
-            "Filter events that occurred before that timestamp (included)"
-        ),
+        description=("Filter events that occurred before that timestamp (included)"),
     ),
 ) -> VideoViews:
     """Video views."""
+
+    # parse date as string to datetime
+    if since is None:
+        since = datetime.now() - timedelta(weeks=1)
+    elif since == "":
+        raise HTTPException(
+            status_code=400, detail="Date parsing error: 'since' can't be an empty"
+        )
+    else:
+        since = dateparser.parse(since)
+        if not since:  #
+            raise HTTPException(
+                status_code=400,
+                detail="Date parsing error: Could not parse parameter 'since'",
+            )
+    if until is None:
+        until = datetime.now()
+    elif until == "":
+        raise HTTPException(
+            status_code=400,
+            detail="Date parsing error: 'until' can't be an empty string",
+        )
+    else:
+        parsed_date_input = dateparser.parse(
+            until, settings={"RETURN_AS_TIMEZONE_AWARE": True, "TIMEZONE": "Z"}
+        )
+        if parsed_date_input:
+            # check if we have a timedelta or a date
+            # timedelta are in the format <number><unit>
+            # like  7d, 4weeks ...
+            pattern = r"\d+[a-zA-Z]+"
+            if bool(re.fullmatch(pattern, until)):
+                delta = datetime.now(timezone.utc) - parsed_date_input
+                until = since + delta
+            else:
+                # until = dateparser.parse(until)
+                until = parsed_date_input
+        else:
+            # could parse user input
+            raise HTTPException(
+                status_code=400,
+                detail="Date parsing error: Could not parse parameter 'until'",
+            )
+
+    if until < since:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid time range: 'until' parameter should be greater than or equal to the 'since' parameter. Until default value is 'now' and Since default value is 'one week ago'",
+        )
+
     query_params = {
         "query": {
             "bool": {
@@ -104,6 +152,9 @@ async def views(
         since.date() + timedelta(days=i)
         for i in range((until.date() - since.date()).days + 1)
     ]  # +1 for an inclusive range
+
+    # buckets_dict = {bucket["key"]: bucket for bucket in buckets}
+
     for date in date_range:
         date_ts = int(datetime(date.year, date.month, date.day).timestamp()) * 1000
         # TODO: could improve performance by not using a filter

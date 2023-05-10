@@ -28,6 +28,7 @@ requires-python = ">=3.7"
 license = {file = "LICENSE.md"}
 keywords = ["Analytics", "xAPI", "LRS", "LTI"]
 dependencies = [
+    "dateparser==1.1.8",
     "elasticsearch[async]==8.6.2",
     "fastapi==0.92.0",
     "pydantic[dotenv]==1.10.5",

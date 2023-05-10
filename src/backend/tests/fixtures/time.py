@@ -1,5 +1,7 @@
-import pytest
 from datetime import datetime, timedelta
+
+import pytest
+
 
 @pytest.fixture
 def last_week_views():

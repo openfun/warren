@@ -223,7 +223,7 @@ test: test-backend
 
 test-backend: ## run backend tests
 test-backend: run-backend
-	bin/pytest
+	bin/pytest -vv
 .PHONY: test
 
 # -- Misc
