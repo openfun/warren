@@ -143,7 +143,7 @@ async def test_views_backend_query_return_error400_if_until_older_than_since(
     """Test if error 400 is returned when 'until' date is older than 'since' date"""
 
     response = await http_client.get(
-        f"/api/v1/video/uuid://ba4252ce-d042-43b0-92e8-f033f45612ee/views?since=2021-12-01T00:00:00.000Z&until=2021-11-01T23:00:00.000Z"
+        "/api/v1/video/uuid://ba4252ce-d042-43b0-92e8-f033f45612ee/views?since=2021-12-01T00:00:00.000Z&until=2021-11-01T23:00:00.000Z"
     )
     assert response.status_code == 400
     assert "Invalid time range" in response.json().get("detail")

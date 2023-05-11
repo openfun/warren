@@ -5,8 +5,8 @@ from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 
 import dateparser
-from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, root_validator, validator
 
 from warren import backends
 from warren.conf import settings
@@ -31,72 +31,86 @@ class VideoViews(BaseModel):
     daily_views: List[VideoDayViews]
 
 
-def days_between(since: datetime, until: datetime) -> int:
-    return (until.date() - since.date()).days + 1
+class DateRangeModel(BaseModel):
+    since: Optional[str] = "last week"
+    until: Optional[str] = "now"
+    parsed_since: Optional[datetime] = None
+    parsed_until: Optional[datetime] = None
 
-
-@router.get("/{video_id:path}/views")
-async def views(
-    video_id: IRI,
-    since: Optional[str] = Query(
-        None,
-        description=("Filter events that occurred after that timestamp (included)"),
-    ),
-    until: Optional[str] = Query(
-        None,
-        description=("Filter events that occurred before that timestamp (included)"),
-    ),
-) -> VideoViews:
-    """Video views."""
-
-    # parse date as string to datetime
-    if since is None:
-        since = datetime.now() - timedelta(weeks=1)
-    elif since == "":
-        raise HTTPException(
-            status_code=400, detail="Date parsing error: 'since' can't be an empty"
-        )
-    else:
-        since = dateparser.parse(since)
-        if not since:  #
+    def validate_date_string(value: str, param_name: str) -> str:
+        if value == "":
             raise HTTPException(
                 status_code=400,
-                detail="Date parsing error: Could not parse parameter 'since'",
+                detail=f"Date parsing error: '{param_name}' can't be an empty",
             )
-    if until is None:
-        until = datetime.now()
-    elif until == "":
-        raise HTTPException(
-            status_code=400,
-            detail="Date parsing error: 'until' can't be an empty string",
+        parsed_time = dateparser.parse(
+            value, settings={"RETURN_AS_TIMEZONE_AWARE": True, "TIMEZONE": "Z"}
         )
-    else:
-        parsed_date_input = dateparser.parse(
+        if parsed_time is None:
+            # raise ValueError("Could not parse time input")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Date parsing error: Could not parse parameter '{param_name}'",
+            )
+        return value
+
+    def parse_since_date(since: str) -> datetime:
+        return dateparser.parse(
+            since, settings={"RETURN_AS_TIMEZONE_AWARE": True, "TIMEZONE": "Z"}
+        )
+
+    def parse_until_date(until: str, since: datetime) -> datetime:
+        parsed_input_date = dateparser.parse(
             until, settings={"RETURN_AS_TIMEZONE_AWARE": True, "TIMEZONE": "Z"}
         )
-        if parsed_date_input:
+
+        if parsed_input_date:
             # check if we have a timedelta or a date
             # timedelta are in the format <number><unit>
             # like  7d, 4weeks ...
             pattern = r"\d+[a-zA-Z]+"
             if bool(re.fullmatch(pattern, until)):
-                delta = datetime.now(timezone.utc) - parsed_date_input
-                until = since + delta
+                delta = datetime.now(timezone.utc) - parsed_input_date
+                parsed_until = since + delta
             else:
-                # until = dateparser.parse(until)
-                until = parsed_date_input
-        else:
-            # could parse user input
+                # parsed_until = dateparser.parse(parsed_until)
+                parsed_until = parsed_input_date
+        return parsed_until
+
+    @validator("since", pre=True)
+    def validate_since_string(cls, value):
+        return cls.validate_date_string(value, "since")
+
+    @validator("until", pre=True)
+    def validate_until_string(cls, value):
+        return cls.validate_date_string(value, "until")
+
+    @root_validator(pre=False)
+    def parse_dates_and_validate_range(cls, values):
+        values["parsed_since"] = cls.parse_since_date(values.get("since"))
+        values["parsed_until"] = cls.parse_until_date(
+            values.get("until"), values["parsed_since"]
+        )
+
+        if values["parsed_until"] < values["parsed_since"]:
             raise HTTPException(
                 status_code=400,
-                detail="Date parsing error: Could not parse parameter 'until'",
+                detail=(
+                    "Invalid time range: 'until' parameter should be more recent"
+                    "( i.e. greater or equal ) to the 'since' parameter."
+                    "'until' default value is 'now' and"
+                    "'since' default value is 'one week ago'"
+                ),
             )
+        return values
 
-    if until < since:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid time range: 'until' parameter should be greater than or equal to the 'since' parameter. Until default value is 'now' and Since default value is 'one week ago'",
-        )
+
+@router.get("/{video_id:path}/views")
+async def views(video_id: IRI, date_range: DateRangeModel = Depends()) -> VideoViews:
+    """Video views."""
+
+    until = date_range.parsed_until
+    since = date_range.parsed_since
 
     query_params = {
         "query": {
@@ -155,8 +169,8 @@ async def views(
 
     # buckets_dict = {bucket["key"]: bucket for bucket in buckets}
 
-    for date in date_range:
-        date_ts = int(datetime(date.year, date.month, date.day).timestamp()) * 1000
+    for d in date_range:
+        date_ts = int(datetime(d.year, d.month, d.day).timestamp()) * 1000
         # TODO: could improve performance by not using a filter
         bucket = list(filter(lambda v: v["key"] == date_ts, buckets))
         if len(bucket) == 1:
