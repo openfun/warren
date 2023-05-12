@@ -7,4 +7,4 @@ DOCKER_USER=${DOCKER_USER} docker compose run \
   --rm \
   -e WARREN_ES_INDEX=test-statements \
   backend \
-  pytest "$@"
+  pytest -c core/pyproject.toml "$@"

@@ -26,8 +26,7 @@ RUN apt-get update && \
         python-dev && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install .
-
+RUN pip install ./core ./plugins/*
 
 # -- Core --
 FROM base as core
@@ -45,8 +44,12 @@ FROM core as development
 
 # Uninstall warren and re-install it in editable mode along with development
 # dependencies
-RUN pip uninstall -y warren
-RUN pip install -e .[dev]
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN pip uninstall -y $(pip list | cut -f1 -d " " | grep warren)
+RUN pip install -e ./core[dev] && \
+    for plugin in ./plugins/*; do \
+        pip install -e "${plugin}[dev]"; \
+    done
 
 # Un-privileged user running the application
 USER ${DOCKER_USER:-1000}

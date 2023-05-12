@@ -140,7 +140,11 @@ jobs:
             - v1-dependencies-<< parameters.python-image >>-{{ .Revision }}
       - run:
           name: Install development dependencies
-          command: pip install --user .[dev]
+          command: |
+            pip install --user ./core[dev];
+            for plugin in ./plugins/*; do \
+              pip install --user "${plugin}[dev]"; \
+            done
           working_directory: src/backend
       - save_cache:
           paths:
@@ -161,27 +165,27 @@ jobs:
             - v1-dependencies-python:3.11-{{ .Revision }}
       - run:
           name: Lint code with flake8
-          command: ~/.local/bin/flake8
+          command: ~/.local/bin/flake8 --toml-config core/pyproject.toml core plugins
           working_directory: src/backend
       - run:
           name: Lint code with isort
-          command: ~/.local/bin/isort --recursive --check-only .
+          command: ~/.local/bin/isort --recursive --check-only --settings-file core/pyproject.toml core plugins
           working_directory: src/backend
       - run:
           name: Lint code with black
-          command: ~/.local/bin/black . --check
+          command: ~/.local/bin/black --check --config core/pyproject.toml core plugins
           working_directory: src/backend
       - run:
           name: Lint code with pylint
-          command: ~/.local/bin/pylint warren tests
+          command: ~/.local/bin/pylint core plugins
           working_directory: src/backend
       - run:
           name: Lint code with bandit
-          command: ~/.local/bin/bandit -qr warren
+          command: ~/.local/bin/bandit -c core/pyproject.toml -qr core/warren plugins
           working_directory: src/backend
       - run:
           name: Lint code with pydocstyle
-          command: ~/.local/bin/pydocstyle
+          command: ~/.local/bin/pydocstyle --config core/pyproject.toml core plugins
           working_directory: src/backend
 
   test-backend:
@@ -217,7 +221,7 @@ jobs:
             dockerize \
               -wait tcp://${HOSTNAME}:9200 \
               -timeout 60s \
-              ~/.local/bin/pytest
+              ~/.local/bin/pytest -c core/pyproject.toml
           working_directory: src/backend
 
   # ---- Frontend jobs ----
@@ -277,17 +281,27 @@ jobs:
       - attach_workspace:
           at: ~/fun
       - run:
-          name: Build python package
+          name: Build core python package
           command: python -m build
-          working_directory: src/backend
+          working_directory: src/backend/core
+      - run:
+          name: Build plugins python packages
+          command: |
+            for plugin in *; do \
+              cd "${plugin}"; \
+              python -m build ; \
+              cd ..; \
+            done
+          working_directory: src/backend/plugins
       # Persist build packages to the workspace
       - persist_to_workspace:
           root: ~/fun
           paths:
-            - src/backend/dist
+            - src/backend/core/dist
+            - src/backend/plugins/*/dist
       # Store packages as artifacts to download/test them
       - store_artifacts:
-          path: ~/fun/src/backend/dist
+          path: ~/fun/src/backend/core/dist
 
   # Publishing to PyPI requires that:
   #   * you already registered to pypi.org
@@ -307,14 +321,18 @@ jobs:
           at: ~/fun
       - run:
           name: List built packages
-          command: ls src/backend/dist/*
+          command: |
+            ls src/backend/core/dist/* ;
+            ls src/backend/plugins/*/dist/* ;
       - run:
           name: Install base requirements (twine)
-          command: pip install --user .[ci]
+          command: pip install --user ./core[ci]
           working_directory: src/backend
       - run:
           name: Upload built packages to PyPI
-          command: ~/.local/bin/twine upload dist/*
+          command: |
+            ~/.local/bin/twine upload --skip-existing core/dist/* ;
+            ~/.local/bin/twine upload --skip-existing plugins/*/dist/* ;
           working_directory: src/backend
 
   # ---- DockerHub publication job ----
