@@ -175,32 +175,32 @@ lint: \
 
 lint-black: ## lint backend python sources with black
 	@echo 'lint:black started…'
-	@$(COMPOSE_RUN_BACKEND) black .
+	@$(COMPOSE_RUN_BACKEND) black --config core/pyproject.toml core plugins
 .PHONY: lint-black
 
 lint-flake8: ## lint backend python sources with flake8
 	@echo 'lint:flake8 started…'
-	@$(COMPOSE_RUN_BACKEND) flake8
+	@$(COMPOSE_RUN_BACKEND) flake8 --toml-config core/pyproject.toml core plugins
 .PHONY: lint-flake8
 
 lint-isort: ## automatically re-arrange python imports in backend code base
 	@echo 'lint:isort started…'
-	@$(COMPOSE_RUN_BACKEND) isort --atomic .
+	@$(COMPOSE_RUN_BACKEND) isort --settings-file core/pyproject.toml --atomic core plugins
 .PHONY: lint-isort
 
 lint-pylint: ## lint backend python sources with pylint
 	@echo 'lint:pylint started…'
-	@$(COMPOSE_RUN_BACKEND) pylint warren tests
+	@$(COMPOSE_RUN_BACKEND) pylint core plugins
 .PHONY: lint-pylint
 
 lint-bandit: ## lint backend python sources with bandit
 	@echo 'lint:bandit started…'
-	@$(COMPOSE_RUN_BACKEND) bandit -qr warren
+	@$(COMPOSE_RUN_BACKEND) bandit -c core/pyproject.toml -qr core/warren plugins
 .PHONY: lint-bandit
 
 lint-pydocstyle: ## lint Python docstrings with pydocstyle
 	@echo 'lint:pydocstyle started…'
-	@$(COMPOSE_RUN_BACKEND) pydocstyle
+	@$(COMPOSE_RUN_BACKEND) pydocstyle --config core/pyproject.toml core plugins
 .PHONY: lint-pydocstyle
 
 ### Frontend ###
