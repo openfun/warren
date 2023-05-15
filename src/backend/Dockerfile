@@ -64,6 +64,8 @@ USER ${DOCKER_USER:-1000}
 CMD ["uvicorn", \
      "warren.api:app", \
      "--proxy-headers", \
+     "--log-config", \
+     "core/logging-config.yaml", \
      "--host", \
      "0.0.0.0", \
      "--port", \
