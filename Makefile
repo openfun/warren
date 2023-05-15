@@ -145,7 +145,7 @@ fixtures: \
 	curl -X PUT $(ES_URL)/$(ES_INDEX)/_settings \
 		-H 'Content-Type: application/json' \
 		-d '{"index": {"number_of_replicas": 0}}'
-	zcat data/statements.jsonl.gz | \
+	zcat < data/statements.jsonl.gz | \
 		$(COMPOSE) exec -T backend python /opt/src/patch_statements_date.py | \
 		sed "s/@timestamp/timestamp/g" | \
 		$(COMPOSE_RUN) -T ralph ralph push \
