@@ -10,6 +10,7 @@ and this project adheres to
 
 ### Added
 
+- Implement base view filters: date/times
 - Implement base plugin architecture
 - Bootstrap base backend boilerplate
 - Implement video views endpoint

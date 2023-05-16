@@ -1,6 +1,51 @@
 """Warren model fields."""
 
+import datetime
+
+import arrow
 import rfc3987
+
+
+class Date:
+    """Arrow-parser-based date field."""
+
+    @classmethod
+    def __get_validators__(cls):
+        """Yields default class validator."""
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, value) -> datetime.date:
+        """Parse arrow-compatible date string."""
+        if isinstance(value, datetime.date):
+            return value
+        if isinstance(value, arrow.Arrow):
+            return value.date()
+        try:
+            return arrow.get(value).date()
+        except arrow.ParserError as err:
+            raise ValueError("Invalid input date") from err
+
+
+class Datetime:
+    """Arrow-parser-based date/time field."""
+
+    @classmethod
+    def __get_validators__(cls):
+        """Yields default class validator."""
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, value) -> datetime.datetime:
+        """Parse arrow-compatible date/time string."""
+        if isinstance(value, datetime.datetime):
+            return value
+        if isinstance(value, arrow.Arrow):
+            return value.datetime
+        try:
+            return arrow.get(value).datetime
+        except arrow.ParserError as err:
+            raise ValueError("Invalid input date/time") from err
 
 
 class IRI(str):
