@@ -1,14 +1,16 @@
 """Warren API v1 video router."""
 
-import datetime
 from typing import List
 
-from fastapi import APIRouter
+import arrow
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from typing_extensions import Annotated  # python <3.9 compat
 
 from warren import backends
 from warren.conf import settings
-from warren.fields import IRI
+from warren.fields import IRI, Date
+from warren.filters import BaseQueryFilters
 
 router = APIRouter(
     prefix="/video",
@@ -18,8 +20,8 @@ router = APIRouter(
 class VideoDayViews(BaseModel):
     """Model to represent video views for a date."""
 
-    day: datetime.date
-    views: int
+    day: Date
+    views: int = 0
 
 
 class VideoViews(BaseModel):
@@ -30,7 +32,9 @@ class VideoViews(BaseModel):
 
 
 @router.get("/{video_id:path}/views")
-async def views(video_id: IRI) -> VideoViews:
+async def views(
+    video_id: IRI, filters: Annotated[BaseQueryFilters, Depends()]
+) -> VideoViews:
     """Video views."""
     query_params = {
         "query": {
@@ -54,6 +58,8 @@ async def views(video_id: IRI) -> VideoViews:
                             "object.id.keyword": video_id,
                         }
                     },
+                    {"range": {"timestamp": {"gte": filters.since}}},
+                    {"range": {"timestamp": {"lte": filters.until}}},
                 ],
             }
         },
@@ -71,9 +77,18 @@ async def views(video_id: IRI) -> VideoViews:
         **query_params,
         index=settings.ES_INDEX,
     )
-    video_views = VideoViews(total=docs["hits"]["total"]["value"], daily_views=[])
+    video_views = VideoViews(
+        total=docs["hits"]["total"]["value"],
+        daily_views=[
+            VideoDayViews(day=day.format("YYYY-MM-DD"))
+            for day in arrow.Arrow.range("day", filters.since, filters.until)
+        ],
+    )
+
+    # Daily views buckets are supposed to be sorted by date range from the
+    # oldest to the newest record
+    idx = 0
     for bucket in docs["aggregations"]["daily_views"]["buckets"]:
-        video_views.daily_views.append(
-            VideoDayViews(day=bucket["key"], views=bucket["doc_count"])
-        )
+        idx = video_views.daily_views.index(VideoDayViews(day=bucket["key"]), idx)
+        video_views.daily_views[idx].views = bucket["doc_count"]
     return video_views

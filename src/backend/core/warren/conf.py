@@ -1,6 +1,7 @@
 """Warren configuration."""
 
 import io
+from datetime import timedelta
 from pathlib import Path
 from typing import List, Union
 
@@ -27,6 +28,10 @@ class Settings(BaseSettings):
     SERVER_PROTOCOL: str = "http"
     SERVER_HOST: str = "localhost"
     SERVER_PORT: int = 8100
+
+    # API configuration
+    MAX_DATETIMERANGE_SPAN: timedelta = timedelta(days=365)  # 1 year shift from since
+    DEFAULT_DATETIMERANGE_SPAN: timedelta = timedelta(days=7)  # 7 days shift from until
 
     # Securiry
     ALLOWED_HOSTS: List[str] = [
