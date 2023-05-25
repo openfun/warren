@@ -2,7 +2,7 @@
 
 from ralph.models.xapi.video.statements import VideoPlayed
 
-from .base import BaseXapiStatementFactory
+from warren.factories.base import BaseXapiStatementFactory
 
 
 class VideoPlayedFactory(BaseXapiStatementFactory):
