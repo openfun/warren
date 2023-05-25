@@ -3,9 +3,9 @@
 import arrow
 import pytest
 from warren_video.api import VideoDayViews, VideoViews
+from warren_video.factories import VideoPlayedFactory
 
 from warren.conf import settings
-from warren.factories.video import VideoPlayedFactory
 from warren.filters import DatetimeRange
 
 
