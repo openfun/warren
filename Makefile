@@ -23,6 +23,13 @@ ES_INDEX           = statements
 ES_URL             = $(ES_PROTOCOL)://$(ES_HOST):$(ES_PORT)
 ES_COMPOSE_URL     = $(ES_PROTOCOL)://$(ES_COMPOSE_SERVICE):$(ES_PORT)
 
+# -- Ralph
+RALPH_COMPOSE_SERVICE = ralph
+RALPH_RUNSERVER_PORT ?= 8200
+RALPH_LRS_AUTH_USER_NAME  = ralph
+RALPH_LRS_AUTH_USER_PWD   = secret
+RALPH_LRS_AUTH_USER_SCOPE = ralph_scope
+
 # -- WARREN
 WARREN_BACKEND_IMAGE_NAME          ?= warren-backend
 WARREN_BACKEND_IMAGE_TAG           ?= development
@@ -43,6 +50,14 @@ default: help
 .env:
 	cp .env.dist .env
 
+.ralph/auth.json:
+	@$(COMPOSE_RUN) ralph ralph \
+		auth \
+		-u $(RALPH_LRS_AUTH_USER_NAME) \
+		-p $(RALPH_LRS_AUTH_USER_PWD) \
+		-s $(RALPH_LRS_AUTH_USER_SCOPE) \
+		-w
+
 bin/patch_statements_date.py:
 	curl \
 		https://raw.githubusercontent.com/openfun/potsie/v$(POTSIE_RELEASE)/scripts/patch_statements_date.py \
@@ -58,6 +73,7 @@ data/statements.jsonl.gz:
 bootstrap: ## bootstrap the project for development
 bootstrap: \
   .env \
+  .ralph/auth.json \
   bin/patch_statements_date.py \
   data/statements.jsonl.gz \
   build \
@@ -115,6 +131,7 @@ run-backend: ## run the backend server (development mode)
 	@$(COMPOSE) up -d backend
 	@echo "Waiting for backend to be up and running..."
 	@$(COMPOSE_RUN) dockerize -wait tcp://$(ES_COMPOSE_SERVICE):$(ES_PORT) -timeout 60s
+	@$(COMPOSE_RUN) dockerize -wait http://$(RALPH_COMPOSE_SERVICE):$(RALPH_RUNSERVER_PORT)/__heartbeat__ -timeout 60s
 	@$(COMPOSE_RUN) dockerize -wait tcp://backend:$(WARREN_BACKEND_SERVER_PORT) -timeout 60s
 .PHONY: run-backend
 

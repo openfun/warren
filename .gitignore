@@ -81,3 +81,4 @@ venv.bak/
 # Project
 bin/patch_statements_date.py
 data
+.ralph/auth.json

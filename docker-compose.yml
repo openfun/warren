@@ -30,7 +30,7 @@ services:
       - ./src/backend:/app
       - ./bin/patch_statements_date.py:/opt/src/patch_statements_date.py
     depends_on:
-      - elasticsearch
+      - ralph
 
   frontend:
     build:
@@ -55,6 +55,25 @@ services:
       - backend
 
   # -- backends
+  ralph:
+    image: fundocker/ralph
+    user: ${DOCKER_USER:-1000}
+    env_file:
+      - .env
+    ports:
+      - "${RALPH_RUNSERVER_PORT:-8200}:${RALPH_RUNSERVER_PORT:-8200}"
+    command:
+      - ralph
+      - "-v"
+      - DEBUG
+      - runserver
+      - "-b"
+      - "es"
+    volumes:
+      - .:/app
+    depends_on:
+      - elasticsearch
+
   elasticsearch:
     image: elasticsearch:8.6.2
     environment:
@@ -65,8 +84,5 @@ services:
     mem_limit: 2g
 
   # -- tools
-  ralph:
-    image: fundocker/ralph
-
   dockerize:
     image: jwilder/dockerize
