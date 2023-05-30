@@ -197,8 +197,6 @@ jobs:
         auth:
           username: $DOCKER_HUB_USER
           password: $DOCKER_HUB_PASSWORD
-        environment:
-          RALPH_APP_DIR: ~/fun/.ralph
       - image: elasticsearch:8.6.2
         auth:
           username: $DOCKER_HUB_USER
