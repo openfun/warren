@@ -197,16 +197,10 @@ jobs:
         auth:
           username: $DOCKER_HUB_USER
           password: $DOCKER_HUB_PASSWORD
-      - image: elasticsearch:8.6.2
-        auth:
-          username: $DOCKER_HUB_USER
-          password: $DOCKER_HUB_PASSWORD
         environment:
-          discovery.type: single-node
-          xpack.security.enabled: "false"
-    environment:
-      - WARREN_ES_HOSTS: http://localhost:9200
-      - WARREN_ES_INDEX: test-statements
+          WARREN_LRS_HOSTS: http://ralph:8200
+          WARREN_LRS_AUTH_BASIC_USERNAME: ralph
+          WARREN_LRS_AUTH_BASIC_PASSWORD: secret
     working_directory: ~/fun
     steps:
       - checkout
@@ -215,11 +209,7 @@ jobs:
             - v1-dependencies-<< parameters.python-image >>-{{ .Revision }}
       - run:
           name: Run tests
-          command: |
-            dockerize \
-              -wait tcp://${HOSTNAME}:9200 \
-              -timeout 60s \
-              ~/.local/bin/pytest -c core/pyproject.toml
+          command: ~/.local/bin/pytest -c core/pyproject.toml
           working_directory: src/backend
 
   # ---- Frontend jobs ----

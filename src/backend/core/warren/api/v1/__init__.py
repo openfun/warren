@@ -9,7 +9,7 @@ if sys.version_info < (3, 10):
 else:
     from importlib.metadata import entry_points
 
-logger = logging.getLogger("warren.api")
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 

@@ -1,5 +1,5 @@
 """Factories for video xAPI events."""
-
+from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.video.statements import VideoPlayed
 
 from warren.factories.base import BaseXapiStatementFactory
@@ -20,7 +20,17 @@ class VideoPlayedFactory(BaseXapiStatementFactory):
                 )
             },
             "contextActivities": {
-                "category": [{"id": "https://w3id.org/xapi/video"}],
+                "category": [
+                    {
+                        "id": "https://w3id.org/xapi/video",
+                        "definition": {
+                            "id": "uuid://C678149d-956a-483d-8975-c1506de1e1a9",
+                            "definition": {
+                                "type": "http://adlnet.gov/expapi/activities/profile"
+                            },
+                        },
+                    }
+                ],
                 "parent": [
                     {
                         "id": "course-v1:FUN-MOOC+00001+session01",
@@ -32,7 +42,7 @@ class VideoPlayedFactory(BaseXapiStatementFactory):
                 ],
             },
         },
-        "result": {"extensions": {"https://w3id.org/xapi/video/extensions/time": 10.0}},
+        "result": {"extensions": {RESULT_EXTENSION_TIME: 10.0}},
         "id": "2140967b-563b-464b-90c0-2e114bd8e133",
         "actor": {
             "objectType": "Agent",

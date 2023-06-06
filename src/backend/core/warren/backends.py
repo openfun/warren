@@ -1,7 +1,15 @@
 """Backends for warren."""
 
-from elasticsearch import AsyncElasticsearch
+from ralph.backends.http import LRSHTTP
+from ralph.conf import LRSHeaders
 
 from warren.conf import settings
 
-es_client = AsyncElasticsearch(settings.ES_HOSTS, **settings.ES_CLIENT_OPTIONS.dict())
+lrs_client = LRSHTTP(
+    base_url=settings.LRS_HOSTS,
+    username=settings.LRS_AUTH_BASIC_USERNAME,
+    password=settings.LRS_AUTH_BASIC_PASSWORD,
+    headers=LRSHeaders(
+        X_EXPERIENCE_API_VERSION="1.0.3", CONTENT_TYPE="application/json"
+    ),
+)
