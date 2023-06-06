@@ -15,5 +15,9 @@ and this project adheres to
 - Bootstrap base backend boilerplate
 - Implement video views endpoint
 - Bootstrap base frontend boilerplate using turborepo
+- Run ralph in the docker compose
+- Add the LRS backend
+- Switch the video view plugin from an elasticsearch to a LRS backend
+- Remove the elasticsearch backend
 
 [unreleased]: https://github.com/openfun/warren

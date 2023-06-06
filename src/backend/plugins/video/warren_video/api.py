@@ -1,13 +1,20 @@
 """Warren API v1 video router."""
-
+import logging
+from collections import Counter
 from typing import List
 
 import arrow
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from ralph.backends.http.lrs import LRSQuery
+from ralph.exceptions import BackendException
+from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
+from ralph.models.xapi.concepts.verbs.video import PlayedVerb
+from starlette import status
 from typing_extensions import Annotated  # python <3.9 compat
+from warren_video.conf import settings as video_settings
 
-from warren import backends
+from warren.backends import lrs_client
 from warren.conf import settings
 from warren.fields import IRI, Date
 from warren.filters import BaseQueryFilters
@@ -15,6 +22,8 @@ from warren.filters import BaseQueryFilters
 router = APIRouter(
     prefix="/video",
 )
+
+logger = logging.getLogger(__name__)
 
 
 class VideoDayViews(BaseModel):
@@ -36,59 +45,44 @@ async def views(
     video_id: IRI, filters: Annotated[BaseQueryFilters, Depends()]
 ) -> VideoViews:
     """Video views."""
-    query_params = {
-        "query": {
-            "bool": {
-                "filter": [
-                    {
-                        "range": {
-                            (
-                                "result.extensions."
-                                "https://w3id.org/xapi/video/extensions/time"
-                            ): {"lte": 30}
-                        }
-                    },
-                    {
-                        "term": {
-                            "verb.display.en-US.keyword": "played",
-                        }
-                    },
-                    {
-                        "term": {
-                            "object.id.keyword": video_id,
-                        }
-                    },
-                    {"range": {"timestamp": {"gte": filters.since}}},
-                    {"range": {"timestamp": {"lte": filters.until}}},
-                ],
-            }
-        },
-        "aggs": {
-            "daily_views": {
-                "date_histogram": {
-                    "field": settings.ES_INDEX_TIMESTAMP_FIELD,
-                    "calendar_interval": "day",
-                }
-            }
-        },
-        "size": 0,
+    query = {
+        "verb": PlayedVerb().id,
+        "activity": video_id,
+        "since": filters.since.isoformat(),
+        "until": filters.until.isoformat(),
     }
-    docs = await backends.es_client.search(
-        **query_params,
-        index=settings.ES_INDEX,
-    )
-    video_views = VideoViews(
-        total=docs["hits"]["total"]["value"],
-        daily_views=[
-            VideoDayViews(day=day.format("YYYY-MM-DD"))
-            for day in arrow.Arrow.range("day", filters.since, filters.until)
-        ],
-    )
 
-    # Daily views buckets are supposed to be sorted by date range from the
-    # oldest to the newest record
-    idx = 0
-    for bucket in docs["aggregations"]["daily_views"]["buckets"]:
-        idx = video_views.daily_views.index(VideoDayViews(day=bucket["key"]), idx)
-        video_views.daily_views[idx].views = bucket["doc_count"]
-    return video_views
+    try:
+        statements = list(
+            lrs_client.read(target="/xAPI/statements", query=LRSQuery(query=query))
+        )
+    except BackendException as error:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="xAPI statements query failed",
+        ) from error
+
+    date_range = [
+        d.format(settings.DATE_FORMAT)
+        for d in arrow.Arrow.range("day", filters.since, filters.until)
+    ]
+
+    def filter_played_statement(statement) -> bool:
+        """Do not count video played less than the configured time."""
+        return (
+            statement["result"]["extensions"][RESULT_EXTENSION_TIME]
+            < video_settings.VIEWS_COUNT_TIME_THRESHOLD
+        )
+
+    timestamps = [
+        arrow.get(statement["timestamp"]).format(settings.DATE_FORMAT)
+        for statement in statements
+        if filter_played_statement(statement)
+    ]
+
+    counter = Counter(timestamps)
+    daily_views = [VideoDayViews(day=date, views=counter[date]) for date in date_range]
+
+    return VideoViews(
+        total=sum(view.views for view in daily_views), daily_views=daily_views
+    )

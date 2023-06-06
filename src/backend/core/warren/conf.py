@@ -5,7 +5,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import List, Union
 
-from pydantic import BaseModel, BaseSettings
+from pydantic import AnyHttpUrl, BaseModel, BaseSettings
 
 
 class ESClientOptions(BaseModel):
@@ -18,11 +18,10 @@ class ESClientOptions(BaseModel):
 class Settings(BaseSettings):
     """Pydantic model for Warren's global environment & configuration settings."""
 
-    # Elasticsearch
-    ES_HOSTS: Union[List[str], str] = None
-    ES_INDEX: str = "statements"
-    ES_INDEX_TIMESTAMP_FIELD: str = "timestamp"
-    ES_CLIENT_OPTIONS: ESClientOptions = ESClientOptions()
+    # LRS backend
+    LRS_HOSTS: Union[List[AnyHttpUrl], AnyHttpUrl]
+    LRS_AUTH_BASIC_USERNAME: str
+    LRS_AUTH_BASIC_PASSWORD: str
 
     # Warren server
     SERVER_PROTOCOL: str = "http"
@@ -32,8 +31,9 @@ class Settings(BaseSettings):
     # API configuration
     MAX_DATETIMERANGE_SPAN: timedelta = timedelta(days=365)  # 1 year shift from since
     DEFAULT_DATETIMERANGE_SPAN: timedelta = timedelta(days=7)  # 7 days shift from until
+    DATE_FORMAT: str = "YYYY-MM-DD"
 
-    # Securiry
+    # Security
     ALLOWED_HOSTS: List[str] = [
         "http://localhost:3000",
         "http://localhost:3001",
