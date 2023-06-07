@@ -335,74 +335,6 @@ jobs:
             ~/.local/bin/twine upload --skip-existing plugins/*/dist/* ;
           working_directory: src/backend
 
-  # ---- DockerHub publication job ----
-  hub:
-    docker:
-      - image: cimg/base:current
-        auth:
-          username: $DOCKER_HUB_USER
-          password: $DOCKER_HUB_PASSWORD
-    working_directory: ~/fun
-    steps:
-      # Checkout repository sources
-      - checkout
-      # Generate a version.json file describing app release & login to DockerHub
-      - *generate-version-file
-      - *docker-login
-      # Activate docker-in-docker (with layers caching enabled)
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: Build production image
-          command: |
-            WARREN_BACKEND_IMAGE_BUILD_TARGET=production \
-            WARREN_BACKEND_IMAGE_TAG=${CIRCLE_SHA1} \
-              make build
-      - run:
-          name: Check built image availability
-          command: docker images "warren-back:${CIRCLE_SHA1}*"
-      # Tag docker images with the same pattern used in Git (Semantic Versioning)
-      #
-      # Git tag: v1.0.1
-      # Docker tag: 1.0.1(-ci)
-      - run:
-          name: Tag images
-          command: |
-            docker images fundocker/ralph
-            DOCKER_TAG=$([[ -z "$CIRCLE_TAG" ]] && echo $CIRCLE_BRANCH || echo ${CIRCLE_TAG} | sed 's/^v//')
-            RELEASE_TYPE=$([[ -z "$CIRCLE_TAG" ]] && echo "branch" || echo "tag ")
-            # Display either:
-            # - DOCKER_TAG: main (Git branch)
-            # or
-            # - DOCKER_TAG: 1.1.2 (Git tag v1.1.2)
-            echo "DOCKER_TAG: ${DOCKER_TAG} (Git ${RELEASE_TYPE}${CIRCLE_TAG})"
-            docker tag ralph:${CIRCLE_SHA1} fundocker/ralph:${DOCKER_TAG}
-            if [[ -n "$CIRCLE_TAG" ]]; then
-                docker tag ralph:${CIRCLE_SHA1} fundocker/ralph:latest
-            fi
-            docker images | grep -E "^fundocker/ralph\s*(${DOCKER_TAG}.*|latest|main)"
-
-      # Publish images to DockerHub
-      #
-      # Nota bene: logged user (see "Login to DockerHub" step) must have write
-      # permission for the project's repository; this also implies that the
-      # DockerHub repository already exists.
-      - run:
-          name: Publish images
-          command: |
-            DOCKER_TAG=$([[ -z "$CIRCLE_TAG" ]] && echo $CIRCLE_BRANCH || echo ${CIRCLE_TAG} | sed 's/^v//')
-            RELEASE_TYPE=$([[ -z "$CIRCLE_TAG" ]] && echo "branch" || echo "tag ")
-            # Display either:
-            # - DOCKER_TAG: main (Git branch)
-            # or
-            # - DOCKER_TAG: 1.1.2 (Git tag v1.1.2)
-            echo "DOCKER_TAG: ${DOCKER_TAG} (Git ${RELEASE_TYPE}${CIRCLE_TAG})"
-            docker push fundocker/ralph:${DOCKER_TAG}
-            if [[ -n "$CIRCLE_TAG" ]]; then
-              docker push fundocker/ralph:latest
-            fi
-
-
 workflows:
   version: 2
 
@@ -486,20 +418,6 @@ workflows:
           filters:
             tags:
               only: /.*/
-
-      # DockerHub publication.
-      #
-      # Publish docker images only if all build, lint and test jobs succeed
-      # and it has been tagged with a tag starting with the letter v or is on
-      # the main branch
-      - hub:
-          requires:
-            - build-docker
-          filters:
-            branches:
-              only: main
-            tags:
-              only: /^v.*/
 
       # PyPI publication.
       #
