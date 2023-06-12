@@ -26,6 +26,11 @@ class Date:
         except arrow.ParserError as err:
             raise ValueError("Invalid input date") from err
 
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        """Make field JSON schema serializable."""
+        field_schema.update(type="string", example="2023-01-01")
+
 
 class Datetime:
     """Arrow-parser-based date/time field."""
@@ -46,6 +51,11 @@ class Datetime:
             return arrow.get(value).datetime
         except arrow.ParserError as err:
             raise ValueError("Invalid input date/time") from err
+
+    @classmethod
+    def __modify_schema__(cls, field_schema):
+        """Make field JSON schema serializable."""
+        field_schema.update(type="string", example="2023-01-01")
 
 
 class IRI(str):
