@@ -247,3 +247,12 @@ test-backend: run-backend
 help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 .PHONY: help
+
+jupytext--to-md: ## convert local ipynb files into md
+	bin/jupytext --to md work/**/*.ipynb
+.PHONY: jupytext--to-md
+
+jupytext--to-ipynb: ## convert remote md files into ipynb
+	bin/jupytext --to ipynb work/**/*.md
+.PHONY: jupytext--to-ipynb
+
