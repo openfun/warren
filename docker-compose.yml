@@ -86,3 +86,20 @@ services:
   # -- tools
   dockerize:
     image: jwilder/dockerize
+
+  notebook:
+    build:
+      context: ./notebook
+    user: ${DOCKER_USER:-1000}
+    environment:
+      NB_UID: ${DOCKER_UID:-1000}
+      NB_GID: ${DOCKER_GID:-1000}
+      CHOWN_HOME: 'yes'
+      CHOWN_HOME_OPTS: -R
+    ports:
+      - 8888:8888
+    group_add:
+      - users
+    volumes:
+      - ./notebook/notebooks:/home/jovyan/work
+      - .:/home/jovyan/work/warren
