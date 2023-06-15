@@ -22,8 +22,7 @@ RUN apt-get update && \
         build-essential \
         gcc \
         libc6-dev \
-        libffi-dev \
-        python-dev && \
+        libffi-dev && \
     rm -rf /var/lib/apt/lists/*
 
 RUN pip install ./core ./plugins/*
