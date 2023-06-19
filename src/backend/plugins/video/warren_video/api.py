@@ -35,8 +35,12 @@ class VideoDayViews(BaseModel):
 class VideoViews(BaseModel):
     """Model to represent video views."""
 
-    total: int
     daily_views: List[VideoDayViews]
+
+    @property
+    def total(self):
+        """Total of daily views."""
+        return sum(self.daily_views)
 
 
 @router.get("/{video_id:path}/views")

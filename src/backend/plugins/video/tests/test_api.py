@@ -171,3 +171,37 @@ def test_video_views_addition_between_two(views_one, views_two):
     assert video_two + video_one == views_one + views_two
     assert video_one.views == views_one
     assert video_two.views == views_two
+
+
+@pytest.mark.parametrize("video_views", [1, -10, 10, 0])
+def test_video_total_single_daily_video(video_views):
+    """Test the total of a single-video list."""
+
+    video = VideoDayViews(day="2023-02-01", views=video_views)
+    views = VideoViews(daily_views=[video])
+
+    assert views.total == video_views
+
+
+@pytest.mark.parametrize("views_one", [1, -10, 10, 0])
+@pytest.mark.parametrize("views_two", [1, -10, 10, 0])
+def test_video_total_multiple_daily_videos(views_one, views_two):
+    """Test the total of a multiple-video list."""
+
+    video_one = VideoDayViews(day="2023-02-01", views=views_one)
+    video_two = VideoDayViews(day="2023-02-02", views=views_two)
+
+    views = VideoViews(daily_views=[video_one, video_two])
+
+    assert views.total == views_one + views_two
+
+
+def test_video_total_setter_error():
+    """Test setting total property's value."""
+
+    video = VideoDayViews(day="2023-02-01", views=10)
+    views = VideoViews(daily_views=[video])
+
+    with pytest.raises(ValueError) as excinfo:
+        views.total = 100
+    assert "total" in str(excinfo.value)
