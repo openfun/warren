@@ -15,5 +15,6 @@ and this project adheres to
 - Bootstrap base backend boilerplate
 - Implement video views endpoint
 - Bootstrap base frontend boilerplate using turborepo
+- Add addition on `VideoDayViews` class, prevent potential issue on `VideoViews`
 
 [unreleased]: https://github.com/openfun/warren
