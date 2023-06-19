@@ -1,0 +1,1 @@
+"""Complete views video indicator."""

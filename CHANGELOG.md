@@ -19,5 +19,8 @@ and this project adheres to
 - Add the LRS backend
 - Switch the video view plugin from an elasticsearch to a LRS backend
 - Remove the elasticsearch backend
+- Implement video complete views endpoint 
+- Implement video viewers endpoint 
+- Implement video complete viewers endpoint
 
 [unreleased]: https://github.com/openfun/warren
