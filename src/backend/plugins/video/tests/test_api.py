@@ -136,3 +136,38 @@ async def test_views_backend_query(es_client, http_client):
         VideoDayViews(day="2023-02-09", views=0),
         VideoDayViews(day="2023-02-10", views=0),
     ]
+
+
+@pytest.mark.parametrize("initial_value", [1, -10, 10, 0, 1.0])
+@pytest.mark.parametrize("number", [1, -10, 10, 0, 1.0])
+def test_video_views_addition_with_a_number(number, initial_value):
+    """Test the addition between VideoDayViews and a number."""
+
+    views = VideoDayViews(day="2023-02-01", views=initial_value)
+
+    # Test __add__
+    assert views + number == initial_value + number
+    assert views.views == initial_value
+
+    # Test __radd__
+    assert number + views == initial_value + number
+    assert views.views == initial_value
+
+
+@pytest.mark.parametrize("views_one", [1, -10, 10, 0])
+@pytest.mark.parametrize("views_two", [1, -10, 10, 0])
+def test_video_views_addition_between_two(views_one, views_two):
+    """Test the addition between two VideoDayViews."""
+
+    video_one = VideoDayViews(day="2023-02-01", views=views_one)
+    video_two = VideoDayViews(day="2023-02-02", views=views_two)
+
+    # Test __add__
+    assert video_one + video_two == views_one + views_two
+    assert video_one.views == views_one
+    assert video_two.views == views_two
+
+    # Test __radd__
+    assert video_two + video_one == views_one + views_two
+    assert video_one.views == views_one
+    assert video_two.views == views_two

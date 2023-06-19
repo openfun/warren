@@ -23,6 +23,14 @@ class VideoDayViews(BaseModel):
     day: Date
     views: int = 0
 
+    def __add__(self, other):
+        """Emulates addition, left member."""
+        return self.views + other
+
+    def __radd__(self, other):
+        """Emulates addition, right member."""
+        return self.views + other
+
 
 class VideoViews(BaseModel):
     """Model to represent video views."""
