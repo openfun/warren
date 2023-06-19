@@ -1,1 +1,0 @@
-"""Video tests package."""
