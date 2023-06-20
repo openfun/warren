@@ -12,12 +12,11 @@ from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from starlette import status
 from typing_extensions import Annotated  # python <3.9 compat
-from warren_video.conf import settings as video_settings
-
 from warren.backends import lrs_client
 from warren.conf import settings
 from warren.fields import IRI, Date
 from warren.filters import BaseQueryFilters
+from warren_video.conf import settings as video_settings
 
 router = APIRouter(
     prefix="/video",

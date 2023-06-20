@@ -14,7 +14,6 @@ from warren.filters import BaseQueryFilters, DatetimeRange
 # pylint: disable=no-member
 def test_datetime_range_model():
     """Test the DatetimeRange model."""
-
     # Arrow supports various input string formats, let's just test one
     period = DatetimeRange(since="2023-01-01 10:42", until="2023-01-02 12:22")
 
@@ -51,7 +50,6 @@ def test_datetime_range_model():
 # pylint: disable=no-member
 def test_datetime_range_model_defaults(monkeypatch):
     """Test the DatetimeRange model defaults."""
-
     now = arrow.utcnow()
     monkeypatch.setattr(arrow, "utcnow", lambda: now)
 
@@ -70,7 +68,6 @@ def test_datetime_range_model_defaults(monkeypatch):
 
 def test_base_query_filters_model():
     """Test the BaseQueryFilters model."""
-
     filters = BaseQueryFilters(since="2023-01-11", until="2023-02-11")
     assert filters.since == arrow.get("2023-01-11")
     assert filters.until == arrow.get("2023-02-11")

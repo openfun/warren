@@ -9,10 +9,9 @@ from httpx import AsyncClient
 from pytest_httpx import HTTPXMock
 from ralph.models.xapi import VideoPlayed
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
-from warren_video.api import VideoDayViews, VideoViews
-
 from warren.backends import lrs_client
 from warren.filters import DatetimeRange
+from warren_video.api import VideoDayViews, VideoViews
 
 
 @pytest.mark.anyio
@@ -59,7 +58,6 @@ async def test_views_valid_video_id_path_but_no_matching_video(
     http_client: AsyncClient, httpx_mock: HTTPXMock, video_id
 ):
     """Test the video views endpoint with a valid "video_id" but no results."""
-
     date_range = DatetimeRange()
 
     base_url = "http://fake-lrs.com"
@@ -108,7 +106,6 @@ async def test_views_backend_query(
     video_statements: List[VideoPlayed],
 ):
     """Test the video views endpoint backend query results."""
-
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
 
     date_range = DatetimeRange()
