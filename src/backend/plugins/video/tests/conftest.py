@@ -1,16 +1,14 @@
-"""Module py.test fixtures."""
+"""Video plugin test fixtures."""
 
-# pylint: disable=unused-import
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 import pytest
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
-from warren_video.factories import VideoPlayedFactory
-
 from warren.tests.fixtures.app import http_client  # noqa: F401
 from warren.tests.fixtures.asynchronous import anyio_backend  # noqa: F401
+from warren_video.factories import VideoPlayedFactory
 
 
 @pytest.fixture
@@ -21,7 +19,7 @@ def non_mocked_hosts() -> list:
 
 @pytest.fixture(scope="module")
 def video_statements():
-    """Generate test video statements"""
+    """Generate test video statements."""
 
     @dataclass
     class VideoStatementParams:

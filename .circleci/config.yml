@@ -164,30 +164,13 @@ jobs:
           keys:
             - v1-dependencies-python:3.11-{{ .Revision }}
       - run:
-          name: Lint code with flake8
-          command: ~/.local/bin/flake8 --toml-config core/pyproject.toml core plugins
-          working_directory: src/backend
-      - run:
-          name: Lint code with isort
-          command: ~/.local/bin/isort --recursive --check-only --settings-file core/pyproject.toml core plugins
-          working_directory: src/backend
-      - run:
           name: Lint code with black
           command: ~/.local/bin/black --check --config core/pyproject.toml core plugins
           working_directory: src/backend
       - run:
-          name: Lint code with pylint
-          command: ~/.local/bin/pylint core plugins
+          name: Lint code with ruff
+          command: ~/.local/bin/ruff --config core/pyproject.toml core plugins
           working_directory: src/backend
-      - run:
-          name: Lint code with bandit
-          command: ~/.local/bin/bandit -c core/pyproject.toml -qr core/warren plugins
-          working_directory: src/backend
-      - run:
-          name: Lint code with pydocstyle
-          command: ~/.local/bin/pydocstyle --config core/pyproject.toml core plugins
-          working_directory: src/backend
-
   test-backend:
     parameters:
       python-image:
