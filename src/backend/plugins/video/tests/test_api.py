@@ -142,7 +142,7 @@ async def test_views_backend_query(
     video_views = (Response[VideoViews]).parse_obj(response.json()).content
 
     assert video_views["total_views"] == 1
-    assert video_views["views_count_by_date"][0] == {
+    assert video_views["count_by_date"][0] == {
         "date": datetime.utcnow().date().isoformat(),
         "count": 1,
     }
