@@ -22,5 +22,6 @@ and this project adheres to
 - Implement video complete views endpoint 
 - Implement video viewers endpoint 
 - Implement video complete viewers endpoint
+- Implement video downloads endpoint
 
 [unreleased]: https://github.com/openfun/warren

@@ -1,0 +1,1 @@
+"""Downloads video indicator."""

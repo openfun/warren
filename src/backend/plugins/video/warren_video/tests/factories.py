@@ -1,5 +1,11 @@
 """Factories for video xAPI events."""
-from ralph.models.xapi.video.statements import VideoCompleted, VideoPlayed
+import uuid
+
+from ralph.models.xapi.video.statements import (
+    VideoCompleted,
+    VideoDownloaded,
+    VideoPlayed,
+)
 
 from warren.factories.base import BaseXapiStatementFactory
 
@@ -125,3 +131,62 @@ class VideoCompletedFactory(BaseXapiStatementFactory):
     }
 
     model: VideoCompleted = VideoCompleted
+
+
+class VideoDownloadedFactory(BaseXapiStatementFactory):
+    """Video downloaded xAPI statement factory."""
+
+    template: dict = {
+        "verb": {
+            "id": "http://id.tincanapi.com/verb/downloaded",
+            "display": {"en-US": "downloaded"},
+        },
+        "context": {
+            "extensions": {
+                "https://w3id.org/xapi/video/extensions/session-id": str(uuid.uuid4()),
+                "https://w3id.org/xapi/video/extensions/quality": 1080,
+                "https://w3id.org/xapi/video/extensions/length": 508,
+            },
+            "contextActivities": {
+                "category": [
+                    {
+                        "id": "https://w3id.org/xapi/video",
+                        "definition": {
+                            "id": "uuid://C678149d-956a-483d-8975-c1506de1e1a9",
+                            "definition": {
+                                "type": "http://adlnet.gov/expapi/activities/profile"
+                            },
+                        },
+                    }
+                ],
+                "parent": [
+                    {
+                        "id": "course-v1:FUN-MOOC+00001+session01",
+                        "objectType": "Activity",
+                        "definition": {
+                            "type": "http://adlnet.gov/expapi/activities/course"
+                        },
+                    }
+                ],
+            },
+        },
+        "id": "2140967b-563b-464b-90c0-2e114bd8e133",
+        "actor": {
+            "objectType": "Agent",
+            "account": {
+                "name": "d5b3733b-ccd9-4ab1-bb29-22e3c2f2e592",
+                "homePage": "http://lms.example.org",
+            },
+        },
+        "object": {
+            "definition": {
+                "type": "https://w3id.org/xapi/video/activity-type/video",
+                "name": {"en-US": "Learning analytics 101"},
+            },
+            "id": "uuid://dd38149d-956a-483d-8975-c1506de1e1a9",
+            "objectType": "Activity",
+        },
+        "timestamp": "2021-12-01T08:17:47.150905+00:00",
+    }
+
+    model: VideoDownloaded = VideoDownloaded
