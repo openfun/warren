@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     MAX_DATETIMERANGE_SPAN: timedelta = timedelta(days=365)  # 1 year shift from since
     DEFAULT_DATETIMERANGE_SPAN: timedelta = timedelta(days=7)  # 7 days shift from until
     DATE_FORMAT: str = "YYYY-MM-DD"
+    XAPI_ACTOR_IDENTIFIER_PATHS = {
+        "actor.account.name",
+        "actor.account.homePage",
+        "actor.mbox",
+        "actor.mbox_sha1sum",
+        "actor.openid",
+    }
 
     # Security
     ALLOWED_HOSTS: List[str] = [

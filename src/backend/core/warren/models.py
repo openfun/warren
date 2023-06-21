@@ -1,6 +1,6 @@
 """Warren's core models."""
 from enum import Enum
-from typing import Generic, TypeVar
+from typing import Any, Dict, Generic, TypeVar
 
 from pydantic.main import BaseModel
 
@@ -26,3 +26,6 @@ class Response(BaseModel, Generic[T]):
 
     status: StatusEnum
     content: T
+
+
+XAPI_STATEMENT = Dict[str, Any]

@@ -16,4 +16,4 @@ class VideoViews(BaseModel):
     """Model to represent video views."""
 
     total_views: int = 0
-    views_count_by_date: List[VideoDayViews] = []
+    count_by_date: List[VideoDayViews] = []
