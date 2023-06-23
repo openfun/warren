@@ -19,5 +19,6 @@ and this project adheres to
 - Add the LRS backend
 - Switch the video view plugin from an elasticsearch to a LRS backend
 - Remove the elasticsearch backend
+- Add the LTI django application
 
 [unreleased]: https://github.com/openfun/warren

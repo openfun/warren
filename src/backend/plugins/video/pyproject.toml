@@ -28,7 +28,7 @@ requires-python = ">=3.7"
 license = {file = "LICENSE.md"}
 keywords = ["Analytics", "xAPI", "LRS", "LTI", "Video"]
 dependencies = [
-    "warren",
+    "warren-api",
 ]
 dynamic = ["version"]
 

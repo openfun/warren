@@ -1,0 +1,167 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    <title>{% trans "Warren LTI Test page" %}</title>
+    <style>
+      iframe.controlled-iframe {
+        width: 100%;
+        height: 80vh;
+      }
+
+    </style>
+  </head>
+  <body>
+    <main class="container-fluid">
+      <section>
+        <h1>LTI Consumer test</h1>
+        <form id="lti_request" method="post" action="{% url "lti:lti-request-view" %}" target="lti_request">
+
+          <div class="grid">
+
+            <div class="input-group">
+              <label for="lti_message_type"><code>lti_message_type</code></label>
+              <input
+                id="lti_message_type"
+                type="text"
+                name="lti_message_type"
+                value="{{ lti_message_type }}"
+                readonly
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="lti_version"><code>lti_version</code></label>
+              <input
+                id="lti_version"
+                type="text"
+                name="lti_version"
+                value="{{ lti_version }}"
+                readonly
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="resource_link_id"><code>resource_link_id</code></label>
+              <input
+                id="resource_link_id"
+                type="text"
+                name="resource_link_id"
+                value="{{ resource_link_id }}"
+                readonly
+              />
+            </div>
+
+          </div>
+
+          <div class="grid">
+
+            <div class="input-group">
+              <label for="lis_person_contact_email_primary"><code>lis_person_contact_email_primary</code></label>
+              <input
+                id="lis_person_contact_email_primary"
+                type="text"
+                name="lis_person_contact_email_primary"
+                value="{{ lis_person_contact_email_primary }}"
+                readonly
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="lis_person_sourcedid"><code>lis_person_sourcedid</code></label>
+              <input
+                id="lis_person_sourcedid"
+                type="text"
+                name="lis_person_sourcedid"
+                value="{{ lis_person_sourcedid }}"
+                readonly
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="launch_presentation_locale"><code>launch_presentation_locale</code></label>
+              <input
+                id="launch_presentation_locale"
+                type="text"
+                name="launch_presentation_locale"
+                value="fr"
+                readonly
+              />
+            </div>
+          </div>
+
+          <div class="grid">
+
+            <div class="input-group">
+              <label for="context_id"><code>context_id</code></label>
+              <input
+                id="context_id"
+                type="text"
+                name="context_id"
+                value="{{ context_id }}"
+                readonly
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="context_title"><code>context_title</code></label>
+              <input
+                id="context_title"
+                type="text"
+                name="context_title"
+                value="{{ context_title }}"
+                readonly
+              />
+            </div>
+
+            <div class="input-group">
+              <label for="roles"><code>roles</code></label>
+              <select id="roles" name="roles" readonly>
+                <option value="student" selected>Student</option>
+                <option value="teacher">Teacher</option>
+              </select>
+            </div>
+
+          </div>
+
+          {% for key, value in oauth_dict.items %}
+          {% if forloop.first or forloop.counter|divisibleby:"4" %}
+          <div class="grid">
+          {% endif %}
+            <div class="input-group">
+              <label for="{{ key }}"><code>{{ key }}</code></label>
+              <input
+                id="{{ key }}"
+                type="text"
+                name="{{ key }}"
+                value="{{ value }}"
+                readonly
+              />
+            </div>
+          {% if forloop.last or forloop.counter|divisibleby:"3" %}
+          </div>
+          {% endif %}
+          {% endfor %}
+
+          <input type="submit" />
+        </form>
+
+        <div class="grid">
+          <iframe
+            class="controlled-iframe"
+            name="lti_request"
+            srcdoc="Fill the form above to load the LTI request"
+            frameborder="0"
+            allowfullscreen
+            allow="fullscreen *"
+            webkitallowfullscreen
+            mozallowfullscreen
+          >
+        </div>
+        </iframe>
+      </section>
+    </main>
+  </body>
+</html>
