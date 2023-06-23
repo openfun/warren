@@ -1,6 +1,31 @@
-version: '3.4'
+version: '3.8'
 
 services:
+  postgresql:
+    image: postgres:12
+    env_file:
+      - .env
+
+  app:
+    build:
+      context: src/app
+      target: "${WARREN_APP_IMAGE_BUILD_TARGET:-development}"
+      args:
+        DOCKER_USER: ${DOCKER_USER:-1000}
+    user: ${DOCKER_USER:-1000}
+    image: "${WARREN_APP_IMAGE_NAME:-warren-app}:${WARREN_APP_IMAGE_TAG:-development}"
+    environment:
+      PYLINTHOME: /app/.pylint.d
+    env_file:
+      - .env
+    ports:
+      - "${WARREN_APP_SERVER_PORT:-8090}:${WARREN_APP_SERVER_PORT:-8090}"
+    volumes:
+      - ./src/app:/app
+    depends_on:
+      - "postgresql"
+      - "backend"
+
   backend:
     build:
       context: src/backend

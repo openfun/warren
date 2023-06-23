@@ -10,6 +10,7 @@ COMPOSE              = DOCKER_USER=$(DOCKER_USER) docker compose
 COMPOSE_RUN          = $(COMPOSE) run --rm --no-deps
 COMPOSE_RUN_BACKEND  = $(COMPOSE_RUN) backend
 COMPOSE_RUN_FRONTEND = $(COMPOSE_RUN) frontend
+MANAGE               = $(COMPOSE_RUN) app python manage.py
 
 # -- Potsie
 POTSIE_RELEASE = 0.6.0
@@ -30,7 +31,15 @@ RALPH_LRS_AUTH_USER_NAME  = ralph
 RALPH_LRS_AUTH_USER_PWD   = secret
 RALPH_LRS_AUTH_USER_SCOPE = ralph_scope
 
+# -- Postgresql
+DB_HOST            = postgresql
+DB_PORT            = 5432
+
 # -- WARREN
+WARREN_APP_IMAGE_NAME          		 ?= warren-app
+WARREN_APP_IMAGE_TAG           		 ?= development
+WARREN_APP_IMAGE_BUILD_TARGET  		 ?= development
+WARREN_APP_SERVER_PORT         		 ?= 8090
 WARREN_BACKEND_IMAGE_NAME          ?= warren-backend
 WARREN_BACKEND_IMAGE_TAG           ?= development
 WARREN_BACKEND_IMAGE_BUILD_TARGET  ?= development
@@ -77,14 +86,24 @@ bootstrap: \
   bin/patch_statements_date.py \
   data/statements.jsonl.gz \
   build \
+  migrate-app \
   fixtures
 .PHONY: bootstrap
 
 build: ## build the app containers
 build: \
+  build-docker-app \
   build-docker-backend \
   build-docker-frontend
 .PHONY: build
+
+build-docker-app: ## build the app container
+build-docker-app: .env
+	WARREN_APP_IMAGE_BUILD_TARGET=$(WARREN_APP_IMAGE_BUILD_TARGET) \
+	WARREN_APP_IMAGE_NAME=$(WARREN_APP_IMAGE_NAME) \
+	WARREN_APP_IMAGE_TAG=$(WARREN_APP_IMAGE_TAG) \
+	  $(COMPOSE) build app
+.PHONY: build-docker-app
 
 build-docker-backend: ## build the backend container
 build-docker-backend: .env
@@ -120,12 +139,19 @@ logs-frontend: ## display frontend logs (follow mode)
 .PHONY: logs-frontend
 
 logs: ## display frontend/backend logs (follow mode)
-	@$(COMPOSE) logs -f backend frontend
+	@$(COMPOSE) logs -f app backend frontend
 .PHONY: logs
 
 run: ## run the whole stack
 run: run-frontend
 .PHONY: run
+
+run-app: ## run the app server (development mode)
+	@$(COMPOSE) up -d app
+	@echo "Waiting for the app to be up and running..."
+	@$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
+	@$(COMPOSE_RUN) dockerize -wait tcp://app:$(WARREN_APP_SERVER_PORT) -timeout 60s
+.PHONY: run-app
 
 run-backend: ## run the backend server (development mode)
 	@$(COMPOSE) up -d backend
@@ -173,6 +199,13 @@ fixtures: \
 	    --es-op-type create
 .PHONY: fixtures
 
+
+migrate-app:  ## run django migration for the sandbox project.
+	@echo "Running migrations..."
+	@$(COMPOSE) up -d postgresql
+	@$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
+	@$(MANAGE) migrate
+.PHONY: migrate-app
 
 # -- Linters
 lint: ## lint backend python sources
