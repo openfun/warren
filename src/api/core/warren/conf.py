@@ -3,16 +3,16 @@
 import io
 from datetime import timedelta
 from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
 from pydantic import AnyHttpUrl, BaseModel, BaseSettings
 
 
 class ESClientOptions(BaseModel):
-    """Pydantic model for Elasticsearch additionnal client options."""
+    """Pydantic model for Elasticsearch additional client options."""
 
-    ca_certs: Path = None
-    verify_certs: bool = None
+    ca_certs: Optional[Path] = None
+    verify_certs: Optional[bool] = None
 
 
 class Settings(BaseSettings):
@@ -62,4 +62,4 @@ class Settings(BaseSettings):
         env_prefix = "WARREN_"
 
 
-settings = Settings()
+settings = Settings()  # type: ignore[call-arg]

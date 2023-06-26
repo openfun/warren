@@ -57,6 +57,7 @@ dev = [
     "pytest-cov==4.0.0",
     "pytest-httpx==0.22.0",
     "ruff==0.0.272",
+    "mypy==1.4.1",
 ]
 ci = [
     "twine==4.0.2",
@@ -107,3 +108,19 @@ target-version = "py38"
 [tool.ruff.pydocstyle]
 # Use Google-style docstrings.
 convention = "google"
+
+[tool.mypy]
+mypy_path = "core,plugins/video"
+explicit_package_bases = "true"
+#plugins = [
+#  "pydantic.mypy"
+#]
+
+[[tool.mypy.overrides]]
+module = 'rfc3987.*'
+ignore_missing_imports = "true"
+
+
+[[tool.mypy.overrides]]
+module = 'ralph.*'
+ignore_missing_imports = "true"

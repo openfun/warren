@@ -254,6 +254,11 @@ lint-api-ruff-fix: ## lint and fix api python sources with ruff
 	@$(COMPOSE_RUN_API) ruff --config core/pyproject.toml core plugins --fix
 .PHONY: lint-api-ruff-fix
 
+lint-api-mypy: ## lint api python sources with mypy
+	@echo 'lint:mypy started…'
+	@$(COMPOSE_RUN_BACKEND) mypy --config-file core/pyproject.toml core plugins
+.PHONY: lint-api-mypy
+
 ### App ###
 
 lint-app: ## lint app python sources
