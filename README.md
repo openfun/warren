@@ -41,6 +41,16 @@ We try to raise our code quality standards and expect contributors to follow
 the recommandations from our
 [handbook](https://handbook.openfun.fr).
 
+You can ensure your code is compliant by running the following commands:
+
+- `make lint` to run the linters
+- `make test` to run the tests
+
+Note that we also provide a git pre-commit hook to ease your life:
+```
+make git-hook-pre-commit
+```
+
 ## License
 
 This work is released under the MIT License (see [LICENSE](./LICENSE.md)).

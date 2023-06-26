@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+# Git pre-commit hook to lint the project code before committing.
+# This script is called by "git commit" with no arguments. The hook should
+# exit with a non-zero status and display an appropriate message if it
+# wants to stop the commit.
+
+# Usage:
+# This hook can be enabled by running `make git-hook-pre-commit`.
+
+# Get the commit reference against which we are comparing changes.
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+  against=HEAD
+else
+  # Initial commit: diff against an empty tree object
+  against=$(git hash-object -t tree /dev/null)
+fi
+
+# Check for trailing whitespace errors.
+echo "pre-commit hook: checking trailing whitespace…"
+git diff-index --check --cached "$against" --
+
+# Run the necessary commands to check modified code sources.
+if git diff --cached --name-only | grep -q 'src/api'; then
+  make lint-api
+fi
+if git diff --cached --name-only | grep -q 'src/app'; then
+  make lint-app
+fi
+if git diff --cached --name-only | grep -q 'src/frontend'; then
+  make lint-frontend
+fi
