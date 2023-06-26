@@ -2,11 +2,7 @@
 SHELL := /bin/bash
 
 # -- Docker
-# Get the current user ID to use for docker run and docker exec commands
-DOCKER_UID           = $(shell id -u)
-DOCKER_GID           = $(shell id -g)
-DOCKER_USER          = $(DOCKER_UID):$(DOCKER_GID)
-COMPOSE              = DOCKER_USER=$(DOCKER_USER) docker compose
+COMPOSE              = bin/compose
 COMPOSE_RUN          = $(COMPOSE) run --rm --no-deps
 COMPOSE_RUN_API      = $(COMPOSE_RUN) api
 COMPOSE_RUN_FRONTEND = $(COMPOSE_RUN) frontend
@@ -59,6 +55,14 @@ default: help
 
 .env:
 	cp .env.dist .env
+
+.git/hooks/pre-commit:
+	ln -sf ../../bin/git-hook-pre-commit .git/hooks/pre-commit
+
+git-hook-pre-commit:  ## Install git pre-commit hook
+git-hook-pre-commit: .git/hooks/pre-commit
+	@echo "Git pre-commit hook linked"
+.PHONY: git-hook-pre-commit
 
 .ralph/auth.json:
 	@$(COMPOSE_RUN) ralph ralph \
