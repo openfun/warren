@@ -2,7 +2,6 @@
 from typing import List
 
 from pydantic.main import BaseModel
-
 from warren.fields import Date
 
 
