@@ -1,27 +1,32 @@
-"""Video viewers indicator : total count of viewers who completed the video."""
+"""Views indicator : day time series of the video views."""
 
 from fastapi import APIRouter, Depends, HTTPException
 from ralph.backends.http.lrs import LRSQuery
 from ralph.exceptions import BackendException
 from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
+from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from starlette import status
 from typing_extensions import Annotated  # python <3.9 compat
 from warren.backends import lrs_client
 from warren.fields import IRI
 from warren.filters import BaseQueryFilters
-from warren_video.metric.count import Count
+from warren_video.metric.daytimeseries import DayTimeSeries, create_day_time_series
+from warren_video.statement_filters import filter_played_views
 
 router = APIRouter()
 
 
-@router.get("/{video_id:path}/complete_viewers")
-async def complete_viewers(
+@router.get("/{video_id:path}/views")
+async def views(
     video_id: IRI,
     filters: Annotated[BaseQueryFilters, Depends()],
-) -> Count:
-    """Video complete viewers endpoint."""
+    completed: bool = False,
+) -> DayTimeSeries:
+    """Video views endpoint."""
+    verb = CompletedVerb() if completed else PlayedVerb()
+
     query = {
-        "verb": CompletedVerb().id,
+        "verb": verb.id,
         "activity": video_id,
         "since": filters.since.isoformat(),
         "until": filters.until.isoformat(),
@@ -37,8 +42,7 @@ async def complete_viewers(
             detail="xAPI statements query failed",
         ) from error
 
-    unique_complete_viewers = set()
-    for statement in statements:
-        unique_complete_viewers.add(statement["actor"]["account"]["name"])
+    if verb == PlayedVerb():
+        statements = filter(filter_played_views, statements)
 
-    return Count(total=len(list(unique_complete_viewers)))
+    return create_day_time_series(list(statements), filters)

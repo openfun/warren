@@ -1,1 +1,0 @@
-"""complete views test package."""

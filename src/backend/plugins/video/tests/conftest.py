@@ -2,6 +2,8 @@
 
 import pytest
 from warren.conf import Settings
+from warren.tests.fixtures.app import http_client  # noqa: F401
+from warren.tests.fixtures.asynchronous import anyio_backend  # noqa: F401
 
 core_settings = Settings()
 

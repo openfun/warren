@@ -12,7 +12,8 @@ from ralph.models.xapi.video.statements import BaseVideoStatement
 from warren.backends import lrs_client
 from warren.conf import Settings
 from warren.filters import DatetimeRange
-from warren_video.tests.factories import VideoCompletedFactory, VideoPlayedFactory
+
+from .factories import VideoCompletedFactory, VideoPlayedFactory
 
 core_settings = Settings()
 

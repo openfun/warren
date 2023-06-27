@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from ralph.backends.http.lrs import LRSQuery
 from ralph.exceptions import BackendException
+from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from starlette import status
 from typing_extensions import Annotated  # python <3.9 compat
@@ -19,10 +20,13 @@ router = APIRouter()
 async def viewers(
     video_id: IRI,
     filters: Annotated[BaseQueryFilters, Depends()],
+    completed: bool = False,
 ) -> Count:
     """Video viewers endpoint."""
+    verb = CompletedVerb() if completed else PlayedVerb()
+
     query = {
-        "verb": PlayedVerb().id,
+        "verb": verb.id,
         "activity": video_id,
         "since": filters.since.isoformat(),
         "until": filters.until.isoformat(),
@@ -38,7 +42,8 @@ async def viewers(
             detail="xAPI statements query failed",
         ) from error
 
-    statements = filter(filter_played_views, statements)
+    if verb == PlayedVerb():
+        statements = filter(filter_played_views, statements)
 
     unique_viewers = set()
     for statement in statements:

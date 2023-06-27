@@ -1,1 +1,0 @@
-"""Views video indicator."""

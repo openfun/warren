@@ -1,1 +1,0 @@
-"""Complete viewers video indicator."""

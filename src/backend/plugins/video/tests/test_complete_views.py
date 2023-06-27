@@ -1,5 +1,4 @@
-"""Tests for the complete viewers indicator."""
-
+"""Tests for the complete views indicator."""
 import json
 
 import arrow
@@ -7,19 +6,17 @@ import pytest
 from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from warren.backends import lrs_client
 from warren.filters import DatetimeRange
-from warren_video.metric.count import Count
-from warren_video.tests.conftest import FAKE_VIDEO_IDS
-from warren_video.tests.factories import VideoCompletedFactory
-from warren_video.tests.fixtures import create_lrs_url
+from warren_video.metric.daytimeseries import DayTimeSeries, DayTimeSeriesDataPoint
+
+from .conftest import FAKE_VIDEO_IDS, core_settings
+from .factories import VideoCompletedFactory
+from .fixtures import create_lrs_url
 
 
 @pytest.mark.anyio
 @pytest.mark.parametrize("video_id", FAKE_VIDEO_IDS)
-async def test_no_matching_video(http_client, httpx_mock, video_id):
-    """Test the video complete viewers endpoint.
-
-    with a valid "video_id" but no results.
-    """
+async def test_no_matching_video(http_client, httpx_mock, video_id, non_mocked_hosts):
+    """Test the video complete views endpoint with a valid "video_id" but no results."""
     date_range = DatetimeRange()
 
     httpx_mock.add_response(
@@ -41,39 +38,43 @@ async def test_no_matching_video(http_client, httpx_mock, video_id):
 
     lrs_client.base_url = "http://fake-lrs.com"
     response = await http_client.get(
-        f"/api/v1/video/{video_id}/complete_viewers", params=params
+        f"/api/v1/video/{video_id}/views?completed=True", params=params
     )
 
     assert response.status_code == 200
 
-    assert Count.parse_obj(response.json()) == Count(total=0)
+    assert DayTimeSeries.parse_obj(response.json()) == DayTimeSeries(
+        day_totals=[
+            DayTimeSeriesDataPoint(day=day.format(core_settings.DATE_FORMAT))
+            for day in arrow.Arrow.range("day", date_range.since, date_range.until)
+        ]
+    )
 
 
 @pytest.mark.anyio
 async def test_matching_videos(http_client, httpx_mock):
-    """Test the video complete viewers endpoint backend query results."""
+    """Test the video complete views endpoint backend query results."""
     date_range = DatetimeRange()
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
+    expected_res = DayTimeSeries(
+        day_totals=[
+            DayTimeSeriesDataPoint(day=day.format(core_settings.DATE_FORMAT))
+            for day in arrow.Arrow.range("day", date_range.since, date_range.until)
+        ]
+    )
+    expected_res.day_totals[-1].total = 3
+    expected_res.total = 3
 
     video_statements = [
         json.loads(
             VideoCompletedFactory.build(
                 [
                     {"object": {"id": video_id}},
-                    {
-                        "actor": {
-                            "objectType": "Agent",
-                            "account": {
-                                "name": actor_account_name,
-                                "homePage": "http://lms.example.org",
-                            },
-                        },
-                    },
                     {"timestamp": arrow.utcnow().isoformat()},
                 ]
             ).json()
         )
-        for actor_account_name in ("test", "test", "other")
+        for _ in range(3)
     ]
 
     lrs_client.base_url = "http://fake-lrs.com"
@@ -95,8 +96,8 @@ async def test_matching_videos(http_client, httpx_mock):
         "until": date_range.until.astimezone().isoformat(),
     }
     response = await http_client.get(
-        f"/api/v1/video/{video_id}/complete_viewers", params=params
+        f"/api/v1/video/{video_id}/views?completed=True", params=params
     )
     assert response.status_code == 200
 
-    assert Count.parse_obj(response.json()) == Count(total=2)
+    assert DayTimeSeries.parse_obj(response.json()) == expected_res
