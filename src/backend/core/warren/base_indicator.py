@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from ralph.backends.http.lrs import BaseHTTP, LRSQuery
+from ralph.backends.http.lrs import LRSQuery
 
 
 class BaseIndicator(ABC):
@@ -11,8 +11,6 @@ class BaseIndicator(ABC):
     Defines the signature of the methods that should be implemented
     for indicators. Indicators should implement this interface.
     """
-
-    client: BaseHTTP
 
     @abstractmethod
     def get_lrs_query(self) -> LRSQuery:
