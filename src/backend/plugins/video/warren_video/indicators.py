@@ -5,6 +5,7 @@ from typing import List
 import pandas as pd
 from ralph.backends.http.lrs import BaseHTTP, LRSQuery
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
+from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.base_indicator import BaseIndicator
 from warren.filters import DatetimeRange
@@ -19,7 +20,14 @@ class DailyVideoViews(BaseIndicator):
     a date range, the total number of views, and the number of views per day.
     """
 
-    def __init__(self, client: BaseHTTP, video_uuid: str, date_range: DatetimeRange):
+    def __init__(
+        self,
+        client: BaseHTTP,
+        video_uuid: str,
+        date_range: DatetimeRange,
+        is_unique_viewers: bool,
+        is_completed_views: bool,
+    ):
         """Instantiate the indicator with its parameters.
 
         Args:
@@ -28,16 +36,24 @@ class DailyVideoViews(BaseIndicator):
             date_range: The date range on which to compute the indicator. It has
                 2 fields, `since` and `until` which are dates or timestamps that must be
                 in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss.SSSZ")
+            is_unique_viewers: If true, multiple views by the same actor are counted as
+                one
+            is_completed_views: If true, count `Completed` events instead of `Played`
+                events
         """
         self.client = client
         self.video_uuid = video_uuid
         self.date_range = date_range
+        self.is_unique_viewers = is_unique_viewers
+        self.is_completed_views = is_completed_views
 
     def get_lrs_query(self) -> LRSQuery:
         """Returns the LRS query for fetching required statements."""
         return LRSQuery(
             query={
-                "verb": PlayedVerb().id,
+                "verb": CompletedVerb().id
+                if self.is_completed_views
+                else PlayedVerb().id,
                 "activity": self.video_uuid,
                 "since": self.date_range.since.isoformat(),
                 "until": self.date_range.until.isoformat(),
@@ -82,6 +98,13 @@ class DailyVideoViews(BaseIndicator):
         filtered_view_duration.loc[:, "date"] = pd.to_datetime(
             filtered_view_duration.loc[:, "timestamp"]
         ).dt.date
+
+        # If the `is_unique_viewers` filter is selected, filter out rows with duplicate
+        # `actor.account.name`
+        if self.is_unique_viewers:
+            filtered_view_duration.drop_duplicates(
+                subset="actor.account.name", inplace=True
+            )
 
         # Group by day and calculate sum of events per day
         count_by_date = (

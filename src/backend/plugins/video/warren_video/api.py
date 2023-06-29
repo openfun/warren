@@ -19,13 +19,18 @@ logger = logging.getLogger(__name__)
 
 @router.get("/{video_uuid:path}/views")
 async def views(
-    video_uuid: IRI, filters: Annotated[BaseQueryFilters, Depends()]
+    video_uuid: IRI,
+    filters: Annotated[BaseQueryFilters, Depends()],
+    complete: bool = False,
+    unique: bool = False,
 ) -> Response[VideoViews]:
     """Number of views for `video_uuid` in the `since` -> `until` date range."""
     indicator = DailyVideoViews(
         client=lrs_client,
         video_uuid=video_uuid,
         date_range=DatetimeRange(since=filters.since, until=filters.until),
+        is_unique_viewers=unique,
+        is_completed_views=complete,
     )
     try:
         response = Response[VideoViews](
