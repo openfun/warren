@@ -45,8 +45,6 @@ async def viewers(
     if verb == PlayedVerb():
         statements = filter(filter_played_views, statements)
 
-    unique_viewers = {
-        statement["actor"]["account"]["name"] for statement in statements
-    }
+    unique_viewers = {statement["actor"]["account"]["name"] for statement in statements}
 
-    return Count(total=len(list(unique_viewers)))
+    return Count(total=len(unique_viewers))
