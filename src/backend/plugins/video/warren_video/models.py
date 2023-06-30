@@ -12,8 +12,12 @@ class VideoDayViews(BaseModel):
     count: int = 0
 
 
-class VideoViews(BaseModel):
+class DailyVideoViews(BaseModel):
     """Model to represent video views."""
 
-    total_views: int = 0
     views_count_by_date: List[VideoDayViews] = []
+
+
+class UniqueViewsCount(BaseModel):
+    """Model to represent video views from distinct viewers."""
+    total: int = 0

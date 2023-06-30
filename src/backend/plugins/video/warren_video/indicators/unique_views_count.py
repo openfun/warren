@@ -1,4 +1,4 @@
-""""Warren video indicators."""
+""""Daily video views indicators."""
 
 from typing import List
 
@@ -10,14 +10,13 @@ from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.base_indicator import BaseIndicator
 from warren.filters import DatetimeRange
 from warren_video.conf import settings as video_plugin_settings
-from warren_video.models import VideoViews
+from warren_video.models import UniqueViewsCount
 
 
-class DailyVideoViews(BaseIndicator):
-    """Daily Video Views indicator.
+class UniqueViewsCountIndicator(BaseIndicator):
+    """Unique views indicator.
 
-    Defines the daily video views indicator. It is, for a given video, and
-    a date range, the total number of views, and the number of views per day.
+    For a given video, and a date range, the total number of views by unique viewers.
     """
 
     def __init__(
@@ -25,7 +24,6 @@ class DailyVideoViews(BaseIndicator):
         client: BaseHTTP,
         video_uuid: str,
         date_range: DatetimeRange,
-        is_unique_viewers: bool,
         is_completed_views: bool,
     ):
         """Instantiate the indicator with its parameters.
@@ -36,15 +34,12 @@ class DailyVideoViews(BaseIndicator):
             date_range: The date range on which to compute the indicator. It has
                 2 fields, `since` and `until` which are dates or timestamps that must be
                 in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss.SSSZ")
-            is_unique_viewers: If true, multiple views by the same actor are counted as
-                one
             is_completed_views: If true, count `Completed` events instead of `Played`
                 events
         """
         self.client = client
         self.video_uuid = video_uuid
         self.date_range = date_range
-        self.is_unique_viewers = is_unique_viewers
         self.is_completed_views = is_completed_views
 
     def get_lrs_query(self) -> LRSQuery:
@@ -68,13 +63,13 @@ class DailyVideoViews(BaseIndicator):
             )
         )
 
-    def compute(self) -> VideoViews:
-        """Fetches statements and domputes the current indicator.
+    def compute(self) -> UniqueViewsCount:
+        """Fetches statements and computes the current indicator.
 
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video views per day.
         """
-        indicator = VideoViews()
+        indicator = UniqueViewsCount()
         raw_statements = self.fetch_statements()
         if not raw_statements:
             return indicator
@@ -99,23 +94,11 @@ class DailyVideoViews(BaseIndicator):
             filtered_view_duration.loc[:, "timestamp"]
         ).dt.date
 
-        # If the `is_unique_viewers` filter is selected, filter out rows with duplicate
-        # `actor.account.name`
-        if self.is_unique_viewers:
-            filtered_view_duration.drop_duplicates(
-                subset="actor.account.name", inplace=True
-            )
-
-        # Group by day and calculate sum of events per day
-        count_by_date = (
-            filtered_view_duration.groupby(filtered_view_duration["date"])
-            .count()
-            .reset_index()
-            .rename(columns={"id": "count"})
-            .loc[:, ["date", "count"]]
+        # Drop views of the same viewer
+        filtered_view_duration.drop_duplicates(
+            subset="actor.account.name", inplace=True
         )
-        # Calculate the total number of events
-        indicator.total_views = len(filtered_view_duration.index)
-        indicator.views_count_by_date = count_by_date.to_dict("records")
+
+        indicator.total = len(filtered_view_duration)
 
         return indicator
