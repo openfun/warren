@@ -2,7 +2,18 @@
 from abc import ABC, abstractmethod
 from typing import List
 
+import pandas as pd
 from ralph.backends.http.lrs import LRSQuery
+
+
+def parse_raw_statements(raw_statements):
+    """Parse LRS statements, explode the columns, and add a `date` column."""
+    flattened = pd.json_normalize(raw_statements)
+    # Disable chained assignment warning to make the transformation inplace
+    pd.options.mode.chained_assignment = None
+    # Transform timestamp column into a date with day (YYYY-MM-DD)
+    flattened.loc[:, "date"] = pd.to_datetime(flattened.loc[:, "timestamp"]).dt.date
+    return flattened
 
 
 class BaseIndicator(ABC):

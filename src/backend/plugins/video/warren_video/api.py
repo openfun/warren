@@ -7,7 +7,7 @@ from warren.backends import lrs_client
 from warren.fields import IRI
 from warren.filters import BaseQueryFilters, DatetimeRange
 from warren.models import Error, Response, StatusEnum
-from warren_video.indicators import DailyVideoViews
+from warren_video.indicators import DailyCompletedVideoViews, DailyVideoViews
 from warren_video.models import VideoViews
 
 router = APIRouter(
@@ -25,13 +25,20 @@ async def views(
     unique: bool = False,
 ) -> Response[VideoViews]:
     """Number of views for `video_uuid` in the `since` -> `until` date range."""
-    indicator = DailyVideoViews(
-        client=lrs_client,
-        video_uuid=video_uuid,
-        date_range=DatetimeRange(since=filters.since, until=filters.until),
-        is_unique_viewers=unique,
-        is_completed_views=complete,
-    )
+    if complete:
+        indicator = DailyCompletedVideoViews(
+            client=lrs_client,
+            video_uuid=video_uuid,
+            date_range=DatetimeRange(since=filters.since, until=filters.until),
+            is_unique_viewers=unique,
+        )
+    else:
+        indicator = DailyVideoViews(
+            client=lrs_client,
+            video_uuid=video_uuid,
+            date_range=DatetimeRange(since=filters.since, until=filters.until),
+            is_unique_viewers=unique,
+        )
     try:
         response = Response[VideoViews](
             status=StatusEnum.SUCCESS, content=indicator.compute()
