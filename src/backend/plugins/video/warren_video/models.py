@@ -1,5 +1,5 @@
 """Defines the schema of what is returned inside the API responses."""
-from typing import List
+from typing import List, Dict
 
 from pydantic.main import BaseModel
 from warren.fields import Date
@@ -17,3 +17,8 @@ class VideoViews(BaseModel):
 
     total_views: int = 0
     count_by_date: List[VideoDayViews] = []
+
+
+class VideoEvents(BaseModel):
+    """Represent the distribution of events (played, paused...) in a video."""
+    events_per_second: Dict = None

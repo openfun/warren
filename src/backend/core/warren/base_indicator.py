@@ -11,8 +11,9 @@ def parse_raw_statements(raw_statements):
     flattened = pd.json_normalize(raw_statements)
     # Disable chained assignment warning to make the transformation inplace
     pd.options.mode.chained_assignment = None
-    # Transform timestamp column into a date with day (YYYY-MM-DD)
-    flattened.loc[:, "date"] = pd.to_datetime(flattened.loc[:, "timestamp"]).dt.date
+    flattened.loc[:, "timestamp"] = pd.to_datetime(flattened.loc[:, "timestamp"])
+    # Create a date column in the YYYY-MM-DD format
+    flattened.loc[:, "date"] = flattened.loc[:, "timestamp"].dt.date
     return flattened
 
 

@@ -2,6 +2,8 @@
 
 from typing import List
 
+import pandas as pd
+
 from ralph.backends.http.lrs import BaseHTTP, LRSQuery
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
@@ -9,7 +11,7 @@ from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.base_indicator import BaseIndicator, parse_raw_statements
 from warren.filters import DatetimeRange
 from warren_video.conf import settings as video_plugin_settings
-from warren_video.models import VideoViews
+from warren_video.models import VideoViews, VideoEvents
 
 
 class DailyVideoViews(BaseIndicator):
@@ -20,11 +22,11 @@ class DailyVideoViews(BaseIndicator):
     """
 
     def __init__(
-        self,
-        client: BaseHTTP,
-        video_uuid: str,
-        date_range: DatetimeRange,
-        is_unique_viewers: bool,
+            self,
+            client: BaseHTTP,
+            video_uuid: str,
+            date_range: DatetimeRange,
+            is_unique_viewers: bool,
     ):
         """Instantiate the indicator with its parameters.
 
@@ -76,8 +78,8 @@ class DailyVideoViews(BaseIndicator):
         # Filter out video played events before configured time threshold
         def filter_view_duration(row):
             return (
-                row[f"result.extensions.{RESULT_EXTENSION_TIME}"]
-                >= video_plugin_settings.VIEWS_COUNT_TIME_THRESHOLD
+                    row[f"result.extensions.{RESULT_EXTENSION_TIME}"]
+                    >= video_plugin_settings.VIEWS_COUNT_TIME_THRESHOLD
             )
 
         # Apply the filtering function to each row and update the DataFrame in place
@@ -95,10 +97,10 @@ class DailyVideoViews(BaseIndicator):
         # Group by day and calculate sum of events per day
         count_by_date = (
             filtered_view_duration.groupby(filtered_view_duration["date"])
-            .count()
-            .reset_index()
-            .rename(columns={"id": "count"})
-            .loc[:, ["date", "count"]]
+                .count()
+                .reset_index()
+                .rename(columns={"id": "count"})
+                .loc[:, ["date", "count"]]
         )
         # Calculate the total number of events
         indicator.total_views = len(filtered_view_duration.index)
@@ -115,11 +117,11 @@ class DailyCompletedVideoViews(BaseIndicator):
     """
 
     def __init__(
-        self,
-        client: BaseHTTP,
-        video_uuid: str,
-        date_range: DatetimeRange,
-        is_unique_viewers: bool,
+            self,
+            client: BaseHTTP,
+            video_uuid: str,
+            date_range: DatetimeRange,
+            is_unique_viewers: bool,
     ):
         """Instantiate the indicator with its parameters.
 
@@ -176,13 +178,76 @@ class DailyCompletedVideoViews(BaseIndicator):
         # Group by day and calculate sum of events per day
         count_by_date = (
             flattened.groupby(flattened["date"])
-            .count()
-            .reset_index()
-            .rename(columns={"id": "count"})
-            .loc[:, ["date", "count"]]
+                .count()
+                .reset_index()
+                .rename(columns={"id": "count"})
+                .loc[:, ["date", "count"]]
         )
         # Calculate the total number of events
         indicator.total_views = len(flattened.index)
         indicator.count_by_date = count_by_date.to_dict("records")
 
         return indicator
+
+
+class VideoEventsBySecond(BaseIndicator):
+    """The video duration is divided into equal 1sec intervals. For each interval, compute
+      the events distribution.
+      TODO: add details
+      """
+
+    def __init__(
+            self,
+            client: BaseHTTP,
+            video_uuid: str,
+            date_range: DatetimeRange,
+    ):
+        """Instantiate the indicator with its parameters.
+
+        Args:
+            client: The LRS backend from which the query is to be issued
+            video_uuid: The UUID of the video on which to compute the metric
+            date_range: The date range on which to compute the indicator. It has
+                2 fields, `since` and `until` which are dates or timestamps that must be
+                in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss.SSSZ")
+        """
+        self.client = client
+        self.video_uuid = video_uuid
+        self.date_range = date_range
+
+    def get_lrs_query(self) -> LRSQuery:
+        """Returns the LRS query for fetching required statements."""
+        return LRSQuery(
+            query={
+                "activity": self.video_uuid,
+                "since": self.date_range.since.isoformat(),
+                "until": self.date_range.until.isoformat(),
+            }
+        )
+
+    def fetch_statements(self) -> List:
+        """Executes the LRS query to obtain statements required for this indicator."""
+        return list(
+            self.client.read(
+                target=self.client.statements_endpoint, query=self.get_lrs_query()
+            )
+        )
+
+    def compute(self):
+        indicator = VideoEvents
+        raw_statements = self.fetch_statements()
+        if not raw_statements:
+            return indicator
+        flattened = parse_raw_statements(raw_statements)
+
+        # TODO :
+        #  How to deal with Naan ?
+
+        flattened['result.extensions.https://w3id.org/xapi/video/extensions/time'] = \
+            pd.to_timedelta(flattened['result.extensions.https://w3id.org/xapi/video/extensions/time'],
+                            unit='s').dt.seconds
+
+        result = flattened.groupby('result.extensions.https://w3id.org/xapi/video/extensions/time')[
+            'verb.id'].value_counts().reset_index(name='count')
+
+        pass
