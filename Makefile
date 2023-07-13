@@ -10,7 +10,8 @@ COMPOSE              = DOCKER_USER=$(DOCKER_USER) docker compose
 COMPOSE_RUN          = $(COMPOSE) run --rm --no-deps
 COMPOSE_RUN_BACKEND  = $(COMPOSE_RUN) backend
 COMPOSE_RUN_FRONTEND = $(COMPOSE_RUN) frontend
-MANAGE               = $(COMPOSE_RUN) app python manage.py
+COMPOSE_RUN_APP      = $(COMPOSE_RUN) app
+MANAGE               = $(COMPOSE_RUN_APP) python manage.py
 
 # -- Potsie
 POTSIE_RELEASE = 0.6.0
@@ -208,39 +209,68 @@ migrate-app:  ## run django migration for the sandbox project.
 .PHONY: migrate-app
 
 # -- Linters
-lint: ## lint backend python sources
+lint: ## lint backend, app and frontend sources
 lint: \
-  lint-black \
-  lint-ruff \
-	lint-frontend
+  lint-backend \
+  lint-app \
+  lint-frontend
 .PHONY: lint
 
 ### Backend ###
 
-lint-black: ## lint backend python sources with black
-	@echo 'lint:black started…'
+lint-backend: ## lint backend python sources
+lint-backend: \
+  lint-backend-black \
+  lint-backend-ruff
+.PHONY: lint-backend
+
+lint-backend-black: ## lint backend python sources with black
+	@echo 'lint-backend:black started…'
 	@$(COMPOSE_RUN_BACKEND) black --config core/pyproject.toml core plugins
-.PHONY: lint-black
+.PHONY: lint-backend-black
 
-lint-ruff: ## lint backend python sources with ruff
-	@echo 'lint:ruff started…'
+lint-backend-ruff: ## lint backend python sources with ruff
+	@echo 'lint-backend:ruff started…'
 	@$(COMPOSE_RUN_BACKEND) ruff --config core/pyproject.toml core plugins
-.PHONY: lint-ruff
+.PHONY: lint-backend-ruff
 
-lint-ruff-fix: ## lint and fix backend python sources with ruff
-	@echo 'lint:ruff-fix started…'
+lint-backend-ruff-fix: ## lint and fix backend python sources with ruff
+	@echo 'lint-backend:ruff-fix started…'
 	@$(COMPOSE_RUN_BACKEND) ruff --config core/pyproject.toml core plugins --fix
-.PHONY: lint-ruff-fix
+.PHONY: lint-backend-ruff-fix
+
+### App ###
+
+lint-app: ## lint app python sources
+lint-app: \
+  lint-app-black \
+  lint-app-ruff
+.PHONY: lint-app
+
+lint-app-black: ## lint app python sources with black
+	@echo 'lint-app:black started…'
+	@$(COMPOSE_RUN_APP) black --config ./pyproject.toml apps warren manage.py
+.PHONY: lint-app-black
+
+lint-app-ruff: ## lint app python sources with ruff
+	@echo 'lint-app:ruff started…'
+	@$(COMPOSE_RUN_APP) ruff --config ./pyproject.toml apps warren manage.py
+.PHONY: lint-app-ruff
+
+lint-app-ruff-fix: ## lint and fix app python sources with ruff
+	@echo 'lint-app:ruff-fix started…'
+	@$(COMPOSE_RUN_APP) ruff --config ./pyproject.toml apps warren manage.py --fix
+.PHONY: lint-app-ruff-fix
 
 ### Frontend ###
 
 lint-frontend: ## lint frontend sources
-	@echo 'lint:frontend started…'
+	@echo 'lint-frontend:linter started…'
 	@$(COMPOSE_RUN_FRONTEND) yarn lint
 .PHONY: lint-frontend
 
 format-frontend: ## use prettier to format frontend sources
-	@echo 'format:frontend started…'
+	@echo 'format-frontend: started…'
 	@$(COMPOSE_RUN_FRONTEND) yarn format
 .PHONY: format-frontend
 
