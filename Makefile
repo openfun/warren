@@ -277,13 +277,20 @@ format-frontend: ## use prettier to format frontend sources
 ## -- Tests
 
 test: ## run tests
-test: test-backend
+test: \
+  test-backend \
+  test-app
 .PHONY: test
 
 test-backend: ## run backend tests
 test-backend: run-backend
-	bin/pytest
-.PHONY: test
+	@$(COMPOSE_RUN_BACKEND) pytest
+.PHONY: test-backend
+
+test-app: ## run app tests
+test-app: run-app
+	@$(COMPOSE_RUN_APP) pytest
+.PHONY: test-app
 
 # -- Misc
 help:
