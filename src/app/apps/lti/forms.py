@@ -1,4 +1,4 @@
-"""Warren LTI app forms"""
+"""Warren LTI app forms."""
 
 from django import forms
 from django.core import signing

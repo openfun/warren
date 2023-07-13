@@ -1,5 +1,4 @@
-"""
-WSGI config for Warren project.
+"""WSGI config for Warren project.
 
 It exposes the WSGI callable as a module-level variable named `application`.
 
