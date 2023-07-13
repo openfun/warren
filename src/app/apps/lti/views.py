@@ -1,18 +1,15 @@
 """Views for the LTI app."""
 
 import logging
-from urllib.parse import urlencode, urlparse
 
-from django.core import signing
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
-from django.urls import reverse
 from lti_toolbox.exceptions import LTIException
 from lti_toolbox.lti import LTI
 from lti_toolbox.views import BaseLTIView
 
-from .forms import BaseLTIUserForm, SignedLTIUserForm
+from .forms import BaseLTIUserForm
 
 logger = logging.getLogger(__name__)
 

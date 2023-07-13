@@ -1,7 +1,8 @@
+"""Views for the dashboard app."""
 from django.views.generic import TemplateView
 
 
 class DashboardView(TemplateView):
-    """Dummy dashboard view"""
+    """Dummy dashboard view."""
 
     template_name = "dashboards/base.html"

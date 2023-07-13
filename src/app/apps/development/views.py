@@ -1,4 +1,4 @@
-"""Warren development app views."""
+"""Views for the development app."""
 
 import uuid
 from logging import getLogger
@@ -19,6 +19,7 @@ logger = getLogger(__name__)
 @method_decorator(xframe_options_exempt, name="dispatch")
 class DevelopmentLTIView(TemplateView):
     """A development view with iframe POST / plain POST helpers.
+
     Not available outside of DEBUG = true environments.
     """
 
@@ -26,6 +27,7 @@ class DevelopmentLTIView(TemplateView):
 
     def get_context_data(self, **kwargs):
         """Generate a UUID to pre-populate the `uuid` fields in the LTI request form.
+
         Parameters
         ----------
         kwargs : dictionary
@@ -33,9 +35,8 @@ class DevelopmentLTIView(TemplateView):
         Returns
         -------
         dictionary
-            context for template rendering
+            context for template rendering.
         """
-
         lti_parameters = {
             "lti_message_type": "basic-lti-launch-request",
             "lti_version": "LTI-1p0",
@@ -73,8 +74,9 @@ class DevelopmentLTIView(TemplateView):
         )
         # Compute Authorization header which looks like:
         # Authorization: OAuth oauth_nonce="80966668944732164491378916897",
-        # oauth_timestamp="1378916897", oauth_version="1.0", oauth_signature_method="HMAC-SHA1",
-        # oauth_consumer_key="", oauth_signature="frVp4JuvT1mVXlxktiAUjQ7%2F1cw%3D"
+        # oauth_timestamp="1378916897", oauth_version="1.0",
+        # oauth_signature_method="HMAC-SHA1", oauth_consumer_key="",
+        # oauth_signature="frVp4JuvT1mVXlxktiAUjQ7%2F1cw%3D"
         _uri, headers, _body = oauth_client.sign(
             request_url,
             http_method="POST",
