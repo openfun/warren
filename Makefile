@@ -202,11 +202,26 @@ fixtures: \
 
 
 migrate-app:  ## run django migration for the sandbox project.
-	@echo "Running migrations..."
+	@echo "Running migrations…"
 	@$(COMPOSE) up -d postgresql
 	@$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
 	@$(MANAGE) migrate
 .PHONY: migrate-app
+
+check-django:  ## Run the Django "check" command
+	@echo "Checking django…"
+	@$(MANAGE) check
+.PHONY: check-django
+
+make-migrations:  ## Generate potential migrations
+	@echo "Generating potential migrations…"
+	@$(MANAGE) makemigrations
+.PHONY: make-migrations
+
+check-migrations:  ## Check that all needed migrations exist
+	@echo "Checking migrations…"
+	@$(MANAGE) makemigrations --check --dry-run
+.PHONY: check-migrations
 
 # -- Linters
 lint: ## lint backend, app and frontend sources
