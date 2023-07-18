@@ -29,10 +29,11 @@ keywords = ["Analytics", "xAPI", "LRS", "LTI"]
 dependencies = [
     "arrow==1.2.2",
     "elasticsearch[async]==8.6.2",
-    "fastapi==0.95.2",
+    "fastapi==0.100.0",
     "importlib-metadata==6.6.0",
     "pandas==2.0.2",
-    "pydantic[dotenv]==1.10.8",
+    "pydantic[dotenv]==2.0.3",
+    "pydantic-settings==2.0.2",
     "rfc3987==1.3.8",
     "sentry-sdk[fastapi]==1.15.0",
     "uvicorn[standard]==0.20.0",
