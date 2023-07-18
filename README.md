@@ -14,8 +14,8 @@ Make target:
 $ make bootstrap
 ```
 
-Once frontend and backend Docker images have been built, you can start the
-backend and frontend development servers using:
+Once frontend and API backend Docker images have been built, you can start the
+API backend and frontend development servers using:
 
 ```
 $ make run

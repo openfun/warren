@@ -20,5 +20,6 @@ and this project adheres to
 - Switch the video view plugin from an elasticsearch to a LRS backend
 - Remove the elasticsearch backend
 - Add the LTI django application
+- Rename the API directory to a more descriptive name.
 
 [unreleased]: https://github.com/openfun/warren
