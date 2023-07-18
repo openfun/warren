@@ -123,3 +123,75 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
     }
 
     assert video_views == expected_video_views
+
+
+@pytest.mark.anyio
+async def test_unique_views_backend_query(
+    http_client: AsyncClient, httpx_mock: HTTPXMock
+):
+    """Test the video views endpoint, with parameter unique=True."""
+    # Define 3 video views fixtures
+    video_uuid = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
+    video_views_fixtures = [
+        {"timestamp": "2020-01-01T00:00:00.000Z", "time": 100},
+        {"timestamp": "2020-01-01T00:00:30.000Z", "time": 200},
+        {"timestamp": "2020-01-02T00:00:00.000Z", "time": 300},
+    ]
+
+    # Build video statements from fixtures
+    video_statements = [
+        VideoPlayedFactory.build(
+            [
+                {
+                    "actor": {
+                        "objectType": "Agent",
+                        "account": {"name": "John", "homePage": "http://fun-mooc.fr"},
+                    }
+                },
+                {"object": {"id": video_uuid, "objectType": "Activity"}},
+                {"verb": {"id": PlayedVerb().id}},
+                {"result": {"extensions": {RESULT_EXTENSION_TIME: view_data["time"]}}},
+                {"timestamp": view_data["timestamp"]},
+            ]
+        )
+        for view_data in video_views_fixtures
+    ]
+
+    # Convert each video statement to a JSON object
+    video_statements_json = [
+        json.loads(statement.json()) for statement in video_statements
+    ]
+
+    # Mock the LRS call so that it returns the fixture statements
+    lrs_client.base_url = "http://fake-lrs.com"
+    httpx_mock.add_response(
+        url=re.compile(r"^http://fake-lrs\.com/xAPI/statements\?.*$"),
+        method="GET",
+        json={"statements": video_statements_json},
+        status_code=200,
+    )
+
+    # Perform the call to warren backend. When fetching the LRS statements, it will
+    # get the above mocked statements
+    response = await http_client.get(
+        url=f"/api/v1/video/{video_uuid}/views?unique=true",
+        params={
+            "since": "2020-01-01",
+            "until": "2020-01-03",
+        },
+    )
+
+    assert response.status_code == 200
+
+    # Parse the response to obtain video views count_by_date
+    video_views = (Response[VideoViews]).parse_obj(response.json()).content
+
+    # Counting only the first view is expected
+    expected_video_views = {
+        "total_views": 1,
+        "count_by_date": [
+            {"date": "2020-01-01", "count": 1},
+        ],
+    }
+
+    assert video_views == expected_video_views
