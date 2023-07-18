@@ -57,7 +57,7 @@ async def test_views_valid_video_id_path_but_no_matching_video(
     )
 
     assert response.status_code == 200
-    assert VideoViews.parse_obj(response.json()) == VideoViews(
+    assert VideoViews.model_validate(response.json()) == VideoViews(
         total_views=0,
         views_count_by_date=[],
     )
