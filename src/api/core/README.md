@@ -1,4 +1,4 @@
-# Warren [backend]
+# Warren [API]
 
 Warren is a visualization platform for learning analytics.
 

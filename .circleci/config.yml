@@ -116,14 +116,14 @@ jobs:
           command: |
             WARREN_BACK_IMAGE_BUILD_TARGET=production \
             WARREN_IMAGE_TAG=${CIRCLE_SHA1} \
-              make build-docker-backend
+              make build-docker-api
       - run:
           name: Check built image availability
           command: docker images "warren-back:${CIRCLE_SHA1}*"
 
-  # ---- Backend jobs ----
-  # Build backend development environment
-  build-backend:
+  # ---- API jobs ----
+  # Build API development environment
+  build-api:
     parameters:
       python-image:
         type: string
@@ -137,7 +137,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-backend-dependencies-<< parameters.python-image >>-{{ .Revision }}
+            - v1-api-dependencies-<< parameters.python-image >>-{{ .Revision }}
       - run:
           name: Install development dependencies
           command: |
@@ -145,13 +145,13 @@ jobs:
             for plugin in ./plugins/*; do \
               pip install --user "${plugin}[dev]"; \
             done
-          working_directory: src/backend
+          working_directory: src/api
       - save_cache:
           paths:
             - ~/.local
-          key: v1-backend-dependencies-<< parameters.python-image >>-{{ .Revision }}
+          key: v1-api-dependencies-<< parameters.python-image >>-{{ .Revision }}
 
-  lint-backend:
+  lint-api:
     docker:
       - image: cimg/python:3.11
         auth:
@@ -162,16 +162,16 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-backend-dependencies-python:3.11-{{ .Revision }}
+            - v1-api-dependencies-python:3.11-{{ .Revision }}
       - run:
           name: Lint code with black
           command: ~/.local/bin/black --check --config core/pyproject.toml core plugins
-          working_directory: src/backend
+          working_directory: src/api
       - run:
           name: Lint code with ruff
           command: ~/.local/bin/ruff --config core/pyproject.toml core plugins
-          working_directory: src/backend
-  test-backend:
+          working_directory: src/api
+  test-api:
     parameters:
       python-image:
         type: string
@@ -189,11 +189,11 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-backend-dependencies-<< parameters.python-image >>-{{ .Revision }}
+            - v1-api-dependencies-<< parameters.python-image >>-{{ .Revision }}
       - run:
           name: Run tests
           command: ~/.local/bin/pytest -c core/pyproject.toml
-          working_directory: src/backend
+          working_directory: src/api
 
   # ---- App jobs ----
   # Build app development environment
@@ -329,7 +329,7 @@ jobs:
           working_directory: src/frontend
 
   # ---- Packaging jobs ----
-  package-backend:
+  package-api:
     docker:
       - image: cimg/python:3.11
         auth:
@@ -340,13 +340,13 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - v1-backend-dependencies-python:3.11-{{ .Revision }}
+            - v1-api-dependencies-python:3.11-{{ .Revision }}
       - attach_workspace:
           at: ~/fun
       - run:
           name: Build core python package
           command: python -m build
-          working_directory: src/backend/core
+          working_directory: src/api/core
       - run:
           name: Build plugins python packages
           command: |
@@ -355,16 +355,16 @@ jobs:
               python -m build ; \
               cd ..; \
             done
-          working_directory: src/backend/plugins
+          working_directory: src/api/plugins
       # Persist build packages to the workspace
       - persist_to_workspace:
           root: ~/fun
           paths:
-            - src/backend/core/dist
-            - src/backend/plugins/*/dist
+            - src/api/core/dist
+            - src/api/plugins/*/dist
       # Store packages as artifacts to download/test them
       - store_artifacts:
-          path: ~/fun/src/backend/core/dist
+          path: ~/fun/src/api/core/dist
 
   # Publishing to PyPI requires that:
   #   * you already registered to pypi.org
@@ -385,18 +385,18 @@ jobs:
       - run:
           name: List built packages
           command: |
-            ls src/backend/core/dist/* ;
-            ls src/backend/plugins/*/dist/* ;
+            ls src/api/core/dist/* ;
+            ls src/api/plugins/*/dist/* ;
       - run:
           name: Install base requirements (twine)
           command: pip install --user ./core[ci]
-          working_directory: src/backend
+          working_directory: src/api
       - run:
           name: Upload built packages to PyPI
           command: |
             ~/.local/bin/twine upload --skip-existing core/dist/* ;
             ~/.local/bin/twine upload --skip-existing plugins/*/dist/* ;
-          working_directory: src/backend
+          working_directory: src/api
 
 workflows:
   version: 2
@@ -432,29 +432,29 @@ workflows:
             tags:
               only: /.*/
 
-      # Backend jobs
+      # API jobs
       #
       # Build, lint and test production and development Docker images
       # (debian-based)
-      - build-backend:
+      - build-api:
           matrix:
             parameters:
               python-image: [python:3.8, python:3.9, python:3.10, python:3.11]
           filters:
             tags:
               only: /.*/
-      - lint-backend:
+      - lint-api:
           requires:
-            - build-backend
+            - build-api
           filters:
             tags:
               only: /.*/
-      - test-backend:
+      - test-api:
           matrix:
             parameters:
               python-image: [python:3.8, python:3.9, python:3.10, python:3.11]
           requires:
-            - build-backend
+            - build-api
           filters:
             tags:
               only: /.*/
@@ -501,10 +501,10 @@ workflows:
       # Packaging: python
       #
       # Build the python package
-      - package-backend:
+      - package-api:
           requires:
-            - lint-backend
-            - test-backend
+            - lint-api
+            - test-api
           filters:
             tags:
               only: /.*/
@@ -515,7 +515,7 @@ workflows:
       # succeed and it has been tagged with a tag starting with the letter v
       - pypi:
           requires:
-            - package-backend
+            - package-api
           filters:
             branches:
               ignore: /.*/

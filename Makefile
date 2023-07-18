@@ -8,7 +8,7 @@ DOCKER_GID           = $(shell id -g)
 DOCKER_USER          = $(DOCKER_UID):$(DOCKER_GID)
 COMPOSE              = DOCKER_USER=$(DOCKER_USER) docker compose
 COMPOSE_RUN          = $(COMPOSE) run --rm --no-deps
-COMPOSE_RUN_BACKEND  = $(COMPOSE_RUN) backend
+COMPOSE_RUN_API      = $(COMPOSE_RUN) api
 COMPOSE_RUN_FRONTEND = $(COMPOSE_RUN) frontend
 COMPOSE_RUN_APP      = $(COMPOSE_RUN) app
 MANAGE               = $(COMPOSE_RUN_APP) python manage.py
@@ -41,15 +41,15 @@ WARREN_APP_IMAGE_NAME          		 ?= warren-app
 WARREN_APP_IMAGE_TAG           		 ?= development
 WARREN_APP_IMAGE_BUILD_TARGET  		 ?= development
 WARREN_APP_SERVER_PORT         		 ?= 8090
-WARREN_BACKEND_IMAGE_NAME          ?= warren-backend
-WARREN_BACKEND_IMAGE_TAG           ?= development
-WARREN_BACKEND_IMAGE_BUILD_TARGET  ?= development
-WARREN_BACKEND_SERVER_PORT         ?= 8100
-WARREN_FRONTEND_IMAGE_NAME         ?= warren-frontend
-WARREN_FRONTEND_IMAGE_TAG          ?= development
-WARREN_FRONTEND_IMAGE_BUILD_TARGET ?= development
-WARREN_FRONTEND_SERVER_PORT        ?= 3000
-WARREN_FRONTEND_DOCS_PORT          ?= 3001
+WARREN_API_IMAGE_NAME                ?= warren-api
+WARREN_API_IMAGE_TAG                 ?= development
+WARREN_API_IMAGE_BUILD_TARGET        ?= development
+WARREN_API_SERVER_PORT               ?= 8100
+WARREN_FRONTEND_IMAGE_NAME           ?= warren-frontend
+WARREN_FRONTEND_IMAGE_TAG            ?= development
+WARREN_FRONTEND_IMAGE_BUILD_TARGET   ?= development
+WARREN_FRONTEND_SERVER_PORT          ?= 3000
+WARREN_FRONTEND_DOCS_PORT            ?= 3001
 
 
 # ==============================================================================
@@ -94,7 +94,7 @@ bootstrap: \
 build: ## build the app containers
 build: \
   build-docker-app \
-  build-docker-backend \
+  build-docker-api \
   build-docker-frontend
 .PHONY: build
 
@@ -106,13 +106,13 @@ build-docker-app: .env
 	  $(COMPOSE) build app
 .PHONY: build-docker-app
 
-build-docker-backend: ## build the backend container
-build-docker-backend: .env
-	WARREN_BACKEND_IMAGE_BUILD_TARGET=$(WARREN_BACKEND_IMAGE_BUILD_TARGET) \
-	WARREN_BACKEND_IMAGE_NAME=$(WARREN_BACKEND_IMAGE_NAME) \
-	WARREN_BACKEND_IMAGE_TAG=$(WARREN_BACKEND_IMAGE_TAG) \
-	  $(COMPOSE) build backend
-.PHONY: build-docker-backend
+build-docker-api: ## build the api container
+build-docker-api: .env
+	WARREN_API_IMAGE_BUILD_TARGET=$(WARREN_API_IMAGE_BUILD_TARGET) \
+	WARREN_API_IMAGE_NAME=$(WARREN_API_IMAGE_NAME) \
+	WARREN_API_IMAGE_TAG=$(WARREN_API_IMAGE_TAG) \
+	  $(COMPOSE) build api
+.PHONY: build-docker-api
 
 build-docker-frontend: ## build the frontend container
 build-docker-frontend: .env
@@ -127,20 +127,20 @@ build-frontend: ## build the frontend application
 	@$(COMPOSE_RUN_FRONTEND) yarn build
 .PHONY: build-frontend
 
-down: ## stop and remove backend containers
+down: ## stop and remove all containers
 	@$(COMPOSE) down
 .PHONY: down
 
-logs-backend: ## display backend logs (follow mode)
-	@$(COMPOSE) logs -f backend
-.PHONY: logs-backend
+logs-api: ## display api logs (follow mode)
+	@$(COMPOSE) logs -f api
+.PHONY: logs-api
 
 logs-frontend: ## display frontend logs (follow mode)
 	@$(COMPOSE) logs -f frontend
 .PHONY: logs-frontend
 
-logs: ## display frontend/backend logs (follow mode)
-	@$(COMPOSE) logs -f app backend frontend
+logs: ## display frontend/api logs (follow mode)
+	@$(COMPOSE) logs -f app api frontend
 .PHONY: logs
 
 run: ## run the whole stack
@@ -154,16 +154,16 @@ run-app: ## run the app server (development mode)
 	@$(COMPOSE_RUN) dockerize -wait tcp://app:$(WARREN_APP_SERVER_PORT) -timeout 60s
 .PHONY: run-app
 
-run-backend: ## run the backend server (development mode)
-	@$(COMPOSE) up -d backend
-	@echo "Waiting for backend to be up and running..."
+run-api: ## run the api server (development mode)
+	@$(COMPOSE) up -d api
+	@echo "Waiting for api to be up and running..."
 	@$(COMPOSE_RUN) dockerize -wait tcp://$(ES_COMPOSE_SERVICE):$(ES_PORT) -timeout 60s
 	@$(COMPOSE_RUN) dockerize -wait http://$(RALPH_COMPOSE_SERVICE):$(RALPH_RUNSERVER_PORT)/__heartbeat__ -timeout 60s
-	@$(COMPOSE_RUN) dockerize -wait tcp://backend:$(WARREN_BACKEND_SERVER_PORT) -timeout 60s
-.PHONY: run-backend
+	@$(COMPOSE_RUN) dockerize -wait tcp://api:$(WARREN_API_SERVER_PORT) -timeout 60s
+.PHONY: run-api
 
 run-frontend: ## run the frontend server (development mode)
-run-frontend: run-backend
+run-frontend: run-api
 	@$(COMPOSE) up -d frontend
 	@echo "Waiting for frontend to be up and running..."
 	@$(COMPOSE_RUN) dockerize -wait tcp://frontend:$(WARREN_FRONTEND_SERVER_PORT) -timeout 60s
@@ -174,7 +174,7 @@ status: ## an alias for "docker compose ps"
 	@$(COMPOSE) ps
 .PHONY: status
 
-stop: ## stop backend server
+stop: ## stop all servers
 	@$(COMPOSE) stop
 .PHONY: stop
 
@@ -183,14 +183,14 @@ fixtures: ## load test data
 fixtures: \
   bin/patch_statements_date.py \
   data/statements.jsonl.gz \
-	run-backend
+	run-api
 	curl -X DELETE "$(ES_URL)/$(ES_INDEX)?pretty" || true
 	curl -X PUT "$(ES_URL)/$(ES_INDEX)?pretty"
 	curl -X PUT $(ES_URL)/$(ES_INDEX)/_settings \
 		-H 'Content-Type: application/json' \
 		-d '{"index": {"number_of_replicas": 0}}'
 	zcat < data/statements.jsonl.gz | \
-		$(COMPOSE) exec -T backend python /opt/src/patch_statements_date.py | \
+		$(COMPOSE) exec -T api python /opt/src/patch_statements_date.py | \
 		sed "s/@timestamp/timestamp/g" | \
 		$(COMPOSE_RUN) -T ralph ralph push \
 	    --backend es \
@@ -224,35 +224,35 @@ check-migrations:  ## Check that all needed migrations exist
 .PHONY: check-migrations
 
 # -- Linters
-lint: ## lint backend, app and frontend sources
+lint: ## lint api, app and frontend sources
 lint: \
-  lint-backend \
+  lint-api \
   lint-app \
   lint-frontend
 .PHONY: lint
 
-### Backend ###
+### API ###
 
-lint-backend: ## lint backend python sources
-lint-backend: \
-  lint-backend-black \
-  lint-backend-ruff
-.PHONY: lint-backend
+lint-api: ## lint api python sources
+lint-api: \
+  lint-api-black \
+  lint-api-ruff
+.PHONY: lint-api
 
-lint-backend-black: ## lint backend python sources with black
-	@echo 'lint-backend:black started…'
-	@$(COMPOSE_RUN_BACKEND) black --config core/pyproject.toml core plugins
-.PHONY: lint-backend-black
+lint-api-black: ## lint api python sources with black
+	@echo 'lint-api:black started…'
+	@$(COMPOSE_RUN_API) black --config core/pyproject.toml core plugins
+.PHONY: lint-api-black
 
-lint-backend-ruff: ## lint backend python sources with ruff
-	@echo 'lint-backend:ruff started…'
-	@$(COMPOSE_RUN_BACKEND) ruff --config core/pyproject.toml core plugins
-.PHONY: lint-backend-ruff
+lint-api-ruff: ## lint api python sources with ruff
+	@echo 'lint-api:ruff started…'
+	@$(COMPOSE_RUN_API) ruff --config core/pyproject.toml core plugins
+.PHONY: lint-api-ruff
 
-lint-backend-ruff-fix: ## lint and fix backend python sources with ruff
-	@echo 'lint-backend:ruff-fix started…'
-	@$(COMPOSE_RUN_BACKEND) ruff --config core/pyproject.toml core plugins --fix
-.PHONY: lint-backend-ruff-fix
+lint-api-ruff-fix: ## lint and fix api python sources with ruff
+	@echo 'lint-api:ruff-fix started…'
+	@$(COMPOSE_RUN_API) ruff --config core/pyproject.toml core plugins --fix
+.PHONY: lint-api-ruff-fix
 
 ### App ###
 
@@ -293,14 +293,14 @@ format-frontend: ## use prettier to format frontend sources
 
 test: ## run tests
 test: \
-  test-backend \
+  test-api \
   test-app
 .PHONY: test
 
-test-backend: ## run backend tests
-test-backend: run-backend
-	@$(COMPOSE_RUN_BACKEND) pytest
-.PHONY: test-backend
+test-api: ## run api tests
+test-api: run-api
+	@$(COMPOSE_RUN_API) pytest
+.PHONY: test-api
 
 test-app: ## run app tests
 test-app: run-app
