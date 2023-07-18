@@ -3,9 +3,10 @@
 import io
 from datetime import timedelta
 from pathlib import Path
-from typing import List, Union
+from typing import List, Set, Union
 
-from pydantic import AnyHttpUrl, BaseModel, BaseSettings
+from pydantic import AnyHttpUrl, BaseModel
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class ESClientOptions(BaseModel):
@@ -17,6 +18,14 @@ class ESClientOptions(BaseModel):
 
 class Settings(BaseSettings):
     """Pydantic model for Warren's global environment & configuration settings."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding=getattr(io, "LOCALE_ENCODING", "utf8"),
+        env_prefix="WARREN_",
+        env_nested_delimiter="__",
+        case_sensitive=True,
+    )
 
     # LRS backend
     LRS_HOSTS: Union[List[AnyHttpUrl], AnyHttpUrl]
@@ -32,7 +41,7 @@ class Settings(BaseSettings):
     MAX_DATETIMERANGE_SPAN: timedelta = timedelta(days=365)  # 1 year shift from since
     DEFAULT_DATETIMERANGE_SPAN: timedelta = timedelta(days=7)  # 7 days shift from until
     DATE_FORMAT: str = "YYYY-MM-DD"
-    XAPI_ACTOR_IDENTIFIER_PATHS = {
+    XAPI_ACTOR_IDENTIFIER_PATHS: Set[str] = {
         "actor.account.name",
         "actor.account.homePage",
         "actor.mbox",
@@ -51,15 +60,6 @@ class Settings(BaseSettings):
     def SERVER_URL(self):
         """Get the full server URL."""
         return f"{self.SERVER_PROTOCOL}://{self.SERVER_HOST}:{self.SERVER_PORT}"
-
-    class Config:
-        """Pydantic Configuration."""
-
-        case_sensitive = True
-        env_file = ".env"
-        env_file_encoding = getattr(io, "LOCALE_ENCODING", "utf8")
-        env_nested_delimiter = "__"
-        env_prefix = "WARREN_"
 
 
 settings = Settings()

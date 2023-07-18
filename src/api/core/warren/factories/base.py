@@ -16,10 +16,10 @@ class BaseFactory:
     @classmethod
     def build(cls, mutations: List[dict] = None):
         """Given a template, a model and mutations, return mutated model instance."""
-        instance = cls.model.parse_obj(cls.template)
+        instance = cls.model.model_validate(cls.template)
         if mutations is not None:
             for mutation in mutations:
-                instance = instance.copy(update=mutation)
+                instance = instance.model_copy(update=mutation)
         return instance
 
 
@@ -50,4 +50,4 @@ class BaseXapiStatementFactory(BaseFactory):
     def build(cls, mutations: List[dict] = None) -> BaseXapiStatement:
         """Force statement id update."""
         instance = super().build(mutations)
-        return instance.copy(update={"id": str(uuid.uuid4())})
+        return instance.model_copy(update={"id": str(uuid.uuid4())})

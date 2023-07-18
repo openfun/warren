@@ -10,10 +10,10 @@ def test_parse_raw_statements():
     statements = [
         BaseXapiStatementFactory.build(
             mutations=[{"timestamp": "2023-01-01T00:10:00.000000+00:00"}]
-        ).dict(),
+        ).model_dump(),
         BaseXapiStatementFactory.build(
             mutations=[{"timestamp": "2023-01-03T00:10:00.000000+00:00"}]
-        ).dict(),
+        ).model_dump(),
     ]
 
     parsed = parse_raw_statements(statements)
@@ -42,7 +42,7 @@ def test_add_actor_unique_id():
                     }
                 }
             ]
-        ).dict(),
+        ).model_dump(),
         BaseXapiStatementFactory.build(
             mutations=[
                 {
@@ -52,7 +52,7 @@ def test_add_actor_unique_id():
                     }
                 }
             ]
-        ).dict(),
+        ).model_dump(),
         BaseXapiStatementFactory.build(
             mutations=[
                 {
@@ -62,7 +62,7 @@ def test_add_actor_unique_id():
                     }
                 }
             ]
-        ).dict(),
+        ).model_dump(),
         BaseXapiStatementFactory.build(
             mutations=[
                 {
@@ -72,7 +72,7 @@ def test_add_actor_unique_id():
                     }
                 }
             ]
-        ).dict(),
+        ).model_dump(),
         BaseXapiStatementFactory.build(
             mutations=[
                 {
@@ -82,7 +82,7 @@ def test_add_actor_unique_id():
                     }
                 }
             ]
-        ).dict(),
+        ).model_dump(),
     ]
 
     statements = parse_raw_statements(statements)

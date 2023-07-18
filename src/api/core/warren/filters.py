@@ -2,7 +2,7 @@
 
 import arrow
 from fastapi import HTTPException
-from pydantic import BaseModel, ValidationError, root_validator
+from pydantic import BaseModel, ValidationError, model_validator
 
 from .conf import settings
 from .fields import Datetime
@@ -19,7 +19,7 @@ class DatetimeRange(BaseModel):
 
         arbitrary_types_allowed = True
 
-    @root_validator(pre=True)
+    @model_validator(mode="before")
     @classmethod
     def set_datetime_range_defaults(cls, values):
         """Set date/time range defaults to the last DEFAULT_DATETIMERANGE_SPAN days."""
@@ -36,7 +36,7 @@ class DatetimeRange(BaseModel):
             )
         return values
 
-    @root_validator
+    @model_validator(mode="after")
     @classmethod
     def check_range_consistency(cls, values):
         """Check date/time range consistency."""
@@ -48,7 +48,7 @@ class DatetimeRange(BaseModel):
 class BaseQueryFilters(DatetimeRange):
     """Common query filters that every API endpoint should implement."""
 
-    @root_validator
+    @model_validator(mode="after")
     @classmethod
     def check_datetime_range_consistency(cls, values):
         """Check date/time range consistency.
@@ -61,14 +61,14 @@ class BaseQueryFilters(DatetimeRange):
 
         """
         try:
-            DatetimeRange.parse_obj(values)
+            DatetimeRange.model_validate(values)
         except ValidationError as err:
             for error in err.errors():
                 error["loc"] = ["query"] + list(error["loc"])
             raise HTTPException(422, detail=err.errors()) from err
         return values
 
-    @root_validator
+    @model_validator(mode="after")
     @classmethod
     def check_datetime_range_span(cls, values):
         """Check that date/time range is not too greedy."""
