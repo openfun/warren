@@ -81,7 +81,7 @@ services:
 
   # -- backends
   ralph:
-    image: fundocker/ralph
+    image: fundocker/ralph:3.8.0
     user: ${DOCKER_USER:-1000}
     env_file:
       - .env
