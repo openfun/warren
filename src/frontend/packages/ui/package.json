@@ -23,6 +23,6 @@
     "typescript": "^4.5.2"
   },
   "dependencies": {
-    "@openfun/cunningham-react": "^0.1.1"
+    "@openfun/cunningham-react": "^0.10.0"
   }
 }
