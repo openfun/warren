@@ -5,5 +5,5 @@ DOCKER_USER="$(id -u):$(id -g)"
 
 DOCKER_USER=${DOCKER_USER} docker compose run \
   --rm \
-  backend \
+  api \
   pytest -c core/pyproject.toml "$@"
