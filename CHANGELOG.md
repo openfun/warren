@@ -21,5 +21,6 @@ and this project adheres to
 - Remove the elasticsearch backend
 - Add the LTI django application
 - Rename the API directory to a more descriptive name.
+- Add a select and date range picker to the web dashboard.
 
 [unreleased]: https://github.com/openfun/warren

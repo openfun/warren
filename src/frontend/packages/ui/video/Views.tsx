@@ -5,6 +5,7 @@ import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
 
 import cloneDeep from "lodash.clonedeep";
 import { axios } from "../libs/axios";
+import useFilters from "../hooks/useFilters";
 
 type DailyViewsResponseItem = {
   day: string;
@@ -16,11 +17,9 @@ type VideoViewsResponse = {
   daily_views: Array<DailyViewsResponseItem>;
 };
 
-type DailyViewsProps = {
-  videoIds: Array<string>;
-};
+export const DailyViews = () => {
+  const { videoIds } = useFilters();
 
-export const DailyViews = ({ videoIds }: DailyViewsProps) => {
   const baseOption: EChartsOption = {
     grid: { top: 80, right: 8, bottom: 100, left: 50 },
     xAxis: {
