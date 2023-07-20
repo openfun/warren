@@ -1,7 +1,6 @@
 """Tests for pydantic model fields."""
 
 import datetime
-from typing import Any
 
 import arrow
 import pytest
@@ -14,9 +13,10 @@ from warren.fields import Date, Datetime
     "date",
     ["2023-12-01", "20231201", arrow.get("2023-12-01"), datetime.date(2023, 12, 1)],
 )
-def test_date_field(date: Any):
+def test_date_field(date):
     """Test the Date warren field."""
 
+    # pylint: disable=missing-class-docstring
     class MyModel(BaseModel):
         saved_at: Date
 
@@ -26,9 +26,10 @@ def test_date_field(date: Any):
     assert my_model.saved_at.day == 1
 
 
-def test_date_field_with_invalid_inputs() -> None:
+def test_date_field_with_invalid_inputs():
     """Test the Date warren field with invalud inputs."""
 
+    # pylint: disable=missing-class-docstring
     class MyModel(BaseModel):
         saved_at: Date
 
@@ -40,9 +41,10 @@ def test_date_field_with_invalid_inputs() -> None:
     "date_time",
     ["2023-12-01", "20231201", arrow.get("2023-12-01"), datetime.datetime(2023, 12, 1)],
 )
-def test_datetime_field(date_time: str):
+def test_datetime_field(date_time):
     """Test the Datetime warren field."""
 
+    # pylint: disable=missing-class-docstring
     class MyModel(BaseModel):
         saved_at: Datetime
 
@@ -52,9 +54,10 @@ def test_datetime_field(date_time: str):
     assert my_model.saved_at.day == 1
 
 
-def test_datetime_field_with_invalid_inputs() -> None:
+def test_datetime_field_with_invalid_inputs():
     """Test  the Datetime warren field with invalud inputs."""
 
+    # pylint: disable=missing-class-docstring
     class MyModel(BaseModel):
         saved_at: Datetime
 
