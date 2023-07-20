@@ -1,18 +1,9 @@
 import type { ReactElement } from "react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import Layout from "../components/Layout";
 import type { NextPageWithLayout } from "./_app";
 
 import { DailyViews } from "ui";
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import AppProvider from "ui/provider/app";
 
 const Web: NextPageWithLayout = () => {
   const videoIds = [
@@ -28,10 +19,9 @@ const Web: NextPageWithLayout = () => {
     "uuid://e151ee65-7a72-478c-ac57-8a02f19e748b",
   ];
   return (
-    <QueryClientProvider client={queryClient}>
+    <AppProvider>
       <DailyViews videoIds={videoIds} />
-      <ReactQueryDevtools initialIsOpen />
-    </QueryClientProvider>
+    </AppProvider>
   );
 };
 
