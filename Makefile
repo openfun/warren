@@ -236,7 +236,8 @@ lint: \
 lint-api: ## lint api python sources
 lint-api: \
   lint-api-black \
-  lint-api-ruff
+  lint-api-ruff \
+  lint-api-mypy
 .PHONY: lint-api
 
 lint-api-black: ## lint api python sources with black
@@ -256,7 +257,7 @@ lint-api-ruff-fix: ## lint and fix api python sources with ruff
 
 lint-api-mypy: ## lint api python sources with mypy
 	@echo 'lint:mypy started…'
-	@$(COMPOSE_RUN_BACKEND) mypy --config-file core/pyproject.toml core plugins
+	@$(COMPOSE_RUN_API) mypy --config-file core/pyproject.toml core plugins
 .PHONY: lint-api-mypy
 
 ### App ###
