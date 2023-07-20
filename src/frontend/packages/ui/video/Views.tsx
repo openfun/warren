@@ -3,9 +3,8 @@ import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts-for-react";
 import { useQuery, useQueries, useQueryClient } from "@tanstack/react-query";
 
-import axios from "axios";
-
 import cloneDeep from "lodash.clonedeep";
+import { axios } from "../libs/axios";
 
 type DailyViewsResponseItem = {
   day: string;
@@ -55,11 +54,7 @@ export const DailyViews = ({ videoIds }: DailyViewsProps) => {
   const newOption = cloneDeep(option);
 
   function getVideoViews(videoId: string) {
-    return axios
-      .get(
-        `${process.env.NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL}/api/v1/video/${videoId}/views`
-      )
-      .then((res) => res.data);
+    return axios.get(`video/${videoId}/views`).then((res) => res.data);
   }
 
   function addOneSeries(
