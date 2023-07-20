@@ -49,8 +49,8 @@ class DailyVideoViews(BaseIndicator):
             query={
                 "verb": PlayedVerb().id,
                 "activity": self.video_uuid,
-                "since": self.date_range.since.isoformat(),
-                "until": self.date_range.until.isoformat(),
+                "since": self.date_range.since.isoformat(),  # type: ignore[attr-defined]
+                "until": self.date_range.until.isoformat(),  # type: ignore[attr-defined]
             }
         )
 
@@ -143,8 +143,8 @@ class DailyCompletedVideoViews(BaseIndicator):
             query={
                 "verb": CompletedVerb().id,
                 "activity": self.video_uuid,
-                "since": self.date_range.since.isoformat(),
-                "until": self.date_range.until.isoformat(),
+                "since": self.date_range.since.isoformat(),  # type: ignore[attr-defined]
+                "until": self.date_range.until.isoformat(),  # type: ignore[attr-defined]
             }
         )
 

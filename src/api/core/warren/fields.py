@@ -6,7 +6,7 @@ import arrow
 import rfc3987
 
 
-class Date(datetime.date):
+class Date():
     """Arrow-parser-based date field."""
 
     @classmethod
@@ -32,7 +32,7 @@ class Date(datetime.date):
         field_schema.update(type="string", example="2023-01-01")
 
 
-class Datetime(datetime.datetime):
+class Datetime():
     """Arrow-parser-based date/time field."""
 
     @classmethod
