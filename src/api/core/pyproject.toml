@@ -112,9 +112,6 @@ convention = "google"
 [tool.mypy]
 mypy_path = "core,plugins/video"
 explicit_package_bases = "true"
-#plugins = [
-#  "pydantic.mypy"
-#]
 
 [[tool.mypy.overrides]]
 module = 'rfc3987.*'
