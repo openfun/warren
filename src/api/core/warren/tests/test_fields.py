@@ -17,11 +17,10 @@ from warren.fields import Date, Datetime
 def test_date_field(date: Any):
     """Test the Date warren field."""
 
-    # pylint: disable=missing-class-docstring
     class MyModel(BaseModel):
         saved_at: Date
 
-    my_model = MyModel(saved_at=date)  # type: ignore[arg-type]
+    my_model = MyModel(saved_at=date)
     assert my_model.saved_at.year == 2023
     assert my_model.saved_at.month == 12
     assert my_model.saved_at.day == 1
@@ -30,12 +29,11 @@ def test_date_field(date: Any):
 def test_date_field_with_invalid_inputs() -> None:
     """Test the Date warren field with invalud inputs."""
 
-    # pylint: disable=missing-class-docstring
     class MyModel(BaseModel):
         saved_at: Date
 
     with pytest.raises(ValueError, match="Invalid input date"):
-        MyModel(saved_at="foo")  # type: ignore[arg-type]
+        MyModel(saved_at="foo")
 
 
 @pytest.mark.parametrize(
@@ -45,11 +43,10 @@ def test_date_field_with_invalid_inputs() -> None:
 def test_datetime_field(date_time: str):
     """Test the Datetime warren field."""
 
-    # pylint: disable=missing-class-docstring
     class MyModel(BaseModel):
         saved_at: Datetime
 
-    my_model = MyModel(saved_at=date_time)  # type: ignore[arg-type]
+    my_model = MyModel(saved_at=date_time)
     assert my_model.saved_at.year == 2023
     assert my_model.saved_at.month == 12
     assert my_model.saved_at.day == 1
@@ -58,9 +55,8 @@ def test_datetime_field(date_time: str):
 def test_datetime_field_with_invalid_inputs() -> None:
     """Test  the Datetime warren field with invalud inputs."""
 
-    # pylint: disable=missing-class-docstring
     class MyModel(BaseModel):
         saved_at: Datetime
 
     with pytest.raises(ValueError, match="Invalid input date/time"):
-        MyModel(saved_at="foo")  # type: ignore[arg-type]
+        MyModel(saved_at="foo")

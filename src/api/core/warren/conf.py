@@ -62,4 +62,4 @@ class Settings(BaseSettings):
         env_prefix = "WARREN_"
 
 
-settings = Settings()  # type: ignore[call-arg]
+settings = Settings()
