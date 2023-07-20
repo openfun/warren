@@ -1,7 +1,7 @@
 """Base factories for xAPI events."""
 
 import uuid
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 from ralph.models.xapi.base.statements import BaseXapiStatement
@@ -14,7 +14,7 @@ class BaseFactory:
     model: BaseModel
 
     @classmethod
-    def build(cls, mutations: List[dict] = None):
+    def build(cls, mutations: Optional[List[dict]] = None):
         """Given a template, a model and mutations, return mutated model instance."""
         instance = cls.model.parse_obj(cls.template)
         if mutations is not None:
@@ -47,7 +47,7 @@ class BaseXapiStatementFactory(BaseFactory):
     model: BaseXapiStatement = BaseXapiStatement
 
     @classmethod
-    def build(cls, mutations: List[dict] = None) -> BaseXapiStatement:
+    def build(cls, mutations: Optional[List[dict]] = None) -> BaseXapiStatement:
         """Force statement id update."""
         instance = super().build(mutations)
         return instance.copy(update={"id": str(uuid.uuid4())})

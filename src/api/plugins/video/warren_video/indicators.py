@@ -184,6 +184,6 @@ class DailyCompletedVideoViews(BaseIndicator):
 
         # Calculate the total number of events
         indicator.total_views = len(flattened.index)
-        indicator.count_by_date = count_by_date.to_dict("records")
+        indicator.count_by_date = count_by_date.to_dict("records")  # type: ignore[assignment]
 
         return indicator

@@ -4,6 +4,7 @@ import logging
 from fastapi import APIRouter, Depends
 from typing_extensions import Annotated  # python <3.9 compat
 from warren.backends import lrs_client
+from warren.base_indicator import BaseIndicator
 from warren.fields import IRI
 from warren.filters import BaseQueryFilters, DatetimeRange
 from warren.models import Error, Response, StatusEnum
@@ -23,7 +24,7 @@ async def views(
     filters: Annotated[BaseQueryFilters, Depends()],
     complete: bool = False,
     unique: bool = False,
-) -> Response[VideoViews]:
+) -> Response:
     """Number of views for `video_uuid` in the `since` -> `until` date range."""
     indicator_kwargs = {
         "client": lrs_client,
@@ -33,7 +34,7 @@ async def views(
     }
 
     if complete:
-        indicator = DailyCompletedVideoViews(**indicator_kwargs)
+        indicator: BaseIndicator = DailyCompletedVideoViews(**indicator_kwargs)
     else:
         indicator = DailyVideoViews(**indicator_kwargs)
     try:

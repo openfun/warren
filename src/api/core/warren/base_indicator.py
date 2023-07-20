@@ -13,7 +13,7 @@ def parse_raw_statements(raw_statements) -> pd.DataFrame:
     """Parse LRS statements, explode the columns, and add a `date` column."""
     flattened = pd.json_normalize(raw_statements)
     # Disable chained assignment warning to make the transformation inplace
-    pd.options.mode.chained_assignment = None
+    pd.options.mode.chained_assignment = None  # type: ignore[assignment]
     # Transform timestamp column into a date with day (YYYY-MM-DD)
     flattened.loc[:, "date"] = pd.to_datetime(flattened.loc[:, "timestamp"]).dt.date
     return flattened

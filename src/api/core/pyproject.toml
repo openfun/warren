@@ -54,6 +54,7 @@ dev = [
     "ipdb==0.13.11",
     "ipython==8.10.0",
     "mypy==1.4.1",
+    "pandas-stubs==2.0.2.230605",
     "pytest==7.2.1",
     "pytest-cov==4.0.0",
     "pytest-httpx==0.22.0",
@@ -110,8 +111,12 @@ target-version = "py38"
 convention = "google"
 
 [tool.mypy]
+exclude = [
+    '/tests/',
+]
 mypy_path = "core,plugins/video"
 explicit_package_bases = "true"
+
 
 [[tool.mypy.overrides]]
 module = 'rfc3987.*'
