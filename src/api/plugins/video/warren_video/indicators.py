@@ -34,7 +34,8 @@ class DailyVideoViews(BaseIndicator):
             video_uuid: The UUID of the video on which to compute the metric
             date_range: The date range on which to compute the indicator. It has
                 2 fields, `since` and `until` which are dates or timestamps that must be
-                in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss.SSSZ")
+                in ISO format (YYYY-MM-DD, YYYY-MM-DDThh:mm:ss.sss±hh:mm or
+                YYYY-MM-DDThh:mm:ss.sssZ")
             is_unique: If true, multiple views by the same actor are counted as
                 one
         """
