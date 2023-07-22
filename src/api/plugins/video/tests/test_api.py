@@ -66,37 +66,38 @@ async def test_views_valid_video_id_path_but_no_matching_video(
 @pytest.mark.anyio
 async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMock):
     """Test the video views endpoint backend query results."""
-    # Build 3 video statement fixtures
-    view_1_date = "2020-01-01T00:00:00"
-    view_1_time = 100
-    view_2_date = "2020-01-01T00:00:30"
-    view_2_time = 200
-    view_3_date = "2020-01-02T00:00:00"
-    view_3_time = 300
+    # Define 3 video views fixtures
     video_uuid = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
+    video_views_fixtures = [
+        {"timestamp": "2020-01-01T00:00:00.000Z", "time": 100},
+        {"timestamp": "2020-01-01T00:00:30.000Z", "time": 200},
+        {"timestamp": "2020-01-02T00:00:00.000Z", "time": 300},
+    ]
+
+    # Build video statements from fixtures
     video_statements = [
         VideoPlayedFactory.build(
             [
                 {"object": {"id": video_uuid, "objectType": "Activity"}},
                 {"verb": {"id": PlayedVerb().id}},
-                {"result": {"extensions": {RESULT_EXTENSION_TIME: video_time}}},
-                {"timestamp": event_timestamp},
+                {"result": {"extensions": {RESULT_EXTENSION_TIME: view_data["time"]}}},
+                {"timestamp": view_data["timestamp"]},
             ]
         )
-        for video_time, event_timestamp in zip(
-            [view_1_time, view_2_time, view_3_time],
-            [view_1_date, view_2_date, view_3_date],
-        )
+        for view_data in video_views_fixtures
     ]
 
-    statements = [json.loads(statement.json()) for statement in video_statements]
+    # Convert each video statement to a JSON object
+    video_statements_json = [
+        json.loads(statement.json()) for statement in video_statements
+    ]
 
     # Mock the LRS call so that it returns the fixture statements
     lrs_client.base_url = "http://fake-lrs.com"
     httpx_mock.add_response(
         url=re.compile(r"^http://fake-lrs\.com/xAPI/statements\?.*$"),
         method="GET",
-        json={"statements": statements},
+        json={"statements": video_statements_json},
         status_code=200,
     )
 
@@ -112,8 +113,10 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
 
     assert response.status_code == 200
 
+    # Parse the response to obtain video views count_by_date
     video_views = (Response[VideoViews]).parse_obj(response.json()).content
 
+    # Counting all views is expected
     expected_video_views = {
         "total_views": 3,
         "count_by_date": [
