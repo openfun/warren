@@ -1,7 +1,7 @@
 """Test the functions from the BaseIndicator class."""
 import pandas as pd
 
-from warren.base_indicator import add_actor_unique_id, parse_raw_statements
+from warren.base_indicator import add_actor_uid, parse_raw_statements
 from warren.factories.base import BaseXapiStatementFactory
 
 
@@ -24,13 +24,13 @@ def test_parse_raw_statements():
     assert len(statements) == len(parsed)
 
 
-def test_add_actor_unique_id():
-    """Test the generation of a `actor.uuid` column.
+def test_add_actor_uid():
+    """Test the generation of a `actor.uid` column.
 
     Builds a list of xAPI statements with various identification methods (See the 4
     IFIs of the spec
     https://github.com/adlnet/xAPI-Spec/blob/master/xAPI-Data.md#details-4), and ensure
-    the UUID is created properly, and is the same for two equal actors.
+    the UID is created properly, and is the same for two equal actors.
     """
     statements = [
         BaseXapiStatementFactory.build(
@@ -86,10 +86,11 @@ def test_add_actor_unique_id():
     ]
 
     statements = parse_raw_statements(statements)
-    statements = add_actor_unique_id(statements)
-    assert "actor.uuid" in statements.columns
-    assert statements["actor.uuid"].notna
-    # Check that 2 identical actors have the same UUID
-    uuids_john = statements[statements["actor.account.name"] == "John"]["actor.uuid"]
-    assert len(uuids_john) == 2
-    assert len(uuids_john.unique()) == 1
+    statements = add_actor_uid(statements)
+    assert "actor.uid" in statements.columns
+    assert statements["actor.uid"].notna
+    # Check that 2 identical actors have the same UID
+    ids_john = statements[statements["actor.account.name"] == "John"]["actor.uid"]
+    assert len(ids_john) == 2
+    # Make sure these ids are UID.
+    assert len(ids_john.unique()) == 1
