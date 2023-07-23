@@ -22,5 +22,6 @@ and this project adheres to
 - Add the LTI django application
 - Rename the API directory to a more descriptive name.
 - Add a select and date range picker to the web dashboard.
+- Implement video downloads endpoint
 
 [unreleased]: https://github.com/openfun/warren
