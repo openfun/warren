@@ -88,10 +88,9 @@ class DailyVideoViews(BaseIndicator):
             flattened.apply(filter_view_duration, axis=1)
         ]
 
-        # If the `is_unique` filter is selected, filter out rows with duplicate
-        # `actor.account.name`
+        # Filter out duplicate 'actor.uid' if 'is_unique' is selected.
         if self.is_unique:
-            filtered_view_duration.drop_duplicates(subset="actor.uuid", inplace=True)
+            filtered_view_duration.drop_duplicates(subset="actor.uid", inplace=True)
 
         # Group by day and calculate sum of events per day
         count_by_date = (
@@ -170,10 +169,9 @@ class DailyCompletedVideoViews(BaseIndicator):
             return indicator
         flattened = pre_process_statements(raw_statements)
 
-        # If the `is_unique` filter is selected, filter out rows with duplicate
-        # `actor.account.name`
+        # Filter out duplicate 'actor.uid' if 'is_unique' is selected.
         if self.is_unique:
-            flattened.drop_duplicates(subset="actor.uuid", inplace=True)
+            flattened.drop_duplicates(subset="actor.uid", inplace=True)
 
         # Group by day and calculate sum of events per day
         count_by_date = (
@@ -252,10 +250,9 @@ class DailyVideoDownloads(BaseIndicator):
             return indicator
         preprocessed_statements = pre_process_statements(raw_statements)
 
-        # If the `is_unique` filter is selected, filter out rows with duplicate
-        # `actor.account.name`
+        # Filter out duplicate 'actor.uid' if 'is_unique' is selected.
         if self.is_unique:
-            preprocessed_statements.drop_duplicates(subset="actor.uuid", inplace=True)
+            preprocessed_statements.drop_duplicates(subset="actor.uid", inplace=True)
 
         # Group by day and calculate sum of downloads per day
         count_by_date = (

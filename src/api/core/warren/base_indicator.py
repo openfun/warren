@@ -19,13 +19,13 @@ def parse_raw_statements(raw_statements) -> pd.DataFrame:
     return flattened
 
 
-def add_actor_unique_id(statements: pd.DataFrame) -> pd.DataFrame:
-    """Add a `actor.uuid` column that uniquely identifies the agent.
+def add_actor_uid(statements: pd.DataFrame) -> pd.DataFrame:
+    """Add a `actor.uid` column that uniquely identifies the agent.
 
     Depending on the xAPI statements, the actor can be identified in 4 different ways :
     https://github.com/adlnet/xAPI-Spec/blob/master/xAPI-Data.md#details-4. This
-    function handles the 4 cases and creates a `unique_actor_id` column that
-    can be used later without worrying about the 4 IFIs.
+    function handles the 4 cases and creates a `uid` column that can be used later
+    without worrying about the 4 IFIs.
     """
     xapi_actor_identifier_columns = settings.XAPI_ACTOR_IDENTIFIER_PATHS.intersection(
         set(statements.columns)
@@ -35,7 +35,7 @@ def add_actor_unique_id(statements: pd.DataFrame) -> pd.DataFrame:
         raise ValueError(
             "There is no way of identifying the agent in submitted statements."
         )
-    statements["actor.uuid"] = statements.apply(
+    statements["actor.uid"] = statements.apply(
         lambda row: hashlib.sha256(
             "-".join(str(row[col]) for col in xapi_actor_identifier_columns).encode()
         ).hexdigest(),
@@ -48,8 +48,8 @@ def add_actor_unique_id(statements: pd.DataFrame) -> pd.DataFrame:
 def pre_process_statements(statements: List) -> pd.DataFrame:
     """Denormalize raw statements, and add utility columns."""
     parsed = parse_raw_statements(statements)
-    with_unique_id = add_actor_unique_id(parsed)
-    return with_unique_id
+    with_actor_uid = add_actor_uid(parsed)
+    return with_actor_uid
 
 
 class BaseIndicator(ABC):
