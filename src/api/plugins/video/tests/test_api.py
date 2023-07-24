@@ -68,9 +68,9 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
     # Define 3 video views fixtures
     video_uuid = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
     video_views_fixtures = [
-        {"timestamp": "2020-01-01T00:00:00.000Z", "time": 100},
-        {"timestamp": "2020-01-01T00:00:30.000Z", "time": 200},
-        {"timestamp": "2020-01-02T00:00:00.000Z", "time": 300},
+        {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 100},
+        {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
+        {"timestamp": "2020-01-02T00:00:00.000+00:00", "time": 300},
     ]
 
     # Build video statements from fixtures
@@ -135,9 +135,9 @@ async def test_unique_views_backend_query(
     # Define 3 video views fixtures
     video_uuid = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
     video_views_fixtures = [
-        {"timestamp": "2020-01-01T00:00:00.000Z", "time": 100},
-        {"timestamp": "2020-01-01T00:00:30.000Z", "time": 200},
-        {"timestamp": "2020-01-02T00:00:00.000Z", "time": 300},
+        {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 100},
+        {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
+        {"timestamp": "2020-01-02T00:00:00.000+00:00", "time": 300},
     ]
 
     # Build video statements from fixtures
