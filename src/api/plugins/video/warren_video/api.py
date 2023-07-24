@@ -6,13 +6,12 @@ from typing_extensions import Annotated  # python <3.9 compat
 from warren.backends import lrs_client
 from warren.fields import IRI
 from warren.filters import BaseQueryFilters, DatetimeRange
-from warren.models import Error, Response, StatusEnum
+from warren.models import DailyCounts, Error, Response, StatusEnum
 from warren_video.indicators import (
     DailyCompletedVideoViews,
     DailyVideoDownloads,
     DailyVideoViews,
 )
-from warren_video.models import VideoDownloads, VideoViews
 
 router = APIRouter(
     prefix="/video",
@@ -27,7 +26,7 @@ async def views(
     filters: Annotated[BaseQueryFilters, Depends()],
     complete: bool = False,
     unique: bool = False,
-) -> Response[VideoViews]:
+) -> Response[DailyCounts]:
     """Number of views for `video_uuid` in the `since` -> `until` date range."""
     indicator_kwargs = {
         "client": lrs_client,
@@ -41,7 +40,7 @@ async def views(
     else:
         indicator = DailyVideoViews(**indicator_kwargs)
     try:
-        response = Response[VideoViews](
+        response = Response[DailyCounts](
             status=StatusEnum.SUCCESS, content=indicator.compute()
         )
     except KeyError as exception:
@@ -57,7 +56,7 @@ async def downloads(
     video_uuid: IRI,
     filters: Annotated[BaseQueryFilters, Depends()],
     unique: bool = False,
-) -> Response[VideoDownloads]:
+) -> Response[DailyCounts]:
     """Number of downloads for `video_uuid` in the `since` -> `until` date range."""
     indicator = DailyVideoDownloads(
         client=lrs_client,
@@ -66,7 +65,7 @@ async def downloads(
         is_unique=unique,
     )
     try:
-        response = Response[VideoDownloads](
+        response = Response[DailyCounts](
             status=StatusEnum.SUCCESS, content=indicator.compute()
         )
     except KeyError as exception:

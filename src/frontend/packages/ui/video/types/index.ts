@@ -5,6 +5,6 @@ export type VideoViewsResponseItem = {
 
 export type VideoViewsResponse = {
   id: string;
-  total_views: number;
+  total_count: number;
   count_by_date: Array<VideoViewsResponseItem>;
 };

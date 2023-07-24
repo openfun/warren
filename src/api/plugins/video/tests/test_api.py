@@ -8,9 +8,8 @@ from pytest_httpx import HTTPXMock
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.backends import lrs_client
-from warren.models import Response
+from warren.models import DailyCounts, Response
 from warren_video.factories import VideoPlayedFactory
-from warren_video.models import VideoViews
 
 
 @pytest.mark.anyio
@@ -57,9 +56,9 @@ async def test_views_valid_video_id_path_but_no_matching_video(
     )
 
     assert response.status_code == 200
-    assert VideoViews.parse_obj(response.json()) == VideoViews(
-        total_views=0,
-        views_count_by_date=[],
+    assert DailyCounts.parse_obj(response.json()) == DailyCounts(
+        total_count=0,
+        count_by_date=[],
     )
 
 
@@ -114,11 +113,11 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
     assert response.status_code == 200
 
     # Parse the response to obtain video views count_by_date
-    video_views = (Response[VideoViews]).parse_obj(response.json()).content
+    video_views = (Response[DailyCounts]).parse_obj(response.json()).content
 
     # Counting all views is expected
     expected_video_views = {
-        "total_views": 3,
+        "total_count": 3,
         "count_by_date": [
             {"date": "2020-01-01", "count": 2},
             {"date": "2020-01-02", "count": 1},
@@ -187,7 +186,7 @@ async def test_unique_views_backend_query(
     assert response.status_code == 200
 
     # Parse the response to obtain video views count_by_date
-    video_views = (Response[VideoViews]).parse_obj(response.json()).content
+    video_views = (Response[DailyCounts]).parse_obj(response.json()).content
 
     # Counting only the first view is expected
     expected_video_views = {

@@ -9,9 +9,8 @@ from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.base_indicator import BaseIndicator, pre_process_statements
 from warren.filters import DatetimeRange
-from warren.models import XAPI_STATEMENT
+from warren.models import XAPI_STATEMENT, DailyCounts
 from warren_video.conf import settings as video_plugin_settings
-from warren_video.models import VideoDownloads, VideoViews
 
 
 class DailyVideoViews(BaseIndicator):
@@ -64,13 +63,13 @@ class DailyVideoViews(BaseIndicator):
             )
         )
 
-    def compute(self) -> VideoViews:
+    def compute(self) -> DailyCounts:
         """Fetches statements and computes the current indicator.
 
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video views per day.
         """
-        indicator = VideoViews()
+        indicator = DailyCounts()
         raw_statements = self.fetch_statements()
         if not raw_statements:
             return indicator
@@ -102,7 +101,7 @@ class DailyVideoViews(BaseIndicator):
         )
 
         # Calculate the total number of events
-        indicator.total_views = len(filtered_view_duration.index)
+        indicator.total_count = len(filtered_view_duration.index)
         indicator.count_by_date = count_by_date.to_dict("records")
 
         return indicator
@@ -157,13 +156,13 @@ class DailyCompletedVideoViews(BaseIndicator):
             )
         )
 
-    def compute(self) -> VideoViews:
+    def compute(self) -> DailyCounts:
         """Fetches statements and computes the current indicator.
 
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video views per day.
         """
-        indicator = VideoViews()
+        indicator = DailyCounts()
         raw_statements = self.fetch_statements()
         if not raw_statements:
             return indicator
@@ -183,7 +182,7 @@ class DailyCompletedVideoViews(BaseIndicator):
         )
 
         # Calculate the total number of events
-        indicator.total_views = len(flattened.index)
+        indicator.total_count = len(flattened.index)
         indicator.count_by_date = count_by_date.to_dict("records")
 
         return indicator
@@ -238,13 +237,13 @@ class DailyVideoDownloads(BaseIndicator):
             )
         )
 
-    def compute(self) -> VideoDownloads:
+    def compute(self) -> DailyCounts:
         """Fetches statements and computes the current indicator.
 
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video downloads per day.
         """
-        indicator = VideoDownloads()
+        indicator = DailyCounts()
         raw_statements = self.fetch_statements()
         if not raw_statements:
             return indicator
@@ -264,7 +263,7 @@ class DailyVideoDownloads(BaseIndicator):
         )
 
         # Calculate the total number of downloads
-        indicator.total_downloads = len(preprocessed_statements.index)
+        indicator.total_count = len(preprocessed_statements.index)
         indicator.count_by_date = count_by_date.to_dict("records")
 
         return indicator
