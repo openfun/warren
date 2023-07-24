@@ -24,12 +24,12 @@ echo "pre-commit hook: checking trailing whitespace…"
 git diff-index --check --cached "$against" --
 
 # Run the necessary commands to check modified code sources.
-if git diff --cached --name-only | grep -q 'src/api'; then
+if git diff --staged --cached --name-only | grep -q 'src/api'; then
   make lint-api
 fi
-if git diff --cached --name-only | grep -q 'src/app'; then
+if git diff --staged --cached --name-only | grep -q 'src/app'; then
   make lint-app
 fi
-if git diff --cached --name-only | grep -q 'src/frontend'; then
+if git diff --staged --cached --name-only | grep -q 'src/frontend'; then
   make lint-frontend
 fi
