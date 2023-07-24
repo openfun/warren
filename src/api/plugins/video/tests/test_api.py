@@ -14,17 +14,17 @@ from warren_video.factories import VideoPlayedFactory
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    "video_id", ["foo", "foo/bar", "/foo/bar", "foo%2Fbar", "%2Ffoo%2Fbar"]
+    "video_uuid", ["foo", "foo/bar", "/foo/bar", "foo%2Fbar", "%2Ffoo%2Fbar"]
 )
-async def test_views_invalid_video_id(http_client: AsyncClient, video_id: str):
-    """Test the video views endpoint with an invalid `video_id` path."""
+async def test_views_invalid_video_uuid(http_client: AsyncClient, video_uuid: str):
+    """Test the video views endpoint with an invalid `video_uuid` path."""
     date_query_params = {
         "since": "2023-01-01",
         "until": "2023-01-31",
     }
 
     response = await http_client.get(
-        f"/api/v1/video/{video_id}/views", params=date_query_params
+        f"/api/v1/video/{video_uuid}/views", params=date_query_params
     )
 
     assert response.status_code == 422
@@ -32,10 +32,10 @@ async def test_views_invalid_video_id(http_client: AsyncClient, video_id: str):
 
 
 @pytest.mark.anyio
-async def test_views_valid_video_id_path_but_no_matching_video(
+async def test_views_valid_video_uuid_path_but_no_matching_video(
     http_client: AsyncClient, httpx_mock: HTTPXMock
 ):
-    """Test the video views endpoint with a valid `video_id` but no results."""
+    """Test the video views endpoint with a valid `video_uuid` but no results."""
     lrs_client.base_url = "http://fake-lrs.com"
 
     # Mock the call to the LRS so that it would return no statements, as it
@@ -190,7 +190,7 @@ async def test_unique_views_backend_query(
 
     # Counting only the first view is expected
     expected_video_views = {
-        "total_views": 1,
+        "total_count": 1,
         "count_by_date": [
             {"date": "2020-01-01", "count": 1},
         ],
