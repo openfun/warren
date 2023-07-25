@@ -10,7 +10,7 @@ from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.base_indicator import BaseIndicator, pre_process_statements
 from warren.filters import DatetimeRange
-from warren.models import XAPI_STATEMENT, DailyCounts
+from warren.models import XAPI_STATEMENT, DailyCount, DailyCounts
 from warren_video.conf import settings as video_plugin_settings
 
 
@@ -71,7 +71,9 @@ class DailyVideoViews(BaseIndicator):
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video views per day.
         """
-        daily_counts = DailyCounts()
+        # Initialize daily counts within the specified date range,
+        # with counts initialized to zero
+        daily_counts = DailyCounts.from_range(self.date_range)
         raw_statements = await self.fetch_statements()
         if not raw_statements:
             return daily_counts
@@ -93,19 +95,14 @@ class DailyVideoViews(BaseIndicator):
         if self.is_unique:
             filtered_view_duration.drop_duplicates(subset="actor.uid", inplace=True)
 
-        # Group by day and calculate sum of events per day
-        count_by_date = (
-            filtered_view_duration.groupby(filtered_view_duration["date"])
-            .count()
-            .reset_index()
-            .rename(columns={"id": "count"})
-            .loc[:, ["date", "count"]]
+        # Compute daily counts from 'filtered_view_duration' DataFrame
+        # and merge them into the 'indicator' DailyCounts object
+        daily_counts.merge_counts(
+            [
+                DailyCount(date=date, count=count)
+                for date, count in filtered_view_duration.groupby("date").size().items()
+            ]
         )
-
-        # Calculate the total number of events
-        daily_counts.total = len(filtered_view_duration.index)
-        daily_counts.counts = count_by_date.to_dict("records")
-
         return daily_counts
 
 
@@ -165,8 +162,11 @@ class DailyCompletedVideoViews(BaseIndicator):
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video views per day.
         """
-        daily_counts = DailyCounts()
+        # Initialize daily counts within the specified date range,
+        # with counts initialized to zero
+        daily_counts = DailyCounts.from_range(self.date_range)
         raw_statements = await self.fetch_statements()
+
         if not raw_statements:
             return daily_counts
         flattened = pre_process_statements(raw_statements)
@@ -175,19 +175,14 @@ class DailyCompletedVideoViews(BaseIndicator):
         if self.is_unique:
             flattened.drop_duplicates(subset="actor.uid", inplace=True)
 
-        # Group by day and calculate sum of events per day
-        count_by_date = (
-            flattened.groupby(flattened["date"])
-            .count()
-            .reset_index()
-            .rename(columns={"id": "count"})
-            .loc[:, ["date", "count"]]
+        # Compute daily counts from 'flattened' DataFrame
+        # and merge them into the 'indicator' DailyCounts object
+        daily_counts.merge_counts(
+            [
+                DailyCount(date=date, count=count)
+                for date, count in flattened.groupby("date").size().items()
+            ]
         )
-
-        # Calculate the total number of events
-        daily_counts.total = len(flattened.index)
-        daily_counts.counts = count_by_date.to_dict("records")
-
         return daily_counts
 
 
@@ -247,7 +242,9 @@ class DailyVideoDownloads(BaseIndicator):
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video downloads per day.
         """
-        daily_counts = DailyCounts()
+        # Initialize daily counts within the specified date range,
+        # with counts initialized to zero
+        daily_counts = DailyCounts.from_range(self.date_range)
         raw_statements = await self.fetch_statements()
         if not raw_statements:
             return daily_counts
@@ -257,17 +254,14 @@ class DailyVideoDownloads(BaseIndicator):
         if self.is_unique:
             preprocessed_statements.drop_duplicates(subset="actor.uid", inplace=True)
 
-        # Group by day and calculate sum of downloads per day
-        count_by_date = (
-            preprocessed_statements.groupby(preprocessed_statements["date"])
-            .count()
-            .reset_index()
-            .rename(columns={"id": "count"})
-            .loc[:, ["date", "count"]]
+        # Compute daily counts from 'preprocessed_statements' DataFrame
+        # and merge them into the 'indicator' DailyCounts object
+        daily_counts.merge_counts(
+            [
+                DailyCount(date=date, count=count)
+                for date, count in preprocessed_statements.groupby("date")
+                .size()
+                .items()
+            ]
         )
-
-        # Calculate the total number of downloads
-        daily_counts.total = len(preprocessed_statements.index)
-        daily_counts.counts = count_by_date.to_dict("records")
-
         return daily_counts

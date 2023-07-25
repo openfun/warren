@@ -57,10 +57,19 @@ async def test_views_valid_video_id_path_but_no_matching_video(
     )
 
     assert response.status_code == 200
-    assert DailyCounts.parse_obj(response.json()) == DailyCounts(
-        total=0,
-        counts=[],
-    )
+
+    # Parse the response to obtain video views count_by_date
+    video_views = (Response[DailyCounts]).parse_obj(response.json()).content
+
+    # Counting all views is expected
+    expected_video_views = {
+        "total": 0,
+        "counts": [
+            {"date": "2023-01-01", "count": 0},
+        ],
+    }
+
+    assert video_views == expected_video_views
 
 
 @pytest.mark.anyio
@@ -122,6 +131,7 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
         "counts": [
             {"date": "2020-01-01", "count": 2},
             {"date": "2020-01-02", "count": 1},
+            {"date": "2020-01-03", "count": 0},
         ],
     }
 
@@ -194,6 +204,8 @@ async def test_unique_views_backend_query(
         "total": 1,
         "counts": [
             {"date": "2020-01-01", "count": 1},
+            {"date": "2020-01-02", "count": 0},
+            {"date": "2020-01-03", "count": 0},
         ],
     }
 
@@ -244,10 +256,19 @@ async def test_downloads_valid_video_id_path_but_no_matching_video(
     )
 
     assert response.status_code == 200
-    assert DailyCounts.parse_obj(response.json()) == DailyCounts(
-        total=0,
-        counts=[],
-    )
+
+    # Parse the response to obtain video downloads count_by_date
+    video_downloads = (Response[DailyCounts]).parse_obj(response.json()).content
+
+    # Counting all downloads is expected
+    expected_video_downloads = {
+        "total": 0,
+        "counts": [
+            {"date": "2023-01-01", "count": 0},
+        ],
+    }
+
+    assert video_downloads == expected_video_downloads
 
 
 @pytest.mark.anyio
@@ -308,6 +329,7 @@ async def test_downloads_backend_query(http_client: AsyncClient, httpx_mock: HTT
         "counts": [
             {"date": "2020-01-01", "count": 2},
             {"date": "2020-01-02", "count": 1},
+            {"date": "2020-01-03", "count": 0},
         ],
     }
 
@@ -379,6 +401,8 @@ async def test_unique_downloads_backend_query(
         "total": 1,
         "counts": [
             {"date": "2020-01-01", "count": 1},
+            {"date": "2020-01-02", "count": 0},
+            {"date": "2020-01-03", "count": 0},
         ],
     }
 

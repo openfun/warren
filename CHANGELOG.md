@@ -26,5 +26,6 @@ and this project adheres to
 - Rename video_uuid to follow xAPI semantic
 - Use concise names in indicator and models
 - Refactor the LRS client to be asynchronous
+- Fix count of 0 in all video endpoints
 
 [unreleased]: https://github.com/openfun/warren
