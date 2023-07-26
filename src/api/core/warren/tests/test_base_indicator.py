@@ -1,13 +1,14 @@
 """Test the functions from the BaseIndicator class."""
 import pandas as pd
 
-from warren.base_indicator import add_actor_uid, parse_raw_statements
+from warren.base_indicator import PreprocessMixin
 from warren.factories.base import BaseXapiStatementFactory
 
 
 def test_parse_raw_statements():
-    """Test the parsing of 2 simple statements, with the addition of a "date" column."""
-    statements = [
+    """Test the parsing of 2 simple statements."""
+    preprocessing = PreprocessMixin()
+    preprocessing.raw_statements = [
         BaseXapiStatementFactory.build(
             mutations=[{"timestamp": "2023-01-01T00:10:00.000000+00:00"}]
         ).dict(),
@@ -16,12 +17,30 @@ def test_parse_raw_statements():
         ).dict(),
     ]
 
-    parsed = parse_raw_statements(statements)
-    assert "date" in parsed.columns
-    assert parsed["date"].equals(
+    preprocessing.parse_raw_statements()
+
+    assert len(preprocessing.statements) == len(preprocessing.raw_statements)
+
+
+def test_add_date_column():
+    """Test the parsing of 2 simple statements, with the addition of a "date" column."""
+    preprocessing = PreprocessMixin()
+    preprocessing.raw_statements = [
+        BaseXapiStatementFactory.build(
+            mutations=[{"timestamp": "2023-01-01T00:10:00.000000+00:00"}]
+        ).dict(),
+        BaseXapiStatementFactory.build(
+            mutations=[{"timestamp": "2023-01-03T00:10:00.000000+00:00"}]
+        ).dict(),
+    ]
+
+    preprocessing.parse_raw_statements()
+    preprocessing.add_date_column()
+
+    assert len(preprocessing.statements) == len(preprocessing.raw_statements)
+    assert preprocessing.statements["date"].equals(
         pd.to_datetime(pd.Series(["2023-01-01", "2023-01-03"], name="date")).dt.date
     )
-    assert len(statements) == len(parsed)
 
 
 def test_add_actor_uid():
@@ -32,7 +51,8 @@ def test_add_actor_uid():
     https://github.com/adlnet/xAPI-Spec/blob/master/xAPI-Data.md#details-4), and ensure
     the UID is created properly, and is the same for two equal actors.
     """
-    statements = [
+    preprocessing = PreprocessMixin()
+    preprocessing.raw_statements = [
         BaseXapiStatementFactory.build(
             mutations=[
                 {
@@ -85,12 +105,16 @@ def test_add_actor_uid():
         ).dict(),
     ]
 
-    statements = parse_raw_statements(statements)
-    statements = add_actor_uid(statements)
-    assert "actor.uid" in statements.columns
-    assert statements["actor.uid"].notna
+    preprocessing.parse_raw_statements()
+    preprocessing.add_date_column()
+    preprocessing.add_actor_uid_column()
+
+    assert "actor.uid" in preprocessing.statements.columns
+    assert preprocessing.statements["actor.uid"].notna
     # Check that 2 identical actors have the same UID
-    ids_john = statements[statements["actor.account.name"] == "John"]["actor.uid"]
+    ids_john = preprocessing.statements[
+        preprocessing.statements["actor.account.name"] == "John"
+    ]["actor.uid"]
     assert len(ids_john) == 2
     # Make sure these ids are UID.
     assert len(ids_john.unique()) == 1

@@ -7,11 +7,7 @@ from warren.backends import lrs_client
 from warren.fields import IRI
 from warren.filters import BaseQueryFilters, DatetimeRange
 from warren.models import DailyCounts, Error, Response, StatusEnum
-from warren_video.indicators import (
-    DailyCompletedVideoViews,
-    DailyVideoDownloads,
-    DailyVideoViews,
-)
+from warren_video.indicators import DailyCompletedViews, DailyDownloads, DailyViews
 
 router = APIRouter(
     prefix="/video",
@@ -31,23 +27,25 @@ async def views(
     indicator_kwargs = {
         "client": lrs_client,
         "video_id": video_id,
-        "date_range": DatetimeRange(since=filters.since, until=filters.until),
-        "is_unique": unique,
+        "date_range": DatetimeRange.parse_obj(filters),
+        "remove_duplicate_actors": unique,
     }
 
     if complete:
-        indicator = DailyCompletedVideoViews(**indicator_kwargs)
+        indicator = DailyCompletedViews(**indicator_kwargs)
     else:
-        indicator = DailyVideoViews(**indicator_kwargs)
+        indicator = DailyViews(**indicator_kwargs)
+
     try:
         response = Response[DailyCounts](
             status=StatusEnum.SUCCESS, content=await indicator.compute()
         )
-    except KeyError as exception:
+    except (KeyError, AttributeError) as exception:
         logger.error(exception)
-        return Response[Error](
+        response = Response[Error](
             status=StatusEnum.FAILED, content=Error(error_message=str(exception))
         )
+
     return response
 
 
@@ -58,19 +56,21 @@ async def downloads(
     unique: bool = False,
 ) -> Response[DailyCounts]:
     """Number of downloads for `video_id` in the `since` -> `until` date range."""
-    indicator = DailyVideoDownloads(
+    indicator = DailyDownloads(
         client=lrs_client,
         video_id=video_id,
-        date_range=DatetimeRange(since=filters.since, until=filters.until),
-        is_unique=unique,
+        date_range=DatetimeRange.parse_obj(filters),
+        remove_duplicate_actors=unique,
     )
+
     try:
         response = Response[DailyCounts](
             status=StatusEnum.SUCCESS, content=await indicator.compute()
         )
-    except KeyError as exception:
+    except (KeyError, AttributeError) as exception:
         logger.error(exception)
-        return Response[Error](
+        response = Response[Error](
             status=StatusEnum.FAILED, content=Error(error_message=str(exception))
         )
+
     return response
