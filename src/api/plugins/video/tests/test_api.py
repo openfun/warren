@@ -15,17 +15,17 @@ from warren_video.factories import VideoDownloadedFactory, VideoPlayedFactory
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    "video_uuid", ["foo", "foo/bar", "/foo/bar", "foo%2Fbar", "%2Ffoo%2Fbar"]
+    "video_id", ["foo", "foo/bar", "/foo/bar", "foo%2Fbar", "%2Ffoo%2Fbar"]
 )
-async def test_views_invalid_video_uuid(http_client: AsyncClient, video_uuid: str):
-    """Test the video views endpoint with an invalid `video_uuid` path."""
+async def test_views_invalid_video_id(http_client: AsyncClient, video_id: str):
+    """Test the video views endpoint with an invalid `video_id` path."""
     date_query_params = {
         "since": "2023-01-01",
         "until": "2023-01-31",
     }
 
     response = await http_client.get(
-        f"/api/v1/video/{video_uuid}/views", params=date_query_params
+        f"/api/v1/video/{video_id}/views", params=date_query_params
     )
 
     assert response.status_code == 422
@@ -33,10 +33,10 @@ async def test_views_invalid_video_uuid(http_client: AsyncClient, video_uuid: st
 
 
 @pytest.mark.anyio
-async def test_views_valid_video_uuid_path_but_no_matching_video(
+async def test_views_valid_video_id_path_but_no_matching_video(
     http_client: AsyncClient, httpx_mock: HTTPXMock
 ):
-    """Test the video views endpoint with a valid `video_uuid` but no results."""
+    """Test the video views endpoint with a valid `video_id` but no results."""
     lrs_client.base_url = "http://fake-lrs.com"
 
     # Mock the call to the LRS so that it would return no statements, as it
@@ -67,7 +67,7 @@ async def test_views_valid_video_uuid_path_but_no_matching_video(
 async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMock):
     """Test the video views endpoint backend query results."""
     # Define 3 video views fixtures
-    video_uuid = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
+    video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
     video_views_fixtures = [
         {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 100},
         {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
@@ -78,7 +78,7 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
     video_statements = [
         VideoPlayedFactory.build(
             [
-                {"object": {"id": video_uuid, "objectType": "Activity"}},
+                {"object": {"id": video_id, "objectType": "Activity"}},
                 {"verb": {"id": PlayedVerb().id}},
                 {"result": {"extensions": {RESULT_EXTENSION_TIME: view_data["time"]}}},
                 {"timestamp": view_data["timestamp"]},
@@ -104,7 +104,7 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
     # Perform the call to warren backend. When fetching the LRS statements, it will
     # get the above mocked statements
     response = await http_client.get(
-        url=f"/api/v1/video/{video_uuid}/views",
+        url=f"/api/v1/video/{video_id}/views",
         params={
             "since": "2020-01-01",
             "until": "2020-01-03",
@@ -134,7 +134,7 @@ async def test_unique_views_backend_query(
 ):
     """Test the video views endpoint, with parameter unique=True."""
     # Define 3 video views fixtures
-    video_uuid = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
+    video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
     video_views_fixtures = [
         {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 100},
         {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
@@ -151,7 +151,7 @@ async def test_unique_views_backend_query(
                         "account": {"name": "John", "homePage": "http://fun-mooc.fr"},
                     }
                 },
-                {"object": {"id": video_uuid, "objectType": "Activity"}},
+                {"object": {"id": video_id, "objectType": "Activity"}},
                 {"verb": {"id": PlayedVerb().id}},
                 {"result": {"extensions": {RESULT_EXTENSION_TIME: view_data["time"]}}},
                 {"timestamp": view_data["timestamp"]},
@@ -177,7 +177,7 @@ async def test_unique_views_backend_query(
     # Perform the call to warren backend. When fetching the LRS statements, it will
     # get the above mocked statements
     response = await http_client.get(
-        url=f"/api/v1/video/{video_uuid}/views?unique=true",
+        url=f"/api/v1/video/{video_id}/views?unique=true",
         params={
             "since": "2020-01-01",
             "until": "2020-01-03",
@@ -202,17 +202,17 @@ async def test_unique_views_backend_query(
 
 @pytest.mark.anyio
 @pytest.mark.parametrize(
-    "video_uuid", ["foo", "foo/bar", "/foo/bar", "foo%2Fbar", "%2Ffoo%2Fbar"]
+    "video_id", ["foo", "foo/bar", "/foo/bar", "foo%2Fbar", "%2Ffoo%2Fbar"]
 )
-async def test_downloads_invalid_video_uuid(http_client: AsyncClient, video_uuid: str):
-    """Test the video downloads endpoint with an invalid `video_uuid` path."""
+async def test_downloads_invalid_video_id(http_client: AsyncClient, video_id: str):
+    """Test the video downloads endpoint with an invalid `video_id` path."""
     date_query_params = {
         "since": "2023-01-01",
         "until": "2023-01-31",
     }
 
     response = await http_client.get(
-        f"/api/v1/video/{video_uuid}/downloads", params=date_query_params
+        f"/api/v1/video/{video_id}/downloads", params=date_query_params
     )
 
     assert response.status_code == 422
@@ -220,10 +220,10 @@ async def test_downloads_invalid_video_uuid(http_client: AsyncClient, video_uuid
 
 
 @pytest.mark.anyio
-async def test_downloads_valid_video_uuid_path_but_no_matching_video(
+async def test_downloads_valid_video_id_path_but_no_matching_video(
     http_client: AsyncClient, httpx_mock: HTTPXMock
 ):
-    """Test the video downloads endpoint with a valid `video_uuid` but no results."""
+    """Test the video downloads endpoint with a valid `video_id` but no results."""
     lrs_client.base_url = "http://fake-lrs.com"
 
     # Mock the call to the LRS so that it would return no statements, as it
@@ -254,7 +254,7 @@ async def test_downloads_valid_video_uuid_path_but_no_matching_video(
 async def test_downloads_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMock):
     """Test the video downloads endpoint backend query results."""
     # Define 3 video downloads fixtures
-    video_uuid = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
+    video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
     video_download_timestamps = [
         "2020-01-01T00:00:00.000+00:00",
         "2020-01-01T00:00:30.000+00:00",
@@ -265,7 +265,7 @@ async def test_downloads_backend_query(http_client: AsyncClient, httpx_mock: HTT
     video_statements = [
         VideoDownloadedFactory.build(
             [
-                {"object": {"id": video_uuid, "objectType": "Activity"}},
+                {"object": {"id": video_id, "objectType": "Activity"}},
                 {"verb": {"id": DownloadedVerb().id}},
                 {"timestamp": download_timestamp},
             ]
@@ -290,7 +290,7 @@ async def test_downloads_backend_query(http_client: AsyncClient, httpx_mock: HTT
     # Perform the call to warren backend. When fetching the LRS statements, it will
     # get the above mocked statements
     response = await http_client.get(
-        url=f"/api/v1/video/{video_uuid}/downloads",
+        url=f"/api/v1/video/{video_id}/downloads",
         params={
             "since": "2020-01-01",
             "until": "2020-01-03",
@@ -320,7 +320,7 @@ async def test_unique_downloads_backend_query(
 ):
     """Test the video downloads endpoint, with parameter unique=True."""
     # Define 3 video views fixtures
-    video_uuid = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
+    video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
     video_download_timestamps = [
         "2020-01-01T00:00:00.000+00:00",
         "2020-01-01T00:00:30.000+00:00",
@@ -337,7 +337,7 @@ async def test_unique_downloads_backend_query(
                         "account": {"name": "John", "homePage": "http://fun-mooc.fr"},
                     }
                 },
-                {"object": {"id": video_uuid, "objectType": "Activity"}},
+                {"object": {"id": video_id, "objectType": "Activity"}},
                 {"verb": {"id": DownloadedVerb().id}},
                 {"timestamp": download_timestamp},
             ]
@@ -362,7 +362,7 @@ async def test_unique_downloads_backend_query(
     # Perform the call to warren backend. When fetching the LRS statements, it will
     # get the above mocked statements
     response = await http_client.get(
-        url=f"/api/v1/video/{video_uuid}/downloads?unique=true",
+        url=f"/api/v1/video/{video_id}/downloads?unique=true",
         params={
             "since": "2020-01-01",
             "until": "2020-01-03",
