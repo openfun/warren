@@ -23,7 +23,7 @@ class DailyVideoViews(BaseIndicator):
     def __init__(
         self,
         client: BaseHTTP,
-        video_uuid: str,
+        video_id: str,
         date_range: DatetimeRange,
         is_unique: bool,
     ):
@@ -31,7 +31,7 @@ class DailyVideoViews(BaseIndicator):
 
         Args:
             client: The LRS backend to query
-            video_uuid: The UUID of the video on which to compute the metric
+            video_id: The ID of the video on which to compute the metric
             date_range: The date range on which to compute the indicator. It has
                 2 fields, `since` and `until` which are dates or timestamps that must be
                 in ISO format (YYYY-MM-DD, YYYY-MM-DDThh:mm:ss.sss±hh:mm or
@@ -40,7 +40,7 @@ class DailyVideoViews(BaseIndicator):
                 one
         """
         self.client = client
-        self.video_uuid = video_uuid
+        self.video_id = video_id
         self.date_range = date_range
         self.is_unique = is_unique
 
@@ -49,7 +49,7 @@ class DailyVideoViews(BaseIndicator):
         return LRSQuery(
             query={
                 "verb": PlayedVerb().id,
-                "activity": self.video_uuid,
+                "activity": self.video_id,
                 "since": self.date_range.since.isoformat(),
                 "until": self.date_range.until.isoformat(),
             }
@@ -117,7 +117,7 @@ class DailyCompletedVideoViews(BaseIndicator):
     def __init__(
         self,
         client: BaseHTTP,
-        video_uuid: str,
+        video_id: str,
         date_range: DatetimeRange,
         is_unique: bool,
     ):
@@ -125,7 +125,7 @@ class DailyCompletedVideoViews(BaseIndicator):
 
         Args:
             client: The LRS backend from which the query is to be issued
-            video_uuid: The UUID of the video on which to compute the metric
+            video_id: The ID of the video on which to compute the metric
             date_range: The date range on which to compute the indicator. It has
                 2 fields, `since` and `until` which are dates or timestamps that must be
                 in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:mm:ss.SSSZ")
@@ -133,7 +133,7 @@ class DailyCompletedVideoViews(BaseIndicator):
                 one
         """
         self.client = client
-        self.video_uuid = video_uuid
+        self.video_id = video_id
         self.date_range = date_range
         self.is_unique = is_unique
 
@@ -142,7 +142,7 @@ class DailyCompletedVideoViews(BaseIndicator):
         return LRSQuery(
             query={
                 "verb": CompletedVerb().id,
-                "activity": self.video_uuid,
+                "activity": self.video_id,
                 "since": self.date_range.since.isoformat(),
                 "until": self.date_range.until.isoformat(),
             }
@@ -198,7 +198,7 @@ class DailyVideoDownloads(BaseIndicator):
     def __init__(
         self,
         client: BaseHTTP,
-        video_uuid: str,
+        video_id: str,
         date_range: DatetimeRange,
         is_unique: bool,
     ):
@@ -206,7 +206,7 @@ class DailyVideoDownloads(BaseIndicator):
 
         Args:
             client: The LRS backend to query
-            video_uuid: The UUID of the video on which to compute the metric
+            video_id: The ID of the video on which to compute the metric
             date_range: The date range on which to compute the indicator. It has
                 2 fields, `since` and `until` which are dates or timestamps that must be
                 in ISO format (YYYY-MM-DD, YYYY-MM-DDThh:mm:ss.sss±hh:mm or
@@ -214,7 +214,7 @@ class DailyVideoDownloads(BaseIndicator):
             is_unique: If true, multiple downloads by the same actor are counted as one
         """
         self.client = client
-        self.video_uuid = video_uuid
+        self.video_id = video_id
         self.date_range = date_range
         self.is_unique = is_unique
 
@@ -223,7 +223,7 @@ class DailyVideoDownloads(BaseIndicator):
         return LRSQuery(
             query={
                 "verb": DownloadedVerb().id,
-                "activity": self.video_uuid,
+                "activity": self.video_id,
                 "since": self.date_range.since.isoformat(),
                 "until": self.date_range.until.isoformat(),
             }

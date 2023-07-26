@@ -23,5 +23,6 @@ and this project adheres to
 - Rename the API directory to a more descriptive name.
 - Add a select and date range picker to the web dashboard.
 - Implement video downloads endpoint
+- Rename video_uuid to follow xAPI semantic
 
 [unreleased]: https://github.com/openfun/warren

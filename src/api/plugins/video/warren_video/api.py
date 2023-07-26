@@ -20,17 +20,17 @@ router = APIRouter(
 logger = logging.getLogger(__name__)
 
 
-@router.get("/{video_uuid:path}/views")
+@router.get("/{video_id:path}/views")
 async def views(
-    video_uuid: IRI,
+    video_id: IRI,
     filters: Annotated[BaseQueryFilters, Depends()],
     complete: bool = False,
     unique: bool = False,
 ) -> Response[DailyCounts]:
-    """Number of views for `video_uuid` in the `since` -> `until` date range."""
+    """Number of views for `video_id` in the `since` -> `until` date range."""
     indicator_kwargs = {
         "client": lrs_client,
-        "video_uuid": video_uuid,
+        "video_id": video_id,
         "date_range": DatetimeRange(since=filters.since, until=filters.until),
         "is_unique": unique,
     }
@@ -51,16 +51,16 @@ async def views(
     return response
 
 
-@router.get("/{video_uuid:path}/downloads")
+@router.get("/{video_id:path}/downloads")
 async def downloads(
-    video_uuid: IRI,
+    video_id: IRI,
     filters: Annotated[BaseQueryFilters, Depends()],
     unique: bool = False,
 ) -> Response[DailyCounts]:
-    """Number of downloads for `video_uuid` in the `since` -> `until` date range."""
+    """Number of downloads for `video_id` in the `since` -> `until` date range."""
     indicator = DailyVideoDownloads(
         client=lrs_client,
-        video_uuid=video_uuid,
+        video_id=video_id,
         date_range=DatetimeRange(since=filters.since, until=filters.until),
         is_unique=unique,
     )
