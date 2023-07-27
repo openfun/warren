@@ -56,22 +56,23 @@ class DailyVideoViews(BaseIndicator):
             }
         )
 
-    def fetch_statements(self) -> List[XAPI_STATEMENT]:
+    async def fetch_statements(self) -> List[XAPI_STATEMENT]:
         """Executes the LRS query to obtain statements required for this indicator."""
-        return list(
-            self.client.read(
+        return [
+            value
+            async for value in self.client.read(
                 target=self.client.statements_endpoint, query=self.get_lrs_query()
             )
-        )
+        ]
 
-    def compute(self) -> DailyCounts:
+    async def compute(self) -> DailyCounts:
         """Fetches statements and computes the current indicator.
 
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video views per day.
         """
         daily_counts = DailyCounts()
-        raw_statements = self.fetch_statements()
+        raw_statements = await self.fetch_statements()
         if not raw_statements:
             return daily_counts
         flattened = pre_process_statements(raw_statements)
@@ -149,22 +150,23 @@ class DailyCompletedVideoViews(BaseIndicator):
             }
         )
 
-    def fetch_statements(self) -> List[XAPI_STATEMENT]:
+    async def fetch_statements(self) -> List[XAPI_STATEMENT]:
         """Executes the LRS query to obtain statements required for this indicator."""
-        return list(
-            self.client.read(
+        return [
+            value
+            async for value in self.client.read(
                 target=self.client.statements_endpoint, query=self.get_lrs_query()
             )
-        )
+        ]
 
-    def compute(self) -> DailyCounts:
+    async def compute(self) -> DailyCounts:
         """Fetches statements and computes the current indicator.
 
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video views per day.
         """
         daily_counts = DailyCounts()
-        raw_statements = self.fetch_statements()
+        raw_statements = await self.fetch_statements()
         if not raw_statements:
             return daily_counts
         flattened = pre_process_statements(raw_statements)
@@ -230,22 +232,23 @@ class DailyVideoDownloads(BaseIndicator):
             }
         )
 
-    def fetch_statements(self) -> List[XAPI_STATEMENT]:
+    async def fetch_statements(self) -> List[XAPI_STATEMENT]:
         """Executes the LRS query to obtain statements required for this indicator."""
-        return list(
-            self.client.read(
+        return [
+            value
+            async for value in self.client.read(
                 target=self.client.statements_endpoint, query=self.get_lrs_query()
             )
-        )
+        ]
 
-    def compute(self) -> DailyCounts:
+    async def compute(self) -> DailyCounts:
         """Fetches statements and computes the current indicator.
 
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video downloads per day.
         """
         daily_counts = DailyCounts()
-        raw_statements = self.fetch_statements()
+        raw_statements = await self.fetch_statements()
         if not raw_statements:
             return daily_counts
         preprocessed_statements = pre_process_statements(raw_statements)

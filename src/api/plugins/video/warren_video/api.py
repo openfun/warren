@@ -41,7 +41,7 @@ async def views(
         indicator = DailyVideoViews(**indicator_kwargs)
     try:
         response = Response[DailyCounts](
-            status=StatusEnum.SUCCESS, content=indicator.compute()
+            status=StatusEnum.SUCCESS, content=await indicator.compute()
         )
     except KeyError as exception:
         logger.error(exception)
@@ -66,7 +66,7 @@ async def downloads(
     )
     try:
         response = Response[DailyCounts](
-            status=StatusEnum.SUCCESS, content=indicator.compute()
+            status=StatusEnum.SUCCESS, content=await indicator.compute()
         )
     except KeyError as exception:
         logger.error(exception)

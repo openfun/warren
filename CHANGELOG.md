@@ -25,5 +25,6 @@ and this project adheres to
 - Implement video downloads endpoint
 - Rename video_uuid to follow xAPI semantic
 - Use concise names in indicator and models
+- Refactor the LRS client to be asynchronous
 
 [unreleased]: https://github.com/openfun/warren
