@@ -2,7 +2,8 @@
 
 from typing import List
 
-from ralph.backends.http.lrs import BaseHTTP, LRSQuery
+from ralph.backends.http import BaseHTTP
+from ralph.backends.http.async_lrs import LRSQuery
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
