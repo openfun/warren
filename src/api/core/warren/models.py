@@ -43,5 +43,5 @@ class DailyCount(BaseModel):
 class DailyCounts(BaseModel):
     """Base model to represent daily counts summary."""
 
-    total_count: int = 0
-    count_by_date: List[DailyCount] = []
+    total: int = 0
+    counts: List[DailyCount] = []
