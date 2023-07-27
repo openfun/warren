@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import List
 
 import pandas as pd
-from ralph.backends.http.lrs import LRSQuery
+from ralph.backends.http.async_lrs import LRSQuery
 
 from warren.conf import settings
 
@@ -64,9 +64,9 @@ class BaseIndicator(ABC):
         """Gets the LRS query for fetching statements."""
 
     @abstractmethod
-    def fetch_statements(self) -> List:
+    async def fetch_statements(self) -> List:
         """Executes the LRS query to obtain statements required for the indicator."""
 
     @abstractmethod
-    def compute(self):
+    async def compute(self):
         """Executes the LRS query, and perform operations to get the indicator value."""
