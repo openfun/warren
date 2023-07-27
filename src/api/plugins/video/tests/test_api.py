@@ -58,8 +58,8 @@ async def test_views_valid_video_id_path_but_no_matching_video(
 
     assert response.status_code == 200
     assert DailyCounts.parse_obj(response.json()) == DailyCounts(
-        total_count=0,
-        count_by_date=[],
+        total=0,
+        counts=[],
     )
 
 
@@ -113,13 +113,13 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
 
     assert response.status_code == 200
 
-    # Parse the response to obtain video views count_by_date
+    # Parse the response to obtain video views counts
     video_views = (Response[DailyCounts]).parse_obj(response.json()).content
 
     # Counting all views is expected
     expected_video_views = {
-        "total_count": 3,
-        "count_by_date": [
+        "total": 3,
+        "counts": [
             {"date": "2020-01-01", "count": 2},
             {"date": "2020-01-02", "count": 1},
         ],
@@ -186,13 +186,13 @@ async def test_unique_views_backend_query(
 
     assert response.status_code == 200
 
-    # Parse the response to obtain video views count_by_date
+    # Parse the response to obtain video views counts
     video_views = (Response[DailyCounts]).parse_obj(response.json()).content
 
     # Counting only the first view is expected
     expected_video_views = {
-        "total_count": 1,
-        "count_by_date": [
+        "total": 1,
+        "counts": [
             {"date": "2020-01-01", "count": 1},
         ],
     }
@@ -245,8 +245,8 @@ async def test_downloads_valid_video_id_path_but_no_matching_video(
 
     assert response.status_code == 200
     assert DailyCounts.parse_obj(response.json()) == DailyCounts(
-        total_count=0,
-        count_by_date=[],
+        total=0,
+        counts=[],
     )
 
 
@@ -299,13 +299,13 @@ async def test_downloads_backend_query(http_client: AsyncClient, httpx_mock: HTT
 
     assert response.status_code == 200
 
-    # Parse the response to obtain video downloads count_by_date
+    # Parse the response to obtain video downloads counts
     video_downloads = (Response[DailyCounts]).parse_obj(response.json()).content
 
     # Counting all downloads is expected
     expected_video_downloads = {
-        "total_count": 3,
-        "count_by_date": [
+        "total": 3,
+        "counts": [
             {"date": "2020-01-01", "count": 2},
             {"date": "2020-01-02", "count": 1},
         ],
@@ -371,13 +371,13 @@ async def test_unique_downloads_backend_query(
 
     assert response.status_code == 200
 
-    # Parse the response to obtain video downloads count_by_date
+    # Parse the response to obtain video downloads counts
     video_downloads = (Response[DailyCounts]).parse_obj(response.json()).content
 
     # Counting only the first download is expected
     expected_video_downloads = {
-        "total_count": 1,
-        "count_by_date": [
+        "total": 1,
+        "counts": [
             {"date": "2020-01-01", "count": 1},
         ],
     }

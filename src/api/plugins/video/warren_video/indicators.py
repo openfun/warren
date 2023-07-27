@@ -69,10 +69,10 @@ class DailyVideoViews(BaseIndicator):
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video views per day.
         """
-        indicator = DailyCounts()
+        daily_counts = DailyCounts()
         raw_statements = self.fetch_statements()
         if not raw_statements:
-            return indicator
+            return daily_counts
         flattened = pre_process_statements(raw_statements)
 
         # Filter out video played events before the configured time threshold
@@ -101,10 +101,10 @@ class DailyVideoViews(BaseIndicator):
         )
 
         # Calculate the total number of events
-        indicator.total_count = len(filtered_view_duration.index)
-        indicator.count_by_date = count_by_date.to_dict("records")
+        daily_counts.total = len(filtered_view_duration.index)
+        daily_counts.counts = count_by_date.to_dict("records")
 
-        return indicator
+        return daily_counts
 
 
 class DailyCompletedVideoViews(BaseIndicator):
@@ -162,10 +162,10 @@ class DailyCompletedVideoViews(BaseIndicator):
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video views per day.
         """
-        indicator = DailyCounts()
+        daily_counts = DailyCounts()
         raw_statements = self.fetch_statements()
         if not raw_statements:
-            return indicator
+            return daily_counts
         flattened = pre_process_statements(raw_statements)
 
         # Filter out duplicate 'actor.uid' if 'is_unique' is selected.
@@ -182,10 +182,10 @@ class DailyCompletedVideoViews(BaseIndicator):
         )
 
         # Calculate the total number of events
-        indicator.total_count = len(flattened.index)
-        indicator.count_by_date = count_by_date.to_dict("records")
+        daily_counts.total = len(flattened.index)
+        daily_counts.counts = count_by_date.to_dict("records")
 
-        return indicator
+        return daily_counts
 
 
 class DailyVideoDownloads(BaseIndicator):
@@ -243,10 +243,10 @@ class DailyVideoDownloads(BaseIndicator):
         Fetches the statements from the LRS, filters and aggregates them to return the
         number of video downloads per day.
         """
-        indicator = DailyCounts()
+        daily_counts = DailyCounts()
         raw_statements = self.fetch_statements()
         if not raw_statements:
-            return indicator
+            return daily_counts
         preprocessed_statements = pre_process_statements(raw_statements)
 
         # Filter out duplicate 'actor.uid' if 'is_unique' is selected.
@@ -263,7 +263,7 @@ class DailyVideoDownloads(BaseIndicator):
         )
 
         # Calculate the total number of downloads
-        indicator.total_count = len(preprocessed_statements.index)
-        indicator.count_by_date = count_by_date.to_dict("records")
+        daily_counts.total = len(preprocessed_statements.index)
+        daily_counts.counts = count_by_date.to_dict("records")
 
-        return indicator
+        return daily_counts

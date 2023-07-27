@@ -58,7 +58,7 @@ export const DailyViews: React.FC = () => {
   const parseSeries = (item: VideoViewsResponse): Series => ({
     id: item?.id,
     name: item.id.slice(-5) || "",
-    data: item.count_by_date.map((day) => day.count) || [],
+    data: item.counts.map((day) => day.count) || [],
     type: "line",
     smooth: 0.2,
     symbol: "none",
@@ -68,7 +68,7 @@ export const DailyViews: React.FC = () => {
   });
 
   const parseXAxis = (item: VideoViewsResponse): Array<string> =>
-    item.count_by_date.map((day) => day.date) || [];
+    item.counts.map((day) => day.date) || [];
 
   const formattedOption = useMemo(() => {
     if (!validData.length) {
