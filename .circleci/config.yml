@@ -106,8 +106,8 @@ jobs:
           command: renovate-config-validator
 
   # ---- Docker jobs ----
-  # Build the Docker image ready for production
-  build-docker:
+  # Build Docker images ready for production
+  build-docker-api:
     docker:
       - image: cimg/base:current
         auth:
@@ -128,12 +128,40 @@ jobs:
       - run:
           name: Build production image
           command: |
-            WARREN_BACK_IMAGE_BUILD_TARGET=production \
-            WARREN_IMAGE_TAG=${CIRCLE_SHA1} \
+            WARREN_API_IMAGE_BUILD_TARGET=production \
+            WARREN_API_IMAGE_TAG=${CIRCLE_SHA1} \
               make build-docker-api
       - run:
           name: Check built image availability
-          command: docker images "warren-back:${CIRCLE_SHA1}*"
+          command: docker images "warren-api:${CIRCLE_SHA1}*"
+
+  build-docker-app:
+    docker:
+      - image: cimg/base:current
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      # Checkout repository sources
+      - checkout
+      # Generate a version.json file describing app release & login to DockerHub
+      - *generate-version-file
+      - *docker-login
+      # Activate docker-in-docker (with layers caching enabled)
+      - setup_remote_docker:
+          docker_layer_caching: true
+      # Each image is tagged with the current git commit sha1 to avoid
+      # collisions in parallel builds.
+      - run:
+          name: Build production image
+          command: |
+            WARREN_APP_IMAGE_BUILD_TARGET=production \
+            WARREN_APP_IMAGE_TAG=${CIRCLE_SHA1} \
+              make build-docker-app
+      - run:
+          name: Check built image availability
+          command: docker images "warren-app:${CIRCLE_SHA1}*"
 
   # ---- API jobs ----
   # Build API development environment
@@ -412,6 +440,80 @@ jobs:
             ~/.local/bin/twine upload --skip-existing plugins/*/dist/* ;
           working_directory: src/api
 
+  # ---- DockerHub publication job ----
+  hub:
+    docker:
+      - image: cimg/base:current
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      # Checkout repository sources
+      - checkout
+      # Generate a version.json file describing app release & login to DockerHub
+      - *generate-version-file
+      - *docker-login
+      # Activate docker-in-docker (with layers caching enabled)
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build production image
+          command: |
+            WARREN_APP_IMAGE_BUILD_TARGET=production \
+            WARREN_APP_IMAGE_TAG=${CIRCLE_SHA1} \
+              make build-docker-app
+            WARREN_API_IMAGE_BUILD_TARGET=production \
+            WARREN_API_IMAGE_TAG=${CIRCLE_SHA1} \
+              make build-docker-api
+      - run:
+          name: Check built image availability
+          command: docker images "warren-ap*:${CIRCLE_SHA1}*"
+      # Tag docker images with the same pattern used in Git (Semantic Versioning)
+      #
+      # Git tag: v1.0.1
+      # Docker tag: 1.0.1(-ci)
+      - run:
+          name: Tag images
+          command: |
+            docker images fundocker/warren
+            DOCKER_TAG=$([[ -z "$CIRCLE_TAG" ]] && echo $CIRCLE_BRANCH || echo ${CIRCLE_TAG} | sed 's/^v//')
+            RELEASE_TYPE=$([[ -z "$CIRCLE_TAG" ]] && echo "branch" || echo "tag ")
+            # Display either:
+            # - DOCKER_TAG: main (Git branch)
+            # or
+            # - DOCKER_TAG: 1.1.2 (Git tag v1.1.2)
+            echo "DOCKER_TAG: ${DOCKER_TAG} (Git ${RELEASE_TYPE}${CIRCLE_TAG})"
+            docker tag warren-app:${CIRCLE_SHA1} fundocker/warren-app:${DOCKER_TAG}
+            docker tag warren-api:${CIRCLE_SHA1} fundocker/warren-api:${DOCKER_TAG}
+            if [[ -n "$CIRCLE_TAG" ]]; then
+                docker tag warren-app:${CIRCLE_SHA1} fundocker/warren-app:latest
+                docker tag warren-api:${CIRCLE_SHA1} fundocker/warren-api:latest
+            fi
+            docker images "fundocker/warren-ap*"
+
+      # Publish images to DockerHub
+      #
+      # Nota bene: logged user (see "Login to DockerHub" step) must have write
+      # permission for the project's repository; this also implies that the
+      # DockerHub repository already exists.
+      - run:
+          name: Publish images
+          command: |
+            DOCKER_TAG=$([[ -z "$CIRCLE_TAG" ]] && echo $CIRCLE_BRANCH || echo ${CIRCLE_TAG} | sed 's/^v//')
+            RELEASE_TYPE=$([[ -z "$CIRCLE_TAG" ]] && echo "branch" || echo "tag ")
+            # Display either:
+            # - DOCKER_TAG: main (Git branch)
+            # or
+            # - DOCKER_TAG: 1.1.2 (Git tag v1.1.2)
+            echo "DOCKER_TAG: ${DOCKER_TAG} (Git ${RELEASE_TYPE}${CIRCLE_TAG})"
+            docker push fundocker/warren-app:${DOCKER_TAG}
+            docker push fundocker/warren-api:${DOCKER_TAG}
+            if [[ -n "$CIRCLE_TAG" ]]; then
+              docker push fundocker/warren-app:latest
+              docker push fundocker/warren-api:latest
+            fi
+
 workflows:
   version: 2
 
@@ -446,7 +548,11 @@ workflows:
       # Docker jobs
       #
       # Build images
-      - build-docker:
+      - build-docker-api:
+          filters:
+            tags:
+              only: /.*/
+      - build-docker-app:
           filters:
             tags:
               only: /.*/
@@ -538,5 +644,20 @@ workflows:
           filters:
             branches:
               ignore: /.*/
+            tags:
+              only: /^v.*/
+
+      # DockerHub publication.
+      #
+      # Publish docker images only if all build, lint and test jobs succeed
+      # and it has been tagged with a tag starting with the letter v or is on
+      # the main branch
+      - hub:
+          requires:
+            - build-docker-api
+            - build-docker-app
+          filters:
+            branches:
+              only: main
             tags:
               only: /^v.*/
