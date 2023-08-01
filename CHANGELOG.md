@@ -27,5 +27,6 @@ and this project adheres to
 - Use concise names in indicator and models
 - Refactor the LRS client to be asynchronous
 - Fix count of 0 in all video endpoints
+- Require Python minimum version of 3.8
 
 [unreleased]: https://github.com/openfun/warren
