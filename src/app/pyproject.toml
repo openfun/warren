@@ -24,7 +24,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 license = {file = "LICENSE.md"}
 keywords = ["Analytics", "xAPI", "LRS", "LTI"]
 dependencies = [
