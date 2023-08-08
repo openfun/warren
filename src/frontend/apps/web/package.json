@@ -10,7 +10,7 @@
     "build-theme": "cunningham -g css -o pages"
   },
   "dependencies": {
-    "@openfun/cunningham-react": "^0.10.0",
+    "@openfun/cunningham-react": "^0.11.0",
     "next": "^13.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
