@@ -32,7 +32,8 @@ class DevelopmentLTIView(TemplateView):
         ----------
         kwargs : dictionary
             keyword extra arguments
-        Returns
+
+        Returns:
         -------
         dictionary
             context for template rendering.
