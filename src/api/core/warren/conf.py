@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     # Security
     ALLOWED_HOSTS: List[str] = [
         "http://localhost:3000",
+        "http://localhost:8090",
     ]
 
     # pylint: disable=invalid-name

@@ -1,1 +1,13 @@
-Woot.
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="{% static 'js/build/assets/index.css' %}">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  </head>
+  <body>
+    <div id="warren-frontend-root"></div>
+    <script src='{% static "js/build/assets/index.js" %}'></script>
+  </body>
+</html>
