@@ -1,5 +1,5 @@
 """"Warren video indicators."""
-
+import logging
 
 from ralph.backends.http import BaseHTTP
 from ralph.backends.http.async_lrs import LRSQuery
@@ -7,10 +7,14 @@ from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
+from warren.database_manager import DatabaseManager, PgsqlManager
 from warren.base_indicator import BaseIndicator, PreprocessMixin
 from warren.filters import DatetimeRange
 from warren.models import DailyCount, DailyCounts
 from warren_video.conf import settings as video_plugin_settings
+
+
+logger = logging.getLogger(__name__)
 
 
 class BaseDailyEvent(BaseIndicator, PreprocessMixin):
@@ -44,6 +48,7 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
         self.remove_duplicate_actors = remove_duplicate_actors
         self.video_id = video_id
         self.date_range = date_range
+        self.computed_indicator = None
 
     def get_lrs_query(
         self,
@@ -77,6 +82,33 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
         if self.remove_duplicate_actors:
             self.statements.drop_duplicates(subset="actor.uid", inplace=True)
 
+    async def persist(self) -> None:
+        if not self.computed_indicator:
+            raise Exception("Indicator must be computed before being persisted.")
+
+        db_manager = PgsqlManager()
+        db_manager.connect()
+        db = db_manager.connection
+        with db.cursor() as cursor:
+            # Insert total of the range
+            cursor.execute(
+                "INSERT INTO date_range_views_count"
+                "(range_start, range_end, count) VALUES"
+                "(%s, %s, %s) ON CONFLICT DO NOTHING",
+                (self.date_range.since.isoformat(), self.date_range.until.isoformat(), self.computed_indicator.total)
+            )
+            logger.debug(f"Successfully saved ${cursor.rowcount} records in date_range_views_count.")
+
+            # Insert daily counts
+            for count in self.computed_indicator.counts:
+                cursor.execute("INSERT INTO daily_views_count"
+                               "(date, count)"
+                               "VALUES (%s, %s) ON CONFLICT DO NOTHING", (count.date, count.count))
+            logger.debug(f"Successfully saved ${cursor.rowcount} records in daily_views_count.")
+
+            db.commit()
+        db_manager.disconnect()
+
     async def compute(self) -> DailyCounts:
         """Fetch statements and computes the current indicator.
 
@@ -102,6 +134,8 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
                 for date, count in self.statements.groupby("date").size().items()
             ]
         )
+        self.computed_indicator = daily_counts
+
         return daily_counts
 
 

@@ -92,3 +92,7 @@ class BaseIndicator(ABC):
     @abstractmethod
     async def compute(self):
         """Execute the LRS query, and perform operations to get the indicator value."""
+
+    @abstractmethod
+    async def persist(self):
+        """Save the computed indicator value in the configured database."""

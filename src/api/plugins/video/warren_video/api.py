@@ -40,6 +40,7 @@ async def views(
         response = Response[DailyCounts](
             status=StatusEnum.SUCCESS, content=await indicator.compute()
         )
+        await indicator.persist()
     except (KeyError, AttributeError) as exception:
         logger.error(exception)
         response = Response[Error](
