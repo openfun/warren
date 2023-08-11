@@ -147,7 +147,7 @@ logs: ## display frontend/api logs (follow mode)
 .PHONY: logs
 
 run: ## run the whole stack
-run: run-frontend
+run: run-app
 .PHONY: run
 
 run-app: ## run the app server (development mode)
@@ -164,13 +164,6 @@ run-api: ## run the api server (development mode)
 	@$(COMPOSE_RUN) dockerize -wait http://$(RALPH_COMPOSE_SERVICE):$(RALPH_RUNSERVER_PORT)/__heartbeat__ -timeout 60s
 	@$(COMPOSE_RUN) dockerize -wait tcp://api:$(WARREN_API_SERVER_PORT) -timeout 60s
 .PHONY: run-api
-
-run-frontend: ## run the frontend server (development mode)
-run-frontend: run-api
-	@$(COMPOSE) up -d frontend
-	@echo "Waiting for frontend to be up and running..."
-	@$(COMPOSE_RUN) dockerize -wait tcp://frontend:$(WARREN_FRONTEND_SERVER_PORT) -timeout 60s
-.PHONY: run-frontend
 
 status: ## an alias for "docker compose ps"
 	@$(COMPOSE) ps

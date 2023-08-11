@@ -1,6 +1,6 @@
 import React from "react";
-import useFilters from "../hooks/useFilters";
 import { DateRangePicker, Select } from "@openfun/cunningham-react";
+import useFilters from "../hooks/useFilters";
 
 type VideoOption = {
   value: string;
@@ -31,20 +31,25 @@ const Filters: React.FC = () => {
   };
 
   const handleVideoIdsChange = (
-    value: string | number | string[] | undefined
+    value: string | number | string[] | undefined,
   ): void => {
-    const videoIds = Array.isArray(value)
-      ? value
-      : value
-      ? [value.toString()]
-      : [];
+    let videoIds: Array<string> = [];
+    if (Array.isArray(value)) {
+      videoIds = value;
+    } else if (value) {
+      videoIds = [value.toString()];
+    }
     setVideoIds(videoIds);
   };
 
   const handleDateChange = (value: [string, string] | null): void => {
     // todo - handle start at 00:00:00 and end at 23:59:59
     // todo - component api is going to change soon. Let's wait for its change.
-    value ? setDate(value) : setDate(["", ""]);
+    if (value) {
+      setDate(value);
+    } else {
+      setDate(["", ""]);
+    }
   };
 
   return (

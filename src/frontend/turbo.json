@@ -4,8 +4,8 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"],
-      "env": ["NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL"]
+      "outputs": ["../app/staticfiles/js/**"],
+      "env": ["VITE_PUBLIC_WARREN_BACKEND_ROOT_URL"]
     },
     "lint": {
       "outputs": []

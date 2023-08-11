@@ -3,19 +3,19 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint . 'src/**/*.{ts,tsx}'",
+    "dev": "tsc & vite build --emptyOutDir --watch --mode development",
+    "build": "tsc & vite build --emptyOutDir",
     "build-theme": "cunningham -g css -o pages"
   },
   "dependencies": {
     "@openfun/cunningham-react": "^0.11.0",
-    "next": "^13.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sass": "^1.59.3",
-    "ui": "*"
+    "ui": "*",
+    "vite": "4.4.4",
+    "@vitejs/plugin-react": "4.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
@@ -23,7 +23,6 @@
     "@types/react": "^18.0.22",
     "@types/react-dom": "^18.0.7",
     "eslint": "8.46.0",
-    "eslint-config-custom": "*",
     "tsconfig": "*",
     "typescript": "^5.0.0"
   }

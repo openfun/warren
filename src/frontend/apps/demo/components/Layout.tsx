@@ -7,12 +7,10 @@ type Props = {
   children: ReactNode;
 };
 
-export default function Layout({ children }: Props) {
-  return (
-    <>
-      <Header />
-      <main>{children}</main>
-      <Footer />
-    </>
-  );
-}
+export default ({ children }: Props) => (
+  <>
+    <Header />
+    <main>{children}</main>
+    <Footer />
+  </>
+);
