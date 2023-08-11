@@ -7,7 +7,9 @@ from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
-from warren.database_manager import DatabaseManager, PgsqlManager
+
+from warren.exceptions import UncomputedIndicatorError
+from warren.database_manager import PgsqlManager
 from warren.base_indicator import BaseIndicator, PreprocessMixin
 from warren.filters import DatetimeRange
 from warren.models import DailyCount, DailyCounts
@@ -84,7 +86,7 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
 
     async def persist(self) -> None:
         if not self.computed_indicator:
-            raise Exception("Indicator must be computed before being persisted.")
+            raise UncomputedIndicatorError(f"Indicator ${self.__class__.__name__} must be computed before being persisted.")
 
         db_manager = PgsqlManager()
         db_manager.connect()
@@ -92,18 +94,18 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
         with db.cursor() as cursor:
             # Insert total of the range
             cursor.execute(
-                "INSERT INTO date_range_views_count"
-                "(range_start, range_end, count) VALUES"
-                "(%s, %s, %s) ON CONFLICT DO NOTHING",
-                (self.date_range.since.isoformat(), self.date_range.until.isoformat(), self.computed_indicator.total)
+                "INSERT INTO video_date_range_views"
+                "(video_id, range_start, range_end, count) VALUES"
+                "(%s, %s, %s, %s) ON CONFLICT DO NOTHING",
+                (self.video_id.replace("uuid://", ""), self.date_range.since.isoformat(), self.date_range.until.isoformat(), self.computed_indicator.total)
             )
             logger.debug(f"Successfully saved ${cursor.rowcount} records in date_range_views_count.")
 
             # Insert daily counts
             for count in self.computed_indicator.counts:
-                cursor.execute("INSERT INTO daily_views_count"
-                               "(date, count)"
-                               "VALUES (%s, %s) ON CONFLICT DO NOTHING", (count.date, count.count))
+                cursor.execute("INSERT INTO video_daily_views"
+                               "(video_id, date, count)"
+                               "VALUES (%s, %s, %s) ON CONFLICT DO NOTHING", (self.video_id.replace("uuid://", ""), count.date, count.count))
             logger.debug(f"Successfully saved ${cursor.rowcount} records in daily_views_count.")
 
             db.commit()

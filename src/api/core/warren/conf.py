@@ -41,8 +41,11 @@ class Settings(BaseSettings):
     }
 
     # Persistence configuration
-    POSTGRES_INDICATORS_USER: str = "postgres"
+    WARREN_IS_PERSISTENCE_ENABLED: str = False
+    POSTGRES_INDICATORS_HOST: str = "postgresql-indicators"
     POSTGRES_INDICATORS_PORT: int = 5432
+    POSTGRES_INDICATORS_DATABASE: str = "postgres"
+    POSTGRES_INDICATORS_USER: str = "postgres"
     POSTGRES_INDICATORS_PASSWORD: str
 
     # Security
