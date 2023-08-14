@@ -1,15 +1,13 @@
 import React from "react";
 import AppProvider from "ui/provider/app";
-import Filters from "ui/components/filters";
-import { DailyViews } from "ui";
 import Layout from "../components/Layout";
+import { AppInitializer } from "./AppInitializer";
 
 export const App = () => {
   return (
     <Layout>
       <AppProvider>
-        <Filters />
-        <DailyViews />
+        <AppInitializer />
       </AppProvider>
     </Layout>
   );

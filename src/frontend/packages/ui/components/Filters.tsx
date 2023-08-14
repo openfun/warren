@@ -20,7 +20,7 @@ const VIDEO_IDS = [
   "uuid://e151ee65-7a72-478c-ac57-8a02f19e748b",
 ];
 
-const Filters: React.FC = () => {
+export const Filters: React.FC = () => {
   const { date, setDate, setVideoIds } = useFilters();
 
   const getVideoOptions = (): VideoOption[] => {
@@ -70,4 +70,3 @@ const Filters: React.FC = () => {
     </div>
   );
 };
-export default Filters;
