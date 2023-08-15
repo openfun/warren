@@ -1,7 +1,7 @@
 """Warren API v1 video router."""
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 from typing_extensions import Annotated  # python <3.9 compat
 
 from warren.backends import lrs_client
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 @router.get("/{video_id:path}/views")
 async def views(
+    background_tasks: BackgroundTasks,
     video_id: IRI,
     filters: Annotated[BaseQueryFilters, Depends()],
     complete: bool = False,
@@ -43,6 +44,7 @@ async def views(
         response = Response[DailyCounts](
             status=StatusEnum.SUCCESS, content=await indicator.compute()
         )
+        background_tasks.add_task(indicator.persist)
     except (KeyError, AttributeError) as exception:
         logger.error(exception)
         response = Response[Error](
@@ -54,6 +56,7 @@ async def views(
 
 @router.get("/{video_id:path}/downloads")
 async def downloads(
+    background_tasks: BackgroundTasks,
     video_id: IRI,
     filters: Annotated[BaseQueryFilters, Depends()],
     unique: bool = False,
@@ -70,6 +73,7 @@ async def downloads(
         response = Response[DailyCounts](
             status=StatusEnum.SUCCESS, content=await indicator.compute()
         )
+        background_tasks.add_task(indicator.persist)
     except (KeyError, AttributeError) as exception:
         logger.error(exception)
         response = Response[Error](

@@ -90,10 +90,11 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
         if self.remove_duplicate_actors:
             self.statements.drop_duplicates(subset="actor.uid", inplace=True)
 
-    def persist(self) -> None:
+    async def persist(self) -> None:
         if not settings.IS_PERSISTENCE_ENABLED:
+            logger.info("Indicator persistence is disabled, skipping...")
             return
-
+        logger.info("Indicator persistence is enabled, storing computed indicator...")
         db_manager = PgsqlManager()
         db_manager.connect()
         db = db_manager.connection
@@ -105,14 +106,14 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
                 "(%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",
                 (self.uuid, self.video_id.replace("uuid://", ""), self.date_range.since.isoformat(), self.date_range.until.isoformat(), self.computed_indicator.total)
             )
-            logger.debug(f"Successfully saved ${cursor.rowcount} records in date_range_views_count.")
+            logger.info(f"Successfully saved {cursor.rowcount} record in indicator_date_range_events.")
 
             # Insert daily counts
             for count in self.computed_indicator.counts:
                 cursor.execute("INSERT INTO indicator_daily_events"
                                "(indicator_uuid, video_id, date, count)"
                                "VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING", (self.uuid, self.video_id.replace("uuid://", ""), count.date, count.count))
-            logger.debug(f"Successfully saved ${cursor.rowcount} records in daily_views_count.")
+            logger.info(f"Successfully saved {len(self.computed_indicator.counts)} records in indicator_daily_events.")
 
             db.commit()
         db_manager.disconnect()
@@ -175,7 +176,6 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
             ]
         )
         self.computed_indicator = daily_counts
-        self.persist()
         return daily_counts
 
 
