@@ -1,4 +1,5 @@
 """"Warren video indicators."""
+import hashlib
 import logging
 
 from ralph.backends.http import BaseHTTP
@@ -8,7 +9,7 @@ from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 
-from warren.exceptions import UncomputedIndicatorError
+from warren.conf import settings
 from warren.database_manager import PgsqlManager
 from warren.base_indicator import BaseIndicator, PreprocessMixin
 from warren.filters import DatetimeRange
@@ -50,7 +51,12 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
         self.remove_duplicate_actors = remove_duplicate_actors
         self.video_id = video_id
         self.date_range = date_range
-        self.computed_indicator = None
+        self.computed_indicator: DailyCounts | None = None
+        self.uuid = hashlib.sha256(
+                "-".join(
+                    col for col in [self.video_id, str(self.date_range), str(self.remove_duplicate_actors), self.__class__.__name__]
+                ).encode()
+            ).hexdigest()
 
     def get_lrs_query(
         self,
@@ -84,9 +90,9 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
         if self.remove_duplicate_actors:
             self.statements.drop_duplicates(subset="actor.uid", inplace=True)
 
-    async def persist(self) -> None:
-        if not self.computed_indicator:
-            raise UncomputedIndicatorError(f"Indicator ${self.__class__.__name__} must be computed before being persisted.")
+    def persist(self) -> None:
+        if not settings.IS_PERSISTENCE_ENABLED:
+            return
 
         db_manager = PgsqlManager()
         db_manager.connect()
@@ -94,22 +100,51 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
         with db.cursor() as cursor:
             # Insert total of the range
             cursor.execute(
-                "INSERT INTO video_date_range_views"
-                "(video_id, range_start, range_end, count) VALUES"
-                "(%s, %s, %s, %s) ON CONFLICT DO NOTHING",
-                (self.video_id.replace("uuid://", ""), self.date_range.since.isoformat(), self.date_range.until.isoformat(), self.computed_indicator.total)
+                "INSERT INTO indicator_date_range_events"
+                "(indicator_uuid, video_id, range_start, range_end, count) VALUES"
+                "(%s, %s, %s, %s, %s) ON CONFLICT DO NOTHING",
+                (self.uuid, self.video_id.replace("uuid://", ""), self.date_range.since.isoformat(), self.date_range.until.isoformat(), self.computed_indicator.total)
             )
             logger.debug(f"Successfully saved ${cursor.rowcount} records in date_range_views_count.")
 
             # Insert daily counts
             for count in self.computed_indicator.counts:
-                cursor.execute("INSERT INTO video_daily_views"
-                               "(video_id, date, count)"
-                               "VALUES (%s, %s, %s) ON CONFLICT DO NOTHING", (self.video_id.replace("uuid://", ""), count.date, count.count))
+                cursor.execute("INSERT INTO indicator_daily_events"
+                               "(indicator_uuid, video_id, date, count)"
+                               "VALUES (%s, %s, %s, %s) ON CONFLICT DO NOTHING", (self.uuid, self.video_id.replace("uuid://", ""), count.date, count.count))
             logger.debug(f"Successfully saved ${cursor.rowcount} records in daily_views_count.")
 
             db.commit()
         db_manager.disconnect()
+
+    def fetch_persisted_indicator(self):
+        """Check if the indicator was already persisted. If so, retrieve the value."""
+        if not settings.IS_PERSISTENCE_ENABLED:
+            logger.info("Persistence disabled, computing the indicator...")
+        else:
+            db_manager = PgsqlManager()
+            db_manager.connect()
+            with db_manager.cursor as cursor:
+                cursor.execute(
+                    "SELECT * FROM indicator_date_range_events WHERE indicator_uuid = %s",
+                    (self.uuid,)
+                )
+                stored_total = cursor.fetchone()
+
+                cursor.execute(
+                    "SELECT * FROM indicator_daily_events WHERE indicator_uuid = %s",
+                    (self.uuid,)
+                )
+                stored_by_day = cursor.fetchall()
+                if stored_total and stored_by_day:
+                    logger.info("Found computed indicator in DB, retrieving...")
+                    self.computed_indicator = DailyCounts(total=stored_total['count'],
+                                                          counts=[DailyCount(date=d['date'], count=d['count']) for d in
+                                                                  stored_by_day])
+                    return True
+                else:
+                    logger.info("Indicator not found in DB, computing...")
+                    return False
 
     async def compute(self) -> DailyCounts:
         """Fetch statements and computes the current indicator.
@@ -117,6 +152,9 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
         Fetch the statements from the LRS, filter and aggregate them to return the
         number of video events per day.
         """
+        if self.fetch_persisted_indicator():
+            return self.computed_indicator
+
         # Initialize daily counts within the specified date range,
         # with counts equal to zero
         daily_counts = DailyCounts.from_range(self.date_range)
@@ -137,7 +175,7 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
             ]
         )
         self.computed_indicator = daily_counts
-
+        self.persist()
         return daily_counts
 
 

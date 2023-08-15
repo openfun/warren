@@ -2,12 +2,15 @@ from abc import ABC, abstractmethod
 import logging
 
 import psycopg2
+from psycopg2.extras import RealDictCursor
 
 from warren.conf import settings
 
 logger = logging.getLogger(__name__)
 
+
 class DatabaseManager(ABC):
+    """Interface for database managers."""
     @abstractmethod
     def connect(self):
         pass
@@ -22,6 +25,7 @@ class DatabaseManager(ABC):
 
 
 class PgsqlManager(DatabaseManager):
+    """Handles connection and queries to the Pgsql database."""
     def __init__(self):
         self.connection = None
         self.cursor = None
@@ -37,7 +41,7 @@ class PgsqlManager(DatabaseManager):
                 port=settings.POSTGRES_INDICATORS_PORT,
                 database=settings.POSTGRES_INDICATORS_DATABASE
             )
-            self.cursor = self.connection.cursor()
+            self.cursor = self.connection.cursor(cursor_factory=RealDictCursor)
         except (Exception, psycopg2.Error) as error:
             logger.error("Error while connecting to PostgreSQL:", error)
 

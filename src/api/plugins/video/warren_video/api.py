@@ -4,7 +4,6 @@ import logging
 from fastapi import APIRouter, Depends
 from typing_extensions import Annotated  # python <3.9 compat
 
-from warren.conf import settings
 from warren.backends import lrs_client
 from warren.fields import IRI
 from warren.filters import BaseQueryFilters, DatetimeRange
@@ -15,6 +14,8 @@ router = APIRouter(
     prefix="/video",
 )
 
+# TODO : add this as a .env config
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -42,8 +43,6 @@ async def views(
         response = Response[DailyCounts](
             status=StatusEnum.SUCCESS, content=await indicator.compute()
         )
-        if settings.WARREN_IS_PERSISTENCE_ENABLED:
-            await indicator.persist()
     except (KeyError, AttributeError) as exception:
         logger.error(exception)
         response = Response[Error](
