@@ -45,7 +45,6 @@ WARREN_FRONTEND_IMAGE_NAME           ?= warren-frontend
 WARREN_FRONTEND_IMAGE_TAG            ?= development
 WARREN_FRONTEND_IMAGE_BUILD_TARGET   ?= development
 WARREN_FRONTEND_SERVER_PORT          ?= 3000
-WARREN_FRONTEND_DOCS_PORT            ?= 3001
 
 
 # ==============================================================================
@@ -171,7 +170,6 @@ run-frontend: run-api
 	@$(COMPOSE) up -d frontend
 	@echo "Waiting for frontend to be up and running..."
 	@$(COMPOSE_RUN) dockerize -wait tcp://frontend:$(WARREN_FRONTEND_SERVER_PORT) -timeout 60s
-	@$(COMPOSE_RUN) dockerize -wait tcp://frontend:$(WARREN_FRONTEND_DOCS_PORT) -timeout 60s
 .PHONY: run-frontend
 
 status: ## an alias for "docker compose ps"
