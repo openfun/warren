@@ -29,7 +29,7 @@ keywords = ["Analytics", "xAPI", "LRS", "LTI"]
 dependencies = [
     "arrow==1.2.3",
     "elasticsearch[async]==8.9.0",
-    "fastapi==0.101.0",
+    "fastapi==0.101.1",
     "importlib-metadata==6.8.0",
     "pandas==2.0.3",
     "pydantic[dotenv]==1.10.8",
@@ -56,7 +56,7 @@ dev = [
     "pytest==7.4.0",
     "pytest-cov==4.1.0",
     "pytest-httpx==0.22.0",
-    "ruff==0.0.282",
+    "ruff==0.0.284",
 ]
 ci = [
     "twine==4.0.2",
