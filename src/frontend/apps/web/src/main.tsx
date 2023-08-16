@@ -1,10 +1,19 @@
 import React from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import "./index.scss";
 import { App } from "./App";
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+document.addEventListener("DOMContentLoaded", () => {
+  const container = document.querySelector("#warren-frontend-root");
+
+  if (!container) {
+    throw new Error("container not found!");
+  }
+
+  const root = createRoot(container);
+  root.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+});
