@@ -3,8 +3,8 @@ import ReactECharts from "echarts-for-react";
 import type { EChartsOption } from "echarts-for-react";
 
 import cloneDeep from "lodash.clonedeep";
-import { VideoViewsResponse } from "./types";
 import useFilters from "../hooks/useFilters";
+import { VideoViewsResponse } from "./types";
 import { useVideosViews } from "./api/getVideoViews";
 
 type Series = {

@@ -5,12 +5,12 @@ import { VideoViewsResponse } from "../types";
 const getVideoViews = async (
   videoId: string,
   since: string,
-  until: string
+  until: string,
 ): Promise<VideoViewsResponse> => {
   const response = await axios.get(`video/${videoId}/views`, {
     params: {
-      ...(since && { since: since }),
-      ...(until && { until: until }),
+      ...(since && { since }),
+      ...(until && { until }),
     },
   });
   return {
