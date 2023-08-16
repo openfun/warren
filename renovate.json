@@ -5,6 +5,6 @@
   "commitMessagePrefix": "⬆️(project)",
   "commitMessageAction": "upgrade",
   "commitBodyTable": true,
-  "ignoreDeps": ["pydantic", "ipython", "pytest-httpx"],
+  "ignoreDeps": ["pydantic", "dev/ipython", "dev/pytest-httpx"],
   "dependencyDashboard": true
 }
