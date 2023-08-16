@@ -8,8 +8,8 @@ This turborepo uses [Yarn](https://classic.yarnpkg.com/) as a package manager. I
 
 ### Apps and Packages
 
-- `web`: another [Next.js](https://nextjs.org/) app
-- `ui`: a stub React component library used `web` application
+- `web`: a [Vite.js](https://vitejs.dev/) app
+- `ui`: a stub React component library used by `web` application
 - `eslint-config-custom`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
 - `tsconfig`: `tsconfig.json`s used throughout the monorepo
 
