@@ -4,7 +4,7 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"],
+      "outputs": ["dist/**"],
       "env": ["NEXT_PUBLIC_WARREN_BACKEND_ROOT_URL"]
     },
     "lint": {

@@ -3,19 +3,18 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
+    "dev": "vite",
+    "build": "vite build",
     "build-theme": "cunningham -g css -o pages"
   },
   "dependencies": {
     "@openfun/cunningham-react": "^0.11.0",
-    "next": "^13.1.1",
+    "@vitejs/plugin-react": "4.0.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sass": "^1.59.3",
-    "ui": "*"
+    "ui": "*",
+    "vite": "4.4.4"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
