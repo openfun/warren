@@ -1,5 +1,9 @@
 {
-  "extends": "tsconfig/nextjs.json",
+  "extends": "tsconfig/vitejs.json",
+  "compilerOptions": {
+    "noEmit": true,
+  },
   "include": ["vite-env.d.ts", "**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": ["node_modules", "dist"],
+  "references": [{ "path": "./tsconfig.node.json" }]
 }
