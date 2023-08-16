@@ -1,0 +1,40 @@
+# Warren Student activity plugin
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "warren-student-activity"
+description = "The student activity plugin for warren"
+readme = "README.md"
+authors = [
+  { name="Open FUN (France Universite Numerique)", email="fun.dev@fun-mooc.fr" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+requires-python = ">=3.8"
+license = {file = "LICENSE.md"}
+keywords = ["Analytics", "xAPI", "LRS", "LTI"]
+dependencies = [
+    "warren-api",
+]
+dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://github.com/openfun/warren"
+"Bug Tracker" = "https://github.com/openfun/warren/issues"
+
+[project.entry-points."warren.routers"]
+warren-student-activity = "warren_student_activity.api:router"
+
+[tool.setuptools.dynamic]
+version = { attr = "warren_student_activity.__version__" }

@@ -1,4 +1,5 @@
 """Warren API v1 video router."""
+
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status

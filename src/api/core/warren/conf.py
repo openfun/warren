@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     SERVER_PROTOCOL: str = "http"
     SERVER_HOST: str = "localhost"
     SERVER_PORT: int = 8100
+    LOGGING_LEVEL: str = "ERROR"
 
     # API configuration
     MAX_DATETIMERANGE_SPAN: timedelta = timedelta(days=365)  # 1 year shift from since

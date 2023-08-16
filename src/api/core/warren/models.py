@@ -113,6 +113,7 @@ class DailyCounts(BaseModel):
             reduce(lambda x, y: x + y, v)
             for k, v in groupby(self.counts, lambda dc: dc.date)
         ]
+        # To remove for actors merging ? 
         self.total = sum(dc.count for dc in self.counts)
 
 
