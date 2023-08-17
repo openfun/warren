@@ -2,9 +2,11 @@
 
 import logging
 
+from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
+from django.views.generic import TemplateView
 from lti_toolbox.exceptions import LTIException
 from lti_toolbox.lti import LTI
 from lti_toolbox.views import BaseLTIView
@@ -37,3 +39,30 @@ class LTIRequestView(BaseLTIView):
         """Raise an error when the LTI request fails."""
         logger.debug("LTI request failed with error: %s", error)
         raise PermissionDenied
+
+
+class LTIConfigView(TemplateView):
+    """Provide access to Warren LTI Provider Configurations for Consumers.
+
+    For instance, when configuring an LMS like Moodle, you have the ability to provide
+    a URL for the LTI tool configurations of the provider. This function returns an
+    XML containing a set of predefined LTI parameters that may need to be
+    overloaded manually.
+    """
+
+    template_name = "config.xml"
+    content_type = "text/xml; charset=utf-8"
+
+    def get_context_data(self, **kwargs):
+        """Get context data for rendering the template."""
+        return {
+            "code": settings.LTI_CONFIG_TITLE.lower()
+            if settings.LTI_CONFIG_TITLE
+            else None,
+            "contact_email": settings.LTI_CONFIG_CONTACT_EMAIL,
+            "description": settings.LTI_CONFIG_DESCRIPTION,
+            "host": self.request.get_host(),
+            "icon_url": settings.LTI_CONFIG_ICON,
+            "title": settings.LTI_CONFIG_TITLE,
+            "url": settings.LTI_CONFIG_URL,
+        }
