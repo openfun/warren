@@ -23,8 +23,9 @@ services:
     volumes:
       - ./src/app:/app
     depends_on:
-      - "postgresql"
-      - "api"
+      - postgresql
+      - api
+      - frontend
 
   api:
     build:
@@ -67,14 +68,13 @@ services:
     image: "${WARREN_FRONTEND_IMAGE_NAME:-warren-frontend}:${WARREN_FRONTEND_IMAGE_TAG:-development}"
     environment:
       HOME: /tmp
-    ports:
-      - "${WARREN_FRONTEND_SERVER_PORT:-3000}:${WARREN_FRONTEND_SERVER_PORT:-3000}"
     command:
       - yarn
       - run
       - dev
     volumes:
       - ./src/frontend:/app
+      - ./src/app/staticfiles:/app/staticfiles
     depends_on:
       - api
 
@@ -110,6 +110,8 @@ services:
   # -- tools
   dockerize:
     image: jwilder/dockerize
+    volumes:
+      - ./src/app/staticfiles:/app/staticfiles
 
   notebook:
     build:

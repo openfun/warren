@@ -44,7 +44,7 @@ WARREN_API_SERVER_PORT               ?= 8100
 WARREN_FRONTEND_IMAGE_NAME           ?= warren-frontend
 WARREN_FRONTEND_IMAGE_TAG            ?= development
 WARREN_FRONTEND_IMAGE_BUILD_TARGET   ?= development
-WARREN_FRONTEND_SERVER_PORT          ?= 3000
+WARREN_FRONTEND_IMAGE_BUILD_PATH     ?= app/staticfiles/js/build/assets/index.js
 
 
 # ==============================================================================
@@ -147,7 +147,7 @@ logs: ## display frontend/api logs (follow mode)
 .PHONY: logs
 
 run: ## run the whole stack
-run: run-frontend
+run: run-app
 .PHONY: run
 
 run-app: ## run the app server (development mode)
@@ -155,6 +155,7 @@ run-app: ## run the app server (development mode)
 	@echo "Waiting for the app to be up and running..."
 	@$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
 	@$(COMPOSE_RUN) dockerize -wait tcp://app:$(WARREN_APP_SERVER_PORT) -timeout 60s
+	@$(COMPOSE_RUN) dockerize -wait file:///$(WARREN_FRONTEND_IMAGE_BUILD_PATH) -timeout 60s
 .PHONY: run-app
 
 run-api: ## run the api server (development mode)
@@ -164,13 +165,6 @@ run-api: ## run the api server (development mode)
 	@$(COMPOSE_RUN) dockerize -wait http://$(RALPH_COMPOSE_SERVICE):$(RALPH_RUNSERVER_PORT)/__heartbeat__ -timeout 60s
 	@$(COMPOSE_RUN) dockerize -wait tcp://api:$(WARREN_API_SERVER_PORT) -timeout 60s
 .PHONY: run-api
-
-run-frontend: ## run the frontend server (development mode)
-run-frontend: run-api
-	@$(COMPOSE) up -d frontend
-	@echo "Waiting for frontend to be up and running..."
-	@$(COMPOSE_RUN) dockerize -wait tcp://frontend:$(WARREN_FRONTEND_SERVER_PORT) -timeout 60s
-.PHONY: run-frontend
 
 status: ## an alias for "docker compose ps"
 	@$(COMPOSE) ps
