@@ -9,22 +9,22 @@
     "build-theme": "cunningham -g css -o pages"
   },
   "dependencies": {
-    "@openfun/cunningham-react": "^0.11.0",
+    "@openfun/cunningham-react": "0.11.1",
     "@vitejs/plugin-react": "4.0.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "sass": "^1.59.3",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "sass": "1.65.1",
     "ui": "*",
     "vite": "4.4.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.0.0",
-    "@types/node": "^18.0.0",
-    "@types/react": "^18.0.22",
-    "@types/react-dom": "^18.0.7",
+    "@babel/core": "7.22.10",
+    "@types/node": "18.17.5",
+    "@types/react": "18.2.20",
+    "@types/react-dom": "18.2.7",
     "eslint": "8.47.0",
     "eslint-config-custom": "*",
     "tsconfig": "*",
-    "typescript": "^5.0.0"
+    "typescript": "5.1.6"
   }
 }
