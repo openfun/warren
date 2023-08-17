@@ -1,38 +1,13 @@
 """Warren's core models."""
-from enum import Enum
 from functools import reduce
 from itertools import groupby
-from typing import Any, Dict, Generic, List, TypeVar
+from typing import Any, Dict, List
 
 import arrow
 from pydantic.main import BaseModel
 
 from warren.fields import Date
 from warren.filters import DatetimeRange
-
-
-class StatusEnum(str, Enum):
-    """Enum for status types."""
-
-    SUCCESS = "SUCCESS"
-    FAILED = "FAILED"
-
-
-class Error(BaseModel):
-    """Basic error model."""
-
-    error_message: str
-
-
-T = TypeVar("T")
-
-
-class Response(BaseModel, Generic[T]):
-    """Generic response model."""
-
-    status: StatusEnum
-    content: T
-
 
 XAPI_STATEMENT = Dict[str, Any]
 

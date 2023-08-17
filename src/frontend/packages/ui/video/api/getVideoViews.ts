@@ -15,7 +15,7 @@ const getVideoViews = async (
   });
   return {
     id: videoId,
-    ...response?.data?.content,
+    ...response?.data,
   };
 };
 
