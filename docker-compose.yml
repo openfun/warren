@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  postgresql:
+  postgresql-lti:
     image: postgres:12
     env_file:
       - .env
@@ -15,7 +15,10 @@ services:
     env_file:
       - .env
     environment:
+      POSTGRES_USER: ${WARREN_POSTGRES_INDICATORS_USER}
       POSTGRES_PASSWORD: ${WARREN_POSTGRES_INDICATORS_PASSWORD}
+      POSTGRES_DB: ${WARREN_POSTGRES_INDICATORS_DATABASE}
+
 
   app:
     build:
@@ -34,7 +37,7 @@ services:
     volumes:
       - ./src/app:/app
     depends_on:
-      - "postgresql"
+      - "postgresql-lti"
       - "api"
 
   api:

@@ -14,8 +14,6 @@ router = APIRouter(
     prefix="/video",
 )
 
-# TODO : add this as a .env config
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 

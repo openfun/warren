@@ -1,6 +1,7 @@
 """"Warren video indicators."""
 import hashlib
 import logging
+from functools import cached_property
 
 from ralph.backends.http import BaseHTTP
 from ralph.backends.http.async_lrs import LRSQuery
@@ -43,7 +44,7 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
             date_range: The date range on which to compute the indicator. It has
                 2 fields, `since` and `until` which are dates or timestamps that must be
                 in ISO format (YYYY-MM-DD, YYYY-MM-DDThh:mm:ss.sss±hh:mm or
-                YYYY-MM-DDThh:mm:ss.sssZ")
+                YYYY-MM-DDThh:mm:ss.sssZ)
             remove_duplicate_actors (bool): If True, filter out rows with duplicate
                 'actor.uid'.
         """
@@ -52,7 +53,10 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
         self.video_id = video_id
         self.date_range = date_range
         self.computed_indicator: DailyCounts | None = None
-        self.uuid = hashlib.sha256(
+
+    @cached_property
+    def uuid(self):
+        return hashlib.sha256(
                 "-".join(
                     col for col in [self.video_id, str(self.date_range), str(self.remove_duplicate_actors), self.__class__.__name__]
                 ).encode()
@@ -122,30 +126,33 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
         """Check if the indicator was already persisted. If so, retrieve the value."""
         if not settings.IS_PERSISTENCE_ENABLED:
             logger.info("Persistence disabled, computing the indicator...")
-        else:
-            db_manager = PgsqlManager()
-            db_manager.connect()
-            with db_manager.cursor as cursor:
-                cursor.execute(
-                    "SELECT * FROM indicator_date_range_events WHERE indicator_uuid = %s",
-                    (self.uuid,)
-                )
-                stored_total = cursor.fetchone()
+            return False
+        db_manager = PgsqlManager()
+        db_manager.connect()
+        db = db_manager.connection
+        with db.cursor() as cursor:
+            cursor.execute(
+                "SELECT * FROM indicator_date_range_events WHERE indicator_uuid = %s",
+                (self.uuid,)
+            )
+            stored_total = cursor.fetchone()
 
-                cursor.execute(
-                    "SELECT * FROM indicator_daily_events WHERE indicator_uuid = %s",
-                    (self.uuid,)
-                )
-                stored_by_day = cursor.fetchall()
-                if stored_total and stored_by_day:
-                    logger.info("Found computed indicator in DB, retrieving...")
-                    self.computed_indicator = DailyCounts(total=stored_total['count'],
-                                                          counts=[DailyCount(date=d['date'], count=d['count']) for d in
-                                                                  stored_by_day])
-                    return True
-                else:
-                    logger.info("Indicator not found in DB, computing...")
-                    return False
+            cursor.execute(
+                "SELECT * FROM indicator_daily_events WHERE indicator_uuid = %s",
+                (self.uuid,)
+            )
+            stored_by_day = cursor.fetchall()
+            if stored_total and stored_by_day:
+                logger.info("Found computed indicator in DB, retrieving...")
+                self.computed_indicator = DailyCounts(total=stored_total['count'],
+                                                      counts=[DailyCount(date=d['date'], count=d['count']) for d in
+                                                              stored_by_day])
+                db_manager.disconnect()
+                return True
+            else:
+                logger.info("Indicator not found in DB, computing...")
+                db_manager.disconnect()
+                return False
 
     async def compute(self) -> DailyCounts:
         """Fetch statements and computes the current indicator.
