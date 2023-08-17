@@ -9,21 +9,21 @@
     "lint": "eslint . '**/*.{ts,tsx}'"
   },
   "devDependencies": {
-    "@types/lodash.clonedeep": "^4.5.7",
-    "@types/react": "^18.0.22",
-    "eslint": "^8.0.0",
+    "@types/lodash.clonedeep": "4.5.7",
+    "@types/react": "18.2.20",
+    "eslint": "8.47.0",
     "eslint-config-custom": "*",
     "tsconfig": "*",
-    "typescript": "^5.0.0"
+    "typescript": "5.1.6"
   },
   "dependencies": {
-    "@openfun/cunningham-react": "^0.11.0",
-    "@tanstack/react-query": "^4.28.0",
-    "@tanstack/react-query-devtools": "^4.28.0",
-    "axios": "^1.3.4",
-    "echarts": "^5.4.1",
-    "echarts-for-react": "^3.0.2",
-    "lodash.clonedeep": "^4.5.0",
-    "react": "^18.2.0"
+    "@openfun/cunningham-react": "0.11.1",
+    "@tanstack/react-query": "4.32.6",
+    "@tanstack/react-query-devtools": "4.32.6",
+    "axios": "1.4.0",
+    "echarts": "5.4.3",
+    "echarts-for-react": "3.0.2",
+    "lodash.clonedeep": "4.5.0",
+    "react": "18.2.0"
   }
 }
