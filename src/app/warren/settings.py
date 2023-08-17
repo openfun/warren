@@ -209,6 +209,16 @@ class Base(Configuration):
         {}, environ_name="EDX_PLATFORM_API_TOKENS", environ_prefix=None
     )
 
+    # LTI
+    LTI_CONFIG_TITLE = values.Value("Warren")
+    LTI_CONFIG_DESCRIPTION = values.Value(
+        "An opensource visualization platform for learning analytics."
+    )
+    # todo : update it with a favicon
+    LTI_CONFIG_ICON = values.Value()
+    LTI_CONFIG_URL = values.Value()
+    LTI_CONFIG_CONTACT_EMAIL = values.Value()
+
     @classmethod
     def post_setup(cls):
         """Post setup configuration.
