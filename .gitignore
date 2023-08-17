@@ -65,6 +65,9 @@ yarn-error.log*
 *.tsbuildinfo
 vite-env.d.ts
 
+# build
+src/app/staticfiles/js
+
 # -- Environments
 .env
 .venv
