@@ -9,7 +9,6 @@ from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.backends import lrs_client
-from warren.models import DailyCounts, Response
 from warren_video.factories import VideoDownloadedFactory, VideoPlayedFactory
 
 
@@ -58,9 +57,6 @@ async def test_views_valid_video_id_path_but_no_matching_video(
 
     assert response.status_code == 200
 
-    # Parse the response to obtain video views count_by_date
-    video_views = (Response[DailyCounts]).parse_obj(response.json()).content
-
     # Counting all views is expected
     expected_video_views = {
         "total": 0,
@@ -69,7 +65,7 @@ async def test_views_valid_video_id_path_but_no_matching_video(
         ],
     }
 
-    assert video_views == expected_video_views
+    assert response.json() == expected_video_views
 
 
 @pytest.mark.anyio
@@ -122,9 +118,6 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
 
     assert response.status_code == 200
 
-    # Parse the response to obtain video views counts
-    video_views = (Response[DailyCounts]).parse_obj(response.json()).content
-
     # Counting all views is expected
     expected_video_views = {
         "total": 3,
@@ -135,7 +128,7 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
         ],
     }
 
-    assert video_views == expected_video_views
+    assert response.json() == expected_video_views
 
 
 @pytest.mark.anyio
@@ -196,9 +189,6 @@ async def test_unique_views_backend_query(
 
     assert response.status_code == 200
 
-    # Parse the response to obtain video views counts
-    video_views = (Response[DailyCounts]).parse_obj(response.json()).content
-
     # Counting only the first view is expected
     expected_video_views = {
         "total": 1,
@@ -209,7 +199,7 @@ async def test_unique_views_backend_query(
         ],
     }
 
-    assert video_views == expected_video_views
+    assert response.json() == expected_video_views
 
 
 @pytest.mark.anyio
@@ -257,9 +247,6 @@ async def test_downloads_valid_video_id_path_but_no_matching_video(
 
     assert response.status_code == 200
 
-    # Parse the response to obtain video downloads count_by_date
-    video_downloads = (Response[DailyCounts]).parse_obj(response.json()).content
-
     # Counting all downloads is expected
     expected_video_downloads = {
         "total": 0,
@@ -268,7 +255,7 @@ async def test_downloads_valid_video_id_path_but_no_matching_video(
         ],
     }
 
-    assert video_downloads == expected_video_downloads
+    assert response.json() == expected_video_downloads
 
 
 @pytest.mark.anyio
@@ -320,9 +307,6 @@ async def test_downloads_backend_query(http_client: AsyncClient, httpx_mock: HTT
 
     assert response.status_code == 200
 
-    # Parse the response to obtain video downloads counts
-    video_downloads = (Response[DailyCounts]).parse_obj(response.json()).content
-
     # Counting all downloads is expected
     expected_video_downloads = {
         "total": 3,
@@ -333,7 +317,7 @@ async def test_downloads_backend_query(http_client: AsyncClient, httpx_mock: HTT
         ],
     }
 
-    assert video_downloads == expected_video_downloads
+    assert response.json() == expected_video_downloads
 
 
 @pytest.mark.anyio
@@ -393,9 +377,6 @@ async def test_unique_downloads_backend_query(
 
     assert response.status_code == 200
 
-    # Parse the response to obtain video downloads counts
-    video_downloads = (Response[DailyCounts]).parse_obj(response.json()).content
-
     # Counting only the first download is expected
     expected_video_downloads = {
         "total": 1,
@@ -406,4 +387,4 @@ async def test_unique_downloads_backend_query(
         ],
     }
 
-    assert video_downloads == expected_video_downloads
+    assert response.json() == expected_video_downloads

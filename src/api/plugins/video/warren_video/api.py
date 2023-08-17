@@ -1,12 +1,12 @@
 """Warren API v1 video router."""
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from typing_extensions import Annotated  # python <3.9 compat
 from warren.backends import lrs_client
 from warren.fields import IRI
 from warren.filters import BaseQueryFilters, DatetimeRange
-from warren.models import DailyCounts, Error, Response, StatusEnum
+from warren.models import DailyCounts
 from warren_video.indicators import DailyCompletedViews, DailyDownloads, DailyViews
 
 router = APIRouter(
@@ -22,7 +22,7 @@ async def views(
     filters: Annotated[BaseQueryFilters, Depends()],
     complete: bool = False,
     unique: bool = False,
-) -> Response[DailyCounts]:
+) -> DailyCounts:
     """Number of views for `video_id` in the `since` -> `until` date range."""
     indicator_kwargs = {
         "client": lrs_client,
@@ -37,16 +37,11 @@ async def views(
         indicator = DailyViews(**indicator_kwargs)
 
     try:
-        response = Response[DailyCounts](
-            status=StatusEnum.SUCCESS, content=await indicator.compute()
-        )
+        return await indicator.compute()
     except (KeyError, AttributeError) as exception:
-        logger.error(exception)
-        response = Response[Error](
-            status=StatusEnum.FAILED, content=Error(error_message=str(exception))
-        )
-
-    return response
+        message = "An error occurred while computing the number of views"
+        logger.error("%s: %s", message, exception)
+        raise HTTPException(status_code=500, detail=message) from exception
 
 
 @router.get("/{video_id:path}/downloads")
@@ -54,7 +49,7 @@ async def downloads(
     video_id: IRI,
     filters: Annotated[BaseQueryFilters, Depends()],
     unique: bool = False,
-) -> Response[DailyCounts]:
+) -> DailyCounts:
     """Number of downloads for `video_id` in the `since` -> `until` date range."""
     indicator = DailyDownloads(
         client=lrs_client,
@@ -64,13 +59,8 @@ async def downloads(
     )
 
     try:
-        response = Response[DailyCounts](
-            status=StatusEnum.SUCCESS, content=await indicator.compute()
-        )
+        return await indicator.compute()
     except (KeyError, AttributeError) as exception:
-        logger.error(exception)
-        response = Response[Error](
-            status=StatusEnum.FAILED, content=Error(error_message=str(exception))
-        )
-
-    return response
+        message = "An error occurred while computing the number of downloads"
+        logger.error("%s: %s", message, exception)
+        raise HTTPException(status_code=500, detail=message) from exception
