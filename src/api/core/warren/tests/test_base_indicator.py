@@ -1,8 +1,8 @@
 """Test the functions from the BaseIndicator class."""
 import pandas as pd
 
-from warren.base_indicator import PreprocessMixin
 from warren.factories.base import BaseXapiStatementFactory
+from warren.indicators import PreprocessMixin
 
 
 def test_parse_raw_statements():
