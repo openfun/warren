@@ -7,8 +7,8 @@ from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
-from warren.base_indicator import BaseIndicator, PreprocessMixin
 from warren.filters import DatetimeRange
+from warren.indicators import BaseIndicator, PreprocessMixin
 from warren.models import DailyCount, DailyCounts
 from warren_video.conf import settings as video_plugin_settings
 
