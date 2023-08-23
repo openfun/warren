@@ -3,14 +3,22 @@
 
 from ralph.backends.http import BaseHTTP
 from ralph.backends.http.async_lrs import LRSQuery
-from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
-from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
+from ralph.models.xapi.concepts.constants.video import (
+    CONTEXT_EXTENSION_COMPLETION_THRESHOLD,
+    CONTEXT_EXTENSION_LENGTH,
+    RESULT_EXTENSION_TIME,
+)
+from ralph.models.xapi.concepts.verbs.scorm_profile import (
+    CompletedVerb,
+    InitializedVerb,
+)
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.base_indicator import BaseIndicator, PreprocessMixin
 from warren.filters import DatetimeRange
 from warren.models import DailyCount, DailyCounts
 from warren_video.conf import settings as video_plugin_settings
+from warren_video.models import Info
 
 
 class BaseDailyEvent(BaseIndicator, PreprocessMixin):
@@ -158,3 +166,72 @@ class DailyDownloads(BaseDailyEvent):
     """
 
     verb_id = DownloadedVerb().id
+
+
+class Wip(BaseIndicator, PreprocessMixin):
+
+    def __init__(
+        self,
+        client: BaseHTTP,
+        video_id: str,
+    ):
+        self.client = client
+        self.video_id = video_id
+
+    def get_lrs_query(
+        self,
+    ) -> LRSQuery:
+        """Get the LRS query for fetching required statements."""
+        return LRSQuery(
+            query={
+                "activity": self.video_id,
+                "verb": InitializedVerb().id,
+            }
+        )
+
+    async def fetch_statements(self) -> None:
+        """Execute the LRS query to obtain statements required for this indicator."""
+        self.raw_statements = [
+            value
+            async for value in self.client.read(
+                target=self.client.statements_endpoint, query=self.get_lrs_query()
+            )
+        ]
+
+    # todo - discuss whether it makes sense, as we have already loaded all statements.
+    def filter_statements(self) -> None:
+        self.raw_statements = self.raw_statements.sample(3)
+
+    async def compute(self) -> Info:
+        await self.fetch_statements()
+
+        if not self.raw_statements:
+            return Info(
+                name=None,
+                length=None,
+                completion_threshold=None,
+            )
+
+        self.parse_raw_statements()
+
+        def get_most_common_value(column_name):
+            try:
+                values = self.statements[column_name].dropna()
+                if values.empty:
+                    return None
+                # Returning the first value is arbitrary.
+                return values.mode().iloc[0]
+            except KeyError:
+                return None
+
+        context_base_string = "context.extensions.{}"
+
+        return Info(
+            name=get_most_common_value("object.definition.name.en-US"),
+            length=get_most_common_value(
+                context_base_string.format(CONTEXT_EXTENSION_LENGTH)
+            ),
+            completion_threshold=get_most_common_value(
+                context_base_string.format(CONTEXT_EXTENSION_COMPLETION_THRESHOLD)
+            ),
+        )
