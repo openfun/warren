@@ -92,6 +92,7 @@ select = [
     "PLW",  # Pylint Warning
     "RUF100",  # Ruff unused-noqa
     "S",  # flake8-bandit
+    "T20", # flake8-print
     "W",  # pycodestyle warning
 ]
 
