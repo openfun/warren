@@ -203,6 +203,8 @@ migrate-api:  ## run alembic database migrations for the api service
 	@$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
 	@echo "Create api service database…"
 	@$(COMPOSE) exec postgresql bash -c 'psql "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@$(DB_HOST):$(DB_PORT)/postgres" -c "create database \"warren-api\";"' || echo "Duly noted, skiping database creation."
+	@echo "Running migrations for api service…"
+	@bin/alembic upgrade head
 .PHONY: migrate-api
 
 migrate-app:  ## run django database migrations for the app service
