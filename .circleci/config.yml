@@ -206,6 +206,7 @@ jobs:
           name: Lint code with ruff
           command: ~/.local/bin/ruff --config core/pyproject.toml core plugins
           working_directory: src/api
+
   test-api:
     parameters:
       python-image:
@@ -216,9 +217,19 @@ jobs:
           username: $DOCKER_HUB_USER
           password: $DOCKER_HUB_PASSWORD
         environment:
-          WARREN_LRS_HOSTS: http://ralph:8200
-          WARREN_LRS_AUTH_BASIC_USERNAME: ralph
-          WARREN_LRS_AUTH_BASIC_PASSWORD: secret
+          WARREN_API_DB_HOST: localhost
+          # Those are required but not used while testing as we mock all LRS requests
+          WARREN_LRS_HOSTS: http://lrs.example.org:8200
+          WARREN_LRS_AUTH_BASIC_USERNAME: john_useless
+          WARREN_LRS_AUTH_BASIC_PASSWORD: fake-news!
+      - image: cimg/postgres:12.14
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASS
+        environment:
+          POSTGRES_DB: warren-api
+          POSTGRES_USER: fun
+          POSTGRES_PASSWORD: pass
     working_directory: ~/fun
     steps:
       - checkout
@@ -291,20 +302,13 @@ jobs:
           DJANGO_SETTINGS_MODULE: warren.settings
           DJANGO_CONFIGURATION: Test
           DJANGO_SECRET_KEY: ThisIsAnExampleKeyForTestPurposeOnly
-          DB_NAME: lti
-          DB_USER: fun
-          DB_PASSWORD: pass
-          DB_PORT: 5432
-          POSTGRES_HOST: localhost
-          POSTGRES_DB: lti
-          POSTGRES_USER: fun
-          POSTGRES_PASSWORD: pass
+          WARREN_APP_DB_HOST: localhost
       - image: cimg/postgres:12.14
         auth:
           username: $DOCKER_HUB_USER
           password: $DOCKER_HUB_PASS
         environment:
-          POSTGRES_DB: lti
+          POSTGRES_DB: warren-app
           POSTGRES_USER: fun
           POSTGRES_PASSWORD: pass
     working_directory: ~/fun

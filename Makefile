@@ -22,29 +22,29 @@ ES_URL             = $(ES_PROTOCOL)://$(ES_HOST):$(ES_PORT)
 ES_COMPOSE_URL     = $(ES_PROTOCOL)://$(ES_COMPOSE_SERVICE):$(ES_PORT)
 
 # -- Ralph
-RALPH_COMPOSE_SERVICE = ralph
-RALPH_RUNSERVER_PORT ?= 8200
+RALPH_COMPOSE_SERVICE     = ralph
+RALPH_RUNSERVER_PORT     ?= 8200
 RALPH_LRS_AUTH_USER_NAME  = ralph
 RALPH_LRS_AUTH_USER_PWD   = secret
 RALPH_LRS_AUTH_USER_SCOPE = ralph_scope
 
 # -- Postgresql
-DB_HOST            = postgresql
-DB_PORT            = 5432
+DB_HOST = postgresql
+DB_PORT = 5432
 
-# -- WARREN
-WARREN_APP_IMAGE_NAME          		 ?= warren-app
-WARREN_APP_IMAGE_TAG           		 ?= development
-WARREN_APP_IMAGE_BUILD_TARGET  		 ?= development
-WARREN_APP_SERVER_PORT         		 ?= 8090
-WARREN_API_IMAGE_NAME                ?= warren-api
-WARREN_API_IMAGE_TAG                 ?= development
-WARREN_API_IMAGE_BUILD_TARGET        ?= development
-WARREN_API_SERVER_PORT               ?= 8100
-WARREN_FRONTEND_IMAGE_NAME           ?= warren-frontend
-WARREN_FRONTEND_IMAGE_TAG            ?= development
-WARREN_FRONTEND_IMAGE_BUILD_TARGET   ?= development
-WARREN_FRONTEND_IMAGE_BUILD_PATH     ?= app/staticfiles/js/build/assets/index.js
+# -- Warren
+WARREN_APP_IMAGE_NAME              ?= warren-app
+WARREN_APP_IMAGE_TAG               ?= development
+WARREN_APP_IMAGE_BUILD_TARGET      ?= development
+WARREN_APP_SERVER_PORT             ?= 8090
+WARREN_API_IMAGE_NAME              ?= warren-api
+WARREN_API_IMAGE_TAG               ?= development
+WARREN_API_IMAGE_BUILD_TARGET      ?= development
+WARREN_API_SERVER_PORT             ?= 8100
+WARREN_FRONTEND_IMAGE_NAME         ?= warren-frontend
+WARREN_FRONTEND_IMAGE_TAG          ?= development
+WARREN_FRONTEND_IMAGE_BUILD_TARGET ?= development
+WARREN_FRONTEND_IMAGE_BUILD_PATH   ?= app/staticfiles/js/build/assets/index.js
 
 
 # ==============================================================================
@@ -90,6 +90,7 @@ bootstrap: \
   bin/patch_statements_date.py \
   data/statements.jsonl.gz \
   build \
+  migrate-api \
   migrate-app \
   fixtures
 .PHONY: bootstrap
@@ -161,7 +162,7 @@ run-app: ## run the app server (development mode)
 run-api: ## run the api server (development mode)
 	@$(COMPOSE) up -d api
 	@echo "Waiting for api to be up and running..."
-	@$(COMPOSE_RUN) dockerize -wait tcp://$(ES_COMPOSE_SERVICE):$(ES_PORT) -timeout 60s
+	@$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
 	@$(COMPOSE_RUN) dockerize -wait http://$(RALPH_COMPOSE_SERVICE):$(RALPH_RUNSERVER_PORT)/__heartbeat__ -timeout 60s
 	@$(COMPOSE_RUN) dockerize -wait tcp://api:$(WARREN_API_SERVER_PORT) -timeout 60s
 .PHONY: run-api
@@ -196,11 +197,19 @@ fixtures: \
 	    --es-op-type create
 .PHONY: fixtures
 
-
-migrate-app:  ## run django migration for the sandbox project.
-	@echo "Running migrations…"
+migrate-api:  ## run alembic database migrations for the api service
+	@echo "Running api service database engine…"
 	@$(COMPOSE) up -d postgresql
 	@$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
+	@echo "Create api service database…"
+	@$(COMPOSE) exec postgresql bash -c 'psql "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@$(DB_HOST):$(DB_PORT)/postgres" -c "create database \"warren-api\";"' || echo "Duly noted, skiping database creation."
+.PHONY: migrate-api
+
+migrate-app:  ## run django database migrations for the app service
+	@echo "Running app service database engine…"
+	@$(COMPOSE) up -d postgresql
+	@$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
+	@echo "Running migrations for app service…"
 	@$(MANAGE) migrate
 .PHONY: migrate-app
 
