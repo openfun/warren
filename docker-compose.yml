@@ -57,6 +57,7 @@ services:
       - ./bin/patch_statements_date.py:/opt/src/patch_statements_date.py
     depends_on:
       - ralph
+      - postgresql
 
   frontend:
     build:

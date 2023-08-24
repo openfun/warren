@@ -18,6 +18,8 @@ class ESClientOptions(BaseModel):
 class Settings(BaseSettings):
     """Pydantic model for Warren's global environment & configuration settings."""
 
+    DEBUG: bool = False
+
     # LRS backend
     LRS_HOSTS: Union[List[AnyHttpUrl], AnyHttpUrl]
     LRS_AUTH_BASIC_USERNAME: str
@@ -45,9 +47,26 @@ class Settings(BaseSettings):
         "http://localhost:8090",
     ]
 
+    # Persistence
+    API_DB_ENGINE: str = "postgresql"
+    API_DB_HOST: str = "postgresql"
+    API_DB_NAME: str = "warren-api"
+    API_DB_USER: str = "fun"
+    API_DB_PASSWORD: str = "pass"
+    API_DB_PORT: int = 5432
+
+    @property
+    def DATABASE_URL(self) -> str:
+        """Get the database URL as required by SQLAlchemy."""
+        return (
+            f"{self.API_DB_ENGINE}://"
+            f"{self.API_DB_USER}:{self.API_DB_PASSWORD}@"
+            f"{self.API_DB_HOST}/{self.API_DB_NAME}"
+        )
+
     # pylint: disable=invalid-name
     @property
-    def SERVER_URL(self):
+    def SERVER_URL(self) -> str:
         """Get the full server URL."""
         return f"{self.SERVER_PROTOCOL}://{self.SERVER_HOST}:{self.SERVER_PORT}"
 

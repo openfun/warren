@@ -133,15 +133,21 @@ class Base(Configuration):
                 environ_name="DB_ENGINE",
                 environ_prefix=None,
             ),
-            "NAME": values.Value("lti", environ_name="DB_NAME", environ_prefix=None),
-            "USER": values.Value("fun", environ_name="DB_USER", environ_prefix=None),
+            "NAME": values.Value(
+                "warren-app", environ_name="WARREN_APP_DB_NAME", environ_prefix=None
+            ),
+            "USER": values.Value(
+                "fun", environ_name="WARREN_APP_DB_USER", environ_prefix=None
+            ),
             "PASSWORD": values.Value(
-                "pass", environ_name="DB_PASSWORD", environ_prefix=None
+                "pass", environ_name="WARREN_APP_DB_PASSWORD", environ_prefix=None
             ),
             "HOST": values.Value(
-                "localhost", environ_name="DB_HOST", environ_prefix=None
+                "localhost", environ_name="WARREN_APP_DB_HOST", environ_prefix=None
             ),
-            "PORT": values.Value(5432, environ_name="DB_PORT", environ_prefix=None),
+            "PORT": values.Value(
+                5432, environ_name="WARREN_APP_DB_PORT", environ_prefix=None
+            ),
         }
     }
 
