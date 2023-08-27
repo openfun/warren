@@ -2,8 +2,8 @@
 
 from pydantic import BaseModel, validator
 
-Seconds = int | None
-Percent = float | None
+Seconds = Union[int, None]
+Percent = Union[float, None]
 
 
 class Info(BaseModel):
