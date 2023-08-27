@@ -5,11 +5,20 @@ import re
 import pytest
 from httpx import AsyncClient
 from pytest_httpx import HTTPXMock
-from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
+from ralph.models.xapi.concepts.constants.video import (
+    CONTEXT_EXTENSION_COMPLETION_THRESHOLD,
+    CONTEXT_EXTENSION_LENGTH,
+    RESULT_EXTENSION_TIME,
+)
+from ralph.models.xapi.concepts.verbs.scorm_profile import InitializedVerb
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.backends import lrs_client
-from warren_video.factories import VideoDownloadedFactory, VideoPlayedFactory
+from warren_video.factories import (
+    VideoDownloadedFactory,
+    VideoInitializedFactory,
+    VideoPlayedFactory,
+)
 
 
 @pytest.mark.anyio
@@ -388,3 +397,115 @@ async def test_unique_downloads_backend_query(
     }
 
     assert response.json() == expected_video_downloads
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "video_id", ["foo", "foo/bar", "/foo/bar", "foo%2Fbar", "%2Ffoo%2Fbar"]
+)
+async def test_info_invalid_video_id(http_client: AsyncClient, video_id: str):
+    """Test the video info endpoint with an invalid `video_id` path."""
+    response = await http_client.get(f"/api/v1/video/{video_id}/info")
+
+    assert response.status_code == 422
+    assert "is not a valid 'IRI'." in response.json().get("detail")[0].get("msg")
+
+
+@pytest.mark.anyio
+async def test_info_valid_video_id_path_but_no_matching_video(
+    http_client: AsyncClient, httpx_mock: HTTPXMock
+):
+    """Test the video info endpoint with a valid `video_id` but no results."""
+    lrs_client.base_url = "http://fake-lrs.com"
+
+    # Mock the call to the LRS so that it would return no statements, as it
+    # would do with no matching video
+    httpx_mock.add_response(
+        url=re.compile(r"^http://fake-lrs\.com/xAPI/statements\?.*$"),
+        method="GET",
+        json={"statements": []},
+        status_code=200,
+    )
+
+    response = await http_client.get(url="/api/v1/video/uuid://fake-uuid/info")
+
+    assert response.status_code == 200
+
+    # Information should be set to None.
+    expected_video_info = {
+        "name": None,
+        "length": None,
+        "completion_threshold": None,
+    }
+
+    assert response.json() == expected_video_info
+
+
+@pytest.mark.anyio
+async def test_info_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMock):
+    """Test the video info endpoint backend query results."""
+    # Define 3 video info fixtures
+    video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
+    # On purpose, one fixture attribute is always different from the two others.
+    video_info_fixtures = [
+        {"length": 100, "completion_threshold": 0.9, "name": "Hello world."},
+        {"length": 90, "completion_threshold": 0.9, "name": "A random video."},
+        {"length": 100, "completion_threshold": 0.8, "name": "A random video."},
+    ]
+
+    # Build video statements from fixtures
+    video_statements = [
+        VideoInitializedFactory.build(
+            [
+                {"object": {"id": video_id, "objectType": "Activity"}},
+                {
+                    "context": {
+                        "extensions": {
+                            CONTEXT_EXTENSION_LENGTH: info_data["length"],
+                            CONTEXT_EXTENSION_COMPLETION_THRESHOLD: info_data[
+                                "completion_threshold"
+                            ],
+                        }
+                    }
+                },
+                {"verb": {"id": InitializedVerb().id}},
+                {
+                    "object": {
+                        "definition": {
+                            "name": {"en-US": info_data["name"]},
+                        },
+                    }
+                },
+            ]
+        )
+        for info_data in video_info_fixtures
+    ]
+
+    # Convert each video statement to a JSON object
+    video_statements_json = [
+        json.loads(statement.json()) for statement in video_statements
+    ]
+
+    # Mock the LRS call so that it returns the fixture statements
+    lrs_client.base_url = "http://fake-lrs.com"
+    httpx_mock.add_response(
+        url=re.compile(r"^http://fake-lrs\.com/xAPI/statements\?.*$"),
+        method="GET",
+        json={"statements": video_statements_json},
+        status_code=200,
+    )
+
+    # Perform the call to warren backend. When fetching the LRS statements, it will
+    # get the above mocked statements
+    response = await http_client.get(url=f"/api/v1/video/{video_id}/info")
+
+    assert response.status_code == 200
+
+    # Information should be the most common one.
+    expected_video_info = {
+        "name": "A random video.",
+        "length": 100,
+        "completion_threshold": 0.9,
+    }
+
+    assert response.json() == expected_video_info
