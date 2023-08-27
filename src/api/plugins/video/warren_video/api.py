@@ -7,7 +7,12 @@ from warren.backends import lrs_client
 from warren.fields import IRI
 from warren.filters import BaseQueryFilters, DatetimeRange
 from warren.models import DailyCounts
-from warren_video.indicators import DailyCompletedViews, DailyDownloads, DailyViews, Wip
+from warren_video.indicators import (
+    DailyCompletedViews,
+    DailyDownloads,
+    DailyViews,
+    Information,
+)
 from warren_video.models import Info
 
 router = APIRouter(
@@ -72,7 +77,7 @@ async def info(
     video_id: IRI,
 ) -> Info:
     """Wip."""
-    indicator = Wip(
+    indicator = Information(
         client=lrs_client,
         video_id=video_id,
     )

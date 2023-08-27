@@ -168,20 +168,37 @@ class DailyDownloads(BaseDailyEvent):
     verb_id = DownloadedVerb().id
 
 
-class Wip(BaseIndicator, PreprocessMixin):
+class Information(BaseIndicator, PreprocessMixin):
+    """Information Indicator.
+
+    Extract static information for a video from `Initialized` statements.
+
+    Inherit from BaseDailyEvent, which provides functionality for calculating
+    indicators based on different xAPI verbs.
+    """
 
     def __init__(
         self,
         client: BaseHTTP,
         video_id: str,
     ):
+        """Instantiate the Static Information Indicator.
+
+        Args:
+            client (BaseHTTP): The LRS backend to query.
+            video_id: The ID of the video on which to compute the metric
+        """
         self.client = client
         self.video_id = video_id
 
     def get_lrs_query(
         self,
     ) -> LRSQuery:
-        """Get the LRS query for fetching required statements."""
+        """Get the LRS query for fetching required statements.
+
+        'Initialized' statements are enough to extract any static
+        information of a video.
+        """
         return LRSQuery(
             query={
                 "activity": self.video_id,
@@ -203,6 +220,13 @@ class Wip(BaseIndicator, PreprocessMixin):
         self.raw_statements = self.raw_statements.sample(3)
 
     async def compute(self) -> Info:
+        """Fetch statements and compute the current indicator.
+
+        Fetch statements from LRS, parse them, and extract static video information.
+        Since not all statements are guaranteed to be initialized correctly, we enhance
+        reliability by determining the most common value for each static info, and using
+        the first one arbitrarily.
+        """
         await self.fetch_statements()
 
         if not self.raw_statements:
