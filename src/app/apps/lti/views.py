@@ -1,12 +1,13 @@
 """Views for the LTI app."""
 
+import json
 import logging
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import redirect
-from django.views.generic import TemplateView
+from django.views.generic import View
+from django.views.generic.base import TemplateResponseMixin, TemplateView
 from lti_toolbox.exceptions import LTIException
 from lti_toolbox.lti import LTI
 from lti_toolbox.views import BaseLTIView
@@ -16,11 +17,40 @@ from .forms import BaseLTIUserForm
 logger = logging.getLogger(__name__)
 
 
-class LTIRequestView(BaseLTIView):
+class RenderMixins(TemplateResponseMixin):
+    """Mixin class for rendering an LTI view with app_data.
+
+    This mixin provides the necessary template to render the frontend
+    while passing app_data through the DOM. By calling the 'render' method,
+    the app_data is constructed. The default value for app_data is an
+    empty dictionary, which can be overridden in your subclass.
+
+    Attributes:
+        template_name (str): The name of the template to be used for rendering.
+        app_data (dict): Data passed to the frontend. Default is an empty dict.
+    """
+
+    template_name = "base.html"
+    app_data = {}
+
+    def render_to_response(self, context=None, **response_kwargs):
+        """Render view's template with app's data dumped in JSON string.
+
+        Returns:
+            HttpResponse: The HTTP response containing the rendered template.
+        """
+        if context is None:
+            context = {}
+
+        context["app_data"] = json.dumps(self.app_data)
+        return super().render_to_response(context, **response_kwargs)
+
+
+class LTIRequestView(BaseLTIView, RenderMixins):
     """Base view to handle LTI launch request verification."""
 
     def _do_on_success(self, lti_request: LTI) -> HttpResponse:
-        """Redirect to the target view."""
+        """Build the App's data and render the LTI view."""
         lti_user = {
             "platform": lti_request.get_consumer().url,
             "course": lti_request.get_param("context_id"),
@@ -33,10 +63,12 @@ class LTIRequestView(BaseLTIView):
             logger.debug("LTI user is not valid: %s", lti_user_form.errors)
             raise PermissionDenied
 
-        return redirect("dashboards:dashboard-view")
+        self.app_data = {"key": "woop."}
+
+        return self.render()
 
     def _do_on_failure(self, request: HttpRequest, error: LTIException) -> HttpResponse:
-        """Raise an error when the LTI request fails."""
+        """Handle LTI request failure by raising a PermissionDenied error."""
         logger.debug("LTI request failed with error: %s", error)
         raise PermissionDenied
 

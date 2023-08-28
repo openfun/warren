@@ -22,7 +22,6 @@ from django.urls import include, path
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("lti/", include("apps.lti.urls")),
-    path("dashboards/", include("apps.dashboards.urls")),
 ]
 if settings.DEBUG:
     urlpatterns += [path("", include("apps.development.urls"))]
