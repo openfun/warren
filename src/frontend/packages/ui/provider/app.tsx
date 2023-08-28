@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { CunninghamProvider } from "@openfun/cunningham-react";
 import { queryClient } from "../libs/react-query";
 import { FiltersProvider } from "../contexts/filtersContext";
+import { LTIProvider } from "../contexts/LTIContext";
 
 type AppProviderProps = {
   children: React.ReactNode;
@@ -11,12 +12,14 @@ type AppProviderProps = {
 
 const AppProvider = ({ children }: AppProviderProps) => (
   <CunninghamProvider>
-    <FiltersProvider>
-      <QueryClientProvider client={queryClient}>
-        {children}
-        <ReactQueryDevtools initialIsOpen />
-      </QueryClientProvider>
-    </FiltersProvider>
+    <LTIProvider>
+      <FiltersProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+          <ReactQueryDevtools initialIsOpen />
+        </QueryClientProvider>
+      </FiltersProvider>
+    </LTIProvider>
   </CunninghamProvider>
 );
 export default AppProvider;

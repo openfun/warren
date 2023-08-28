@@ -1,8 +1,8 @@
-import styles from "./Header.module.scss";
+import React from "react";
 
 export default () => (
-  <header className={styles.core}>
-    <a href="/" title="Home">
+  <header className="c__header">
+    <a href="/src/frontend/apps/web/public" title="Home">
       <h1>
         Warren{" "}
         <span>The visualization toolkit for your learning analytics</span>

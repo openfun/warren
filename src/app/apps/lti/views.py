@@ -2,15 +2,22 @@
 
 import json
 import logging
+from urllib.parse import unquote
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse
+from django.urls import reverse
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from django.views.generic.base import TemplateResponseMixin, TemplateView
 from lti_toolbox.exceptions import LTIException
+from lti_toolbox.launch_params import LTIMessageType
 from lti_toolbox.lti import LTI
+from lti_toolbox.models import LTIPassport
 from lti_toolbox.views import BaseLTIView
+from oauthlib import oauth1
 
 from .forms import BaseLTIUserForm
 
@@ -49,7 +56,7 @@ class RenderMixins(TemplateResponseMixin):
 class LTIRequestView(BaseLTIView, RenderMixins):
     """Base view to handle LTI launch request verification."""
 
-    def _do_on_success(self, lti_request: LTI) -> HttpResponse:
+    def _do_on_success(self, lti_request: LTI, *args, **kwargs) -> HttpResponse:
         """Build the App's data and render the LTI view."""
         lti_user = {
             "platform": lti_request.get_consumer().url,
@@ -63,9 +70,9 @@ class LTIRequestView(BaseLTIView, RenderMixins):
             logger.debug("LTI user is not valid: %s", lti_user_form.errors)
             raise PermissionDenied
 
-        self.app_data = {"key": "woop."}
+        self.app_data = {"lti_route": kwargs["selection"] or "demo"}
 
-        return self.render()
+        return self.render_to_response()
 
     def _do_on_failure(self, request: HttpRequest, error: LTIException) -> HttpResponse:
         """Handle LTI request failure by raising a PermissionDenied error."""
@@ -98,3 +105,131 @@ class LTIConfigView(TemplateView):
             "title": settings.LTI_CONFIG_TITLE,
             "url": settings.LTI_CONFIG_URL,
         }
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class LTISelectView(BaseLTIView, RenderMixins):
+    """View to handle LTI Content-Item selection request.
+
+    This view handles LTI Content-Item selection requests submitted in a deep linking
+    context, typically by Moodle. The request enables the Tool Consumer (TC) to choose
+    which resource will be displayed in the Learning Management System (LMS). This class
+    verifies the request's validity and provides the necessary data to
+    render a selection form.
+
+    Attributes:
+        Inherits attributes from BaseLTIView and RenderMixins.
+    """
+
+    def _do_on_success(self, lti_request: LTI) -> HttpResponse:
+        """Build app data and render the LTI view based on a successful request."""
+        lti_user = {
+            "platform": lti_request.get_consumer().url,
+            "course": lti_request.get_param("context_id"),
+            "user": lti_request.get_param("lis_person_sourcedid"),
+            "email": lti_request.get_param("lis_person_contact_email_primary"),
+        }
+
+        lti_user_form = BaseLTIUserForm(lti_user)
+        if not lti_user_form.is_valid():
+            logger.debug("LTI user is not valid: %s", lti_user_form.errors)
+            raise PermissionDenied
+
+        lti_select_form_data = self.request.POST.copy()
+        lti_select_form_data[
+            "lti_message_type"
+        ] = LTIMessageType.SELECTION_RESPONSE.value
+
+        # todo - sign lti_select_form_data with an access token.
+
+        self.app_data = {
+            "lti_route": "select",
+            "lti_select_form_action_url": reverse("lti:lti-respond-view"),
+            "lti_select_form_data": lti_select_form_data,
+        }
+
+        return self.render_to_response()
+
+    def _do_on_failure(self, request: HttpRequest, error: LTIException) -> HttpResponse:
+        """Handle LTI request failure by raising a PermissionDenied error."""
+        logger.debug("LTI request failed with error: %s", error)
+        raise PermissionDenied
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class LTIRespondView(TemplateResponseMixin, View):
+    """View for handling the submission of LTI Content-Item selections.
+
+    This view manages the submission of Content-Item selections from the frontend,
+    sending them back to the return URL provided by the Learning Management System
+    (LMS). It acts as an intermediary that validates the selection, renders a template
+    to automatically submit a form, and triggers the auto-submission process.
+    This form-based submission is currently the only viable method to pass Content-Item
+    selections back to the LMS under the current version of the LTI protocol.
+    """
+
+    template_name = "autosubmit_form.html"
+
+    def post(self, request, *args, **kwargs):
+        """Handle the POST request for Content-Item selection submission."""
+        # todo - decode lti_select_form_data from a signed token.
+        lti_select_form_data = self.request.POST.copy()
+
+        content_item_return_url = lti_select_form_data.get("content_item_return_url")
+
+        lti_parameters = {
+            key: value
+            for (key, value) in lti_select_form_data.items()
+            if "oauth" not in key
+        }
+
+        selection = lti_select_form_data.get("selection")
+
+        if not selection:
+            raise Exception("error no selected route")
+
+        selected_url = request.build_absolute_uri(f"/lti/{selection}/")
+
+        content_items = {
+            "@context": "http://purl.imsglobal.org/ctx/lti/v1/ContentItem",
+            "@graph": [
+                {
+                    "@type": "ContentItem",
+                    "url": selected_url,
+                    "frame": [],
+                }
+            ],
+        }
+
+        lti_parameters.update({"content_items": json.dumps(content_items)})
+
+        passport = LTIPassport.objects.get(
+            oauth_consumer_key=lti_select_form_data.get("oauth_consumer_key"),
+            is_enabled=True,
+        )
+
+        client = oauth1.Client(
+            client_key=passport.oauth_consumer_key,
+            client_secret=passport.shared_secret,
+        )
+
+        _uri, headers, _body = client.sign(
+            content_item_return_url,
+            http_method="POST",
+            body=lti_parameters,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+
+        oauth_dict = dict(
+            param.strip().replace('"', "").split("=")
+            for param in headers["Authorization"].split(",")
+        )
+
+        oauth_dict["oauth_signature"] = unquote(oauth_dict["oauth_signature"])
+        oauth_dict["oauth_nonce"] = oauth_dict.pop("OAuth oauth_nonce")
+
+        lti_parameters.update(oauth_dict)
+
+        return self.render_to_response(
+            {"form_action": content_item_return_url, "form_data": lti_parameters}
+        )
