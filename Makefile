@@ -220,6 +220,11 @@ check-django:  ## Run the Django "check" command
 	@$(MANAGE) check
 .PHONY: check-django
 
+create-superuser:  ## Create a new superuser
+	@echo "Creating superuser…"
+	@$(MANAGE) createsuperuser
+.PHONY: create-superuser
+
 make-migrations:  ## Generate potential migrations
 	@echo "Generating potential migrations…"
 	@$(MANAGE) makemigrations
