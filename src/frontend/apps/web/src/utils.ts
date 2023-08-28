@@ -1,3 +1,5 @@
+import { AppData } from "ui/types";
+
 /**
  * Extracts and parses JSON-formatted data embedded within a designated DOM element.
  * The data is expected to be stored as a string within the `data-context` attribute of the element.
@@ -6,9 +8,9 @@
  * @throws {Error} If the `data-context` attribute is missing from the identified element.
  * @throws {SyntaxError|TypeError} If errors occur during JSON parsing.
  *
- * @returns {any} Parsed JavaScript object representing the extracted data.
+ * @returns {AppData} Parsed JavaScript object representing the extracted data.
  */
-export const parseDataContext = (): any => {
+export const parseDataContext = (): AppData => {
   const element = document.getElementById("warren-frontend-data");
 
   if (!element) {

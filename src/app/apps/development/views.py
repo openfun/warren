@@ -53,7 +53,9 @@ class DevelopmentLTIView(TemplateView):
         # use the HTTP_REFERER like to be consistent with the LTI passport
         request_url = (
             urlparse(self.request.build_absolute_uri())
-            ._replace(path=reverse("lti:lti-request-view"))
+            ._replace(
+                path=reverse("lti:lti-request-view", kwargs={"selection": "demo"})
+            )
             .geturl()
         )
         try:

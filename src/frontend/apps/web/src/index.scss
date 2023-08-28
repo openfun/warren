@@ -3,6 +3,9 @@
 @import "@openfun/cunningham-react/style";
 @import "cunningham-tokens";
 
+@import "./components/Header";
+@import "./components/SelectContent";
+
 :root {
   @extend .bg-greyscale-100;
   font-family: Roboto, sans-serif;
