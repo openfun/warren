@@ -198,7 +198,6 @@ class Base(Configuration):
         # Utilities
         "apps.development",
         "apps.lti",
-        "apps.dashboards",
     ]
 
     # Cache
