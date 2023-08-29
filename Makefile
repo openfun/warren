@@ -124,7 +124,6 @@ build-docker-frontend: .env
 	WARREN_FRONTEND_IMAGE_NAME=$(WARREN_FRONTEND_IMAGE_NAME) \
 	WARREN_FRONTEND_IMAGE_TAG=$(WARREN_FRONTEND_IMAGE_TAG) \
 	  $(COMPOSE) build frontend
-	@$(COMPOSE_RUN_FRONTEND) yarn install
 .PHONY: build-docker-frontend
 
 build-frontend: ## build the frontend application
