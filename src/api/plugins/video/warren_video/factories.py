@@ -124,7 +124,7 @@ class VideoDownloadedFactory(BaseXapiStatementFactory):
         },
         "timestamp": "2021-12-01T08:17:47.150905+00:00",
     }
-    model: VideoPlayed = VideoDownloaded
+    model: VideoDownloaded = VideoDownloaded
 
 
 class VideoInitializedFactory(BaseXapiStatementFactory):
