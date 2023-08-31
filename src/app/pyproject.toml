@@ -30,7 +30,7 @@ keywords = ["Analytics", "xAPI", "LRS", "LTI"]
 dependencies = [
     "Django==4.2.4",
     "django-configurations==2.4.1",
-    "django-lti-toolbox==1.0.1",
+    "django-lti-toolbox==1.1.0",
     "dockerflow==2022.8.0",
     "gunicorn==21.2.0",
     "psycopg2-binary==2.9.7",
