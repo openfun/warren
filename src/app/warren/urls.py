@@ -17,11 +17,12 @@ Including another URLconf
 
 from django.conf import settings
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, re_path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("lti/", include("apps.lti.urls")),
+    re_path(r"^api/(?P<version>v1)/", include("apps.token.v1.urls")),
 ]
 if settings.DEBUG:
     urlpatterns += [path("", include("apps.development.urls"))]

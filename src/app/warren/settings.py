@@ -2,6 +2,7 @@
 
 import json
 import os
+from datetime import timedelta
 from pathlib import Path
 from typing import List
 
@@ -196,6 +197,8 @@ class Base(Configuration):
         # LTI Toolbox
         "lti_toolbox",
         # Utilities
+        "rest_framework_simplejwt",
+        "apps.token",
         "apps.development",
         "apps.lti",
     ]
@@ -224,6 +227,36 @@ class Base(Configuration):
     LTI_CONFIG_ICON = values.Value()
     LTI_CONFIG_URL = values.Value()
     LTI_CONFIG_CONTACT_EMAIL = values.Value()
+
+    REST_FRAMEWORK = {
+        "DEFAULT_AUTHENTICATION_CLASSES": [
+            "rest_framework_simplejwt.authentication.JWTAuthentication",
+        ],
+        "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.URLPathVersioning",
+    }
+
+    SIMPLE_JWT = {
+        "ACCESS_TOKEN_LIFETIME": timedelta(
+            seconds=values.FloatValue(
+                default=300,
+                environ_name="WARREN_APP_ACCESS_TOKEN_LIFETIME",
+                environ_prefix=None,
+            )
+        ),
+        "REFRESH_TOKEN_LIFETIME": timedelta(
+            seconds=values.FloatValue(
+                default=86400,
+                environ_name="WARREN_APP_REFRESH_TOKEN_LIFETIME",
+                environ_prefix=None,
+            )
+        ),
+        "ALGORITHM": values.Value(
+            "HS256", environ_name="WARREN_APP_SIGNING_ALGORITHM", environ_prefix=None
+        ),
+        "SIGNING_KEY": values.Value(
+            None, environ_name="WARREN_APP_SIGNING_KEY", environ_prefix=None
+        ),
+    }
 
     @classmethod
     def post_setup(cls):

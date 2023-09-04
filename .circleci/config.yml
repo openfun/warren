@@ -303,6 +303,8 @@ jobs:
           DJANGO_CONFIGURATION: Test
           DJANGO_SECRET_KEY: ThisIsAnExampleKeyForTestPurposeOnly
           WARREN_APP_DB_HOST: localhost
+          WARREN_APP_SIGNING_KEY: your-very-secret-key
+          WARREN_APP_SIGNING_ALGORITHM: HS256
       - image: cimg/postgres:12.14
         auth:
           username: $DOCKER_HUB_USER

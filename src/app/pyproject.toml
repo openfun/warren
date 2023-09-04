@@ -31,6 +31,7 @@ dependencies = [
     "Django==4.2.5",
     "django-configurations==2.4.1",
     "django-lti-toolbox==1.2.0",
+    "djangorestframework_simplejwt==5.3.0",
     "dockerflow==2022.8.0",
     "gunicorn==21.2.0",
     "oauthlib==3.2.2",
