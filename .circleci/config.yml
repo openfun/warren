@@ -222,6 +222,8 @@ jobs:
           WARREN_LRS_HOSTS: http://lrs.example.org:8200
           WARREN_LRS_AUTH_BASIC_USERNAME: john_useless
           WARREN_LRS_AUTH_BASIC_PASSWORD: fake-news!
+          WARREN_APP_SIGNING_KEY: your-very-secret-key
+          WARREN_APP_SIGNING_ALGORITHM: HS256
       - image: cimg/postgres:12.14
         auth:
           username: $DOCKER_HUB_USER

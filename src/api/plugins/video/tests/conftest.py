@@ -3,6 +3,7 @@
 import pytest
 from warren.tests.fixtures.app import http_client  # noqa: F401
 from warren.tests.fixtures.asynchronous import anyio_backend  # noqa: F401
+from warren.tests.fixtures.auth import auth_headers  # noqa: F401
 
 
 @pytest.fixture

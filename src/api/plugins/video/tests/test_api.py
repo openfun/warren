@@ -16,7 +16,9 @@ from warren_video.factories import VideoDownloadedFactory, VideoPlayedFactory
 @pytest.mark.parametrize(
     "video_id", ["foo", "foo/bar", "/foo/bar", "foo%2Fbar", "%2Ffoo%2Fbar"]
 )
-async def test_views_invalid_video_id(http_client: AsyncClient, video_id: str):
+async def test_views_invalid_video_id(
+    http_client: AsyncClient, auth_headers: dict, video_id: str
+):
     """Test the video views endpoint with an invalid `video_id` path."""
     date_query_params = {
         "since": "2023-01-01",
@@ -24,7 +26,9 @@ async def test_views_invalid_video_id(http_client: AsyncClient, video_id: str):
     }
 
     response = await http_client.get(
-        f"/api/v1/video/{video_id}/views", params=date_query_params
+        f"/api/v1/video/{video_id}/views",
+        params=date_query_params,
+        headers=auth_headers,
     )
 
     assert response.status_code == 422
@@ -33,7 +37,7 @@ async def test_views_invalid_video_id(http_client: AsyncClient, video_id: str):
 
 @pytest.mark.anyio
 async def test_views_valid_video_id_path_but_no_matching_video(
-    http_client: AsyncClient, httpx_mock: HTTPXMock
+    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
 ):
     """Test the video views endpoint with a valid `video_id` but no results."""
     lrs_client.base_url = "http://fake-lrs.com"
@@ -53,6 +57,7 @@ async def test_views_valid_video_id_path_but_no_matching_video(
             "since": "2023-01-01",
             "until": "2023-01-01",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -69,7 +74,9 @@ async def test_views_valid_video_id_path_but_no_matching_video(
 
 
 @pytest.mark.anyio
-async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMock):
+async def test_views_backend_query(
+    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
+):
     """Test the video views endpoint backend query results."""
     # Define 3 video views fixtures
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
@@ -114,6 +121,7 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
             "since": "2020-01-01",
             "until": "2020-01-03",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -133,7 +141,7 @@ async def test_views_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMo
 
 @pytest.mark.anyio
 async def test_unique_views_backend_query(
-    http_client: AsyncClient, httpx_mock: HTTPXMock
+    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
 ):
     """Test the video views endpoint, with parameter unique=True."""
     # Define 3 video views fixtures
@@ -185,6 +193,7 @@ async def test_unique_views_backend_query(
             "since": "2020-01-01",
             "until": "2020-01-03",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -206,7 +215,9 @@ async def test_unique_views_backend_query(
 @pytest.mark.parametrize(
     "video_id", ["foo", "foo/bar", "/foo/bar", "foo%2Fbar", "%2Ffoo%2Fbar"]
 )
-async def test_downloads_invalid_video_id(http_client: AsyncClient, video_id: str):
+async def test_downloads_invalid_video_id(
+    http_client: AsyncClient, auth_headers: dict, video_id: str
+):
     """Test the video downloads endpoint with an invalid `video_id` path."""
     date_query_params = {
         "since": "2023-01-01",
@@ -214,7 +225,9 @@ async def test_downloads_invalid_video_id(http_client: AsyncClient, video_id: st
     }
 
     response = await http_client.get(
-        f"/api/v1/video/{video_id}/downloads", params=date_query_params
+        f"/api/v1/video/{video_id}/downloads",
+        params=date_query_params,
+        headers=auth_headers,
     )
 
     assert response.status_code == 422
@@ -223,7 +236,7 @@ async def test_downloads_invalid_video_id(http_client: AsyncClient, video_id: st
 
 @pytest.mark.anyio
 async def test_downloads_valid_video_id_path_but_no_matching_video(
-    http_client: AsyncClient, httpx_mock: HTTPXMock
+    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
 ):
     """Test the video downloads endpoint with a valid `video_id` but no results."""
     lrs_client.base_url = "http://fake-lrs.com"
@@ -243,6 +256,7 @@ async def test_downloads_valid_video_id_path_but_no_matching_video(
             "since": "2023-01-01",
             "until": "2023-01-01",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -259,7 +273,9 @@ async def test_downloads_valid_video_id_path_but_no_matching_video(
 
 
 @pytest.mark.anyio
-async def test_downloads_backend_query(http_client: AsyncClient, httpx_mock: HTTPXMock):
+async def test_downloads_backend_query(
+    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
+):
     """Test the video downloads endpoint backend query results."""
     # Define 3 video downloads fixtures
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
@@ -303,6 +319,7 @@ async def test_downloads_backend_query(http_client: AsyncClient, httpx_mock: HTT
             "since": "2020-01-01",
             "until": "2020-01-03",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
@@ -322,7 +339,7 @@ async def test_downloads_backend_query(http_client: AsyncClient, httpx_mock: HTT
 
 @pytest.mark.anyio
 async def test_unique_downloads_backend_query(
-    http_client: AsyncClient, httpx_mock: HTTPXMock
+    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
 ):
     """Test the video downloads endpoint, with parameter unique=True."""
     # Define 3 video views fixtures
@@ -373,6 +390,7 @@ async def test_unique_downloads_backend_query(
             "since": "2020-01-01",
             "until": "2020-01-03",
         },
+        headers=auth_headers,
     )
 
     assert response.status_code == 200
