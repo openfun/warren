@@ -1,9 +1,10 @@
 """Warren's core models."""
 from functools import reduce
 from itertools import groupby
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Union
 
 import arrow
+from lti_toolbox.launch_params import LTIRole
 from pydantic.dataclasses import dataclass as pdt_dataclass
 from pydantic.main import BaseModel
 from ralph.backends.database.base import StatementParameters
@@ -64,3 +65,27 @@ class DailyCounts(BaseModel):
 # See: https://github.com/openfun/ralph/issues/425
 # Get a pydantic model from a stdlib dataclass to use Pydantic helpers
 LRSStatementsQuery = pdt_dataclass(StatementParameters)
+
+
+class LTIUser(BaseModel):
+    """Model to represent LTI user data."""
+
+    platform: str
+    course: str
+    email: str
+    user: str
+
+
+class LTIToken(BaseModel):
+    """Model to represent JWT forged in an LTI context."""
+
+    token_type: str
+    exp: int
+    iat: int
+    jti: str
+    session_id: str
+    roles: List[Union[LTIRole, str]]
+    user: LTIUser
+    locale: str
+    resource_link_id: str
+    resource_link_description: Optional[str]

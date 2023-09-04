@@ -55,6 +55,10 @@ class Settings(BaseSettings):
     API_DB_PASSWORD: str = "pass"
     API_DB_PORT: int = 5432
 
+    # Token
+    APP_SIGNING_ALGORITHM: str
+    APP_SIGNING_KEY: str
+
     @property
     def DATABASE_URL(self) -> str:
         """Get the database URL as required by SQLAlchemy."""
