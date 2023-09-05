@@ -81,6 +81,7 @@
     "react/style-prop-object": ["error", { "allow": ["FormattedNumber"] }]
   },
   "settings": {
+    "polyfills": ["Promise"],
     "import/resolver": {
       "typescript": true
     }
