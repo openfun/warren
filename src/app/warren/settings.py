@@ -177,6 +177,7 @@ class Base(Configuration):
         "django.middleware.security.SecurityMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.locale.LocaleMiddleware",
+        "corsheaders.middleware.CorsMiddleware",
         "django.middleware.common.CommonMiddleware",
         "django.middleware.csrf.CsrfViewMiddleware",
         "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -194,6 +195,8 @@ class Base(Configuration):
         "django.contrib.staticfiles",
         # Runtime
         "dockerflow.django",
+        # CORS
+        "corsheaders",
         # LTI Toolbox
         "lti_toolbox",
         # Utilities
@@ -258,6 +261,8 @@ class Base(Configuration):
         ),
     }
 
+    CORS_ALLOWED_ORIGINS = []
+
     @classmethod
     def post_setup(cls):
         """Post setup configuration.
@@ -285,6 +290,10 @@ class Development(Base):
 
     DEBUG = True
     ALLOWED_HOSTS = ["*"]
+
+    CORS_ALLOWED_ORIGINS = values.ListValue(
+        [], environ_name="WARREN_APP_ALLOWED_ORIGINS", environ_prefix=None
+    )
 
     LOGGING = {
         "version": 1,
