@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 declare DOCKER_USER
-DOCKER_USER="$(id -u):$(id -g)"
+DOCKER_UID="$(id -u)"
+DOCKER_GID="$(id -g)"
+DOCKER_USER="${DOCKER_UID}:${DOCKER_GID}"
 
 extra_args=()
 # Prevent 'the input device is not a TTY' error from `docker compose run` by disabling TTY when standard output is not a TTY
@@ -10,4 +12,7 @@ if [[ "$1" == run && "$(tty 2>/dev/null)" == "not a tty" ]]; then
   shift
 fi
 
-DOCKER_USER=${DOCKER_USER} docker compose "${extra_args[@]}" "$@"
+DOCKER_USER=${DOCKER_USER} \
+  DOCKER_UID=${DOCKER_UID} \
+  DOCKER_GID=${DOCKER_GID} \
+  docker compose "${extra_args[@]}" "$@"

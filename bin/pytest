@@ -1,9 +1,25 @@
 #!/usr/bin/env bash
 
+set -eo pipefail
+
+declare -r API_SERVICE="api"
+declare -r APP_SERVICE="app"
+declare -r SERVICE="${PYTEST_SERVICE:-${API_SERVICE}}"
+declare -a ALLOWED_SERVICES=("${APP_SERVICE}" "${API_SERVICE}")
+declare -A CONFIGURATION
+CONFIGURATION[${API_SERVICE}]="core/pyproject.toml"
+CONFIGURATION[${APP_SERVICE}]="pyproject.toml"
 declare DOCKER_USER
 DOCKER_USER="$(id -u):$(id -g)"
 
+if [[ ! "${ALLOWED_SERVICES[*]}" =~ "${SERVICE}" ]]; then
+    echo "Unknown service ${SERVICE}. Abort."
+    exit 1
+fi
+
+echo "Will run pytest for ${SERVICE} service with ${CONFIGURATION[${SERVICE}]} configuration..."
+
 DOCKER_USER=${DOCKER_USER} docker compose run \
   --rm \
-  api \
-  pytest -c core/pyproject.toml "$@"
+  "${SERVICE}" \
+  pytest -c "${CONFIGURATION[${SERVICE}]}" "$@"

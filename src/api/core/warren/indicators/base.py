@@ -1,5 +1,6 @@
 """Abstract class defining the interface for an indicator."""
 from abc import ABC, abstractmethod
+from datetime import datetime
 from functools import cached_property
 from typing import List
 
@@ -7,6 +8,7 @@ from ralph.exceptions import BackendException
 
 from warren.backends import lrs_client as async_lrs_client
 from warren.exceptions import LrsClientException
+from warren.filters import DatetimeRange
 from warren.models import XAPI_STATEMENT, LRSStatementsQuery
 
 
@@ -17,13 +19,34 @@ class BaseIndicator(ABC):
     for indicators.
     """
 
+    def __init__(self, span_range: DatetimeRange = None):
+        """Instantiate the base indicator.
+
+        Args:
+            span_range (DatetimeRange): date/time span range on which
+            the indicator needs to be computed
+        """
+        self.span_range = span_range
+
+    @property
+    def since(self) -> datetime:
+        """Shorcut to the indicator date/time span minimal value."""
+        return self.span_range.since
+
+    @property
+    def until(self) -> datetime:
+        """Shorcut to the indicator date/time span maximal value."""
+        return self.span_range.until
+
     @cached_property
     def lrs_client(self):
         """Get AsyncLRSHTTP instance."""
         return async_lrs_client
 
     @abstractmethod
-    def get_lrs_query(self) -> LRSStatementsQuery:
+    def get_lrs_query(
+        self, since: datetime = None, until: datetime = None
+    ) -> LRSStatementsQuery:
         """Get the LRS query for fetching statements."""
 
     async def fetch_statements(
@@ -45,5 +68,5 @@ class BaseIndicator(ABC):
             raise LrsClientException("Failed to fetch statements") from exception
 
     @abstractmethod
-    async def compute(self):
+    async def compute(self, since: datetime = None, until: datetime = None):
         """Execute the LRS query, and perform operations to get the indicator value."""

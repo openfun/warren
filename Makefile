@@ -41,6 +41,7 @@ WARREN_API_IMAGE_NAME              ?= warren-api
 WARREN_API_IMAGE_TAG               ?= development
 WARREN_API_IMAGE_BUILD_TARGET      ?= development
 WARREN_API_SERVER_PORT             ?= 8100
+WARREN_API_TEST_DB_NAME            ?= test-warren-api
 WARREN_FRONTEND_IMAGE_NAME         ?= warren-frontend
 WARREN_FRONTEND_IMAGE_TAG          ?= development
 WARREN_FRONTEND_IMAGE_BUILD_TARGET ?= development
@@ -91,6 +92,7 @@ bootstrap: \
   data/statements.jsonl.gz \
   build \
   migrate-api \
+	create-api-test-db \
   migrate-app \
   fixtures
 .PHONY: bootstrap
@@ -176,6 +178,14 @@ stop: ## stop all servers
 .PHONY: stop
 
 # -- Provisioning
+create-api-test-db: ## create API test database
+	@$(COMPOSE) exec postgresql bash -c 'psql "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@$(DB_HOST):$(DB_PORT)/postgres" -c "create database \"$(WARREN_API_TEST_DB_NAME)\";"' || echo "Duly noted, skipping database creation."
+.PHONY: create-api-test-db
+
+drop-api-test-db: ## drop API test database
+	@$(COMPOSE) exec postgresql bash -c 'psql "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@$(DB_HOST):$(DB_PORT)/postgres" -c "drop database \"$(WARREN_API_TEST_DB_NAME)\";"' || echo "Duly noted, skipping database deletion."
+.PHONY: drop-api-test-db
+
 fixtures: ## load test data
 fixtures: \
   bin/patch_statements_date.py \
@@ -202,7 +212,7 @@ migrate-api:  ## run alembic database migrations for the api service
 	@$(COMPOSE) up -d postgresql
 	@$(COMPOSE_RUN) dockerize -wait tcp://$(DB_HOST):$(DB_PORT) -timeout 60s
 	@echo "Create api service database…"
-	@$(COMPOSE) exec postgresql bash -c 'psql "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@$(DB_HOST):$(DB_PORT)/postgres" -c "create database \"warren-api\";"' || echo "Duly noted, skiping database creation."
+	@$(COMPOSE) exec postgresql bash -c 'psql "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@$(DB_HOST):$(DB_PORT)/postgres" -c "create database \"warren-api\";"' || echo "Duly noted, skipping database creation."
 	@echo "Running migrations for api service…"
 	@bin/alembic upgrade head
 .PHONY: migrate-api
@@ -310,13 +320,15 @@ test: \
 .PHONY: test
 
 test-api: ## run api tests
-test-api: run-api
-	@$(COMPOSE_RUN_API) pytest
+test-api: \
+  run-api \
+  create-api-test-db
+	bin/pytest
 .PHONY: test-api
 
 test-app: ## run app tests
 test-app: run-app
-	@$(COMPOSE_RUN_APP) pytest
+	PYTEST_SERVICE=app bin/pytest
 .PHONY: test-app
 
 # -- Misc
