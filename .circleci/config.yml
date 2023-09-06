@@ -238,6 +238,13 @@ jobs:
       - restore_cache:
           keys:
             - v1-api-dependencies-<< parameters.python-image >>-{{ .Revision }}
+      - run: sudo apt-get update
+      - run: sudo apt-get install postgresql-client
+      - run: whoami
+      - run: |
+          psql \
+          -d "postgresql://fun@localhost/postgres" \
+          -c "create database \"test-warren-api\";"
       - run:
           name: Run tests
           command: ~/.local/bin/pytest -c core/pyproject.toml

@@ -5,6 +5,5 @@ DOCKER_USER="$(id -u):$(id -g)"
 
 DOCKER_USER=${DOCKER_USER} docker compose run \
   --rm \
-  --workdir /app/core \
   api \
-  alembic "$@"
+  alembic -c core/alembic.ini "$@"

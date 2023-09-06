@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     API_DB_USER: str = "fun"
     API_DB_PASSWORD: str = "pass"
     API_DB_PORT: int = 5432
+    API_TEST_DB_NAME: str = "test-warren-api"
 
     # Token
     APP_SIGNING_ALGORITHM: str
@@ -66,6 +67,15 @@ class Settings(BaseSettings):
             f"{self.API_DB_ENGINE}://"
             f"{self.API_DB_USER}:{self.API_DB_PASSWORD}@"
             f"{self.API_DB_HOST}/{self.API_DB_NAME}"
+        )
+
+    @property
+    def TEST_DATABASE_URL(self) -> str:
+        """Get the database URL as required by SQLAlchemy."""
+        return (
+            f"{self.API_DB_ENGINE}://"
+            f"{self.API_DB_USER}:{self.API_DB_PASSWORD}@"
+            f"{self.API_DB_HOST}/{self.API_TEST_DB_NAME}"
         )
 
     # pylint: disable=invalid-name

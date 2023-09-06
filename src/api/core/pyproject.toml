@@ -55,6 +55,7 @@ dev = [
     "build==1.0.3",
     "factory-boy==3.3.0",
     "Faker==19.6.2",
+    "freezegun==1.2.2",
     "httpx==0.24.1",
     "ipdb==0.13.13",
     "ipython==8.10.0",

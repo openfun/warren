@@ -117,7 +117,7 @@ services:
   notebook:
     build:
       context: ./notebook
-    user: ${DOCKER_USER:-1000}
+    user: "root:root"
     environment:
       NB_UID: ${DOCKER_UID:-1000}
       NB_GID: ${DOCKER_GID:-1000}
