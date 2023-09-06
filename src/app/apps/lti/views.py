@@ -61,7 +61,7 @@ class TokenMixin:
         }
 
 
-class RenderMixins(TemplateResponseMixin):
+class RenderMixin(TemplateResponseMixin):
     """Mixin class for rendering an LTI view with app_data.
 
     This mixin provides the necessary template to render the frontend
@@ -90,7 +90,7 @@ class RenderMixins(TemplateResponseMixin):
         return super().render_to_response(context, **response_kwargs)
 
 
-class LTIRequestView(BaseLTIView, RenderMixins, TokenMixin):
+class LTIRequestView(BaseLTIView, RenderMixin, TokenMixin):
     """Base view to handle LTI launch request verification."""
 
     def _do_on_success(self, lti_request: LTI, *args, **kwargs) -> HttpResponse:
@@ -150,7 +150,7 @@ class LTIConfigView(TemplateView):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class LTISelectView(BaseLTIView, RenderMixins, TokenMixin):
+class LTISelectView(BaseLTIView, RenderMixin, TokenMixin):
     """View to handle LTI Content-Item selection request.
 
     This view handles LTI Content-Item selection requests submitted in a deep linking
