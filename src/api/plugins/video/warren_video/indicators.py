@@ -3,10 +3,12 @@
 
 from ralph.backends.http import BaseHTTP
 from ralph.backends.http.async_lrs import LRSQuery
+from ralph.exceptions import BackendException
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
+from warren.exceptions import LrsClientException
 from warren.filters import DatetimeRange
 from warren.indicators import BaseIndicator, PreprocessMixin
 from warren.models import DailyCount, DailyCounts
@@ -60,12 +62,15 @@ class BaseDailyEvent(BaseIndicator, PreprocessMixin):
 
     async def fetch_statements(self) -> None:
         """Execute the LRS query to obtain statements required for this indicator."""
-        self.raw_statements = [
-            value
-            async for value in self.client.read(
-                target=self.client.statements_endpoint, query=self.get_lrs_query()
-            )
-        ]
+        try:
+            self.raw_statements = [
+                value
+                async for value in self.client.read(
+                    target=self.client.statements_endpoint, query=self.get_lrs_query()
+                )
+            ]
+        except BackendException as exception:
+            raise LrsClientException("Failed to fetch statements") from exception
 
     def filter_statements(self) -> None:
         """Filter statements required for this indicator.
