@@ -4,6 +4,7 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from typing_extensions import Annotated  # python <3.9 compat
 from warren.backends import lrs_client
+from warren.exceptions import LrsClientException
 from warren.fields import IRI
 from warren.filters import BaseQueryFilters, DatetimeRange
 from warren.models import DailyCounts
@@ -38,7 +39,7 @@ async def views(
 
     try:
         return await indicator.compute()
-    except (KeyError, AttributeError) as exception:
+    except (KeyError, AttributeError, LrsClientException) as exception:
         message = "An error occurred while computing the number of views"
         logger.error("%s: %s", message, exception)
         raise HTTPException(status_code=500, detail=message) from exception
@@ -60,7 +61,7 @@ async def downloads(
 
     try:
         return await indicator.compute()
-    except (KeyError, AttributeError) as exception:
+    except (KeyError, AttributeError, LrsClientException) as exception:
         message = "An error occurred while computing the number of downloads"
         logger.error("%s: %s", message, exception)
         raise HTTPException(status_code=500, detail=message) from exception
