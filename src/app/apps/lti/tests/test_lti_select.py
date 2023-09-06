@@ -13,6 +13,8 @@ from lti_toolbox.factories import LTIConsumerFactory, LTIPassportFactory
 from lti_toolbox.launch_params import LTIMessageType
 from lti_toolbox.utils import CONTENT_TYPE, sign_parameters
 
+from ..token import LTIAccessToken, LTIRefreshToken
+
 TARGET_URL_PATH = "/lti/select"
 
 
@@ -202,3 +204,6 @@ class LTISelectViewTestCase(TestCase):
             {"lti_message_type": LTIMessageType.SELECTION_RESPONSE.value}
         )
         self.assertEqual(context["lti_select_form_data"], signed_parameters)
+
+        LTIRefreshToken(context["refresh"]).verify()
+        LTIAccessToken(context["access"]).verify()

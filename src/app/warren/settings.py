@@ -259,6 +259,10 @@ class Base(Configuration):
         "SIGNING_KEY": values.Value(
             None, environ_name="WARREN_APP_SIGNING_KEY", environ_prefix=None
         ),
+        "AUTH_TOKEN_CLASSES": (
+            "rest_framework_simplejwt.tokens.AccessToken",
+            "apps.lti.token.LTIAccessToken",
+        ),
     }
 
     CORS_ALLOWED_ORIGINS = []

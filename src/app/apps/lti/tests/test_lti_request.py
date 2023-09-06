@@ -12,6 +12,8 @@ from django.test import TestCase, override_settings
 from lti_toolbox.factories import LTIConsumerFactory, LTIPassportFactory
 from lti_toolbox.utils import CONTENT_TYPE, sign_parameters
 
+from ..token import LTIAccessToken, LTIRefreshToken
+
 TARGET_URL_PATH = "/lti/test/"
 
 
@@ -153,3 +155,6 @@ class LTIRequestViewTestCase(TestCase):
 
         # Check that the frontend would route to the 'test' route
         self.assertEqual(context["lti_route"], "test")
+
+        LTIRefreshToken(context["refresh"]).verify()
+        LTIAccessToken(context["access"]).verify()
