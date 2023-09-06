@@ -2,6 +2,7 @@
 
 import json
 import logging
+import uuid
 from urllib.parse import unquote
 
 from django.conf import settings
@@ -20,8 +21,44 @@ from lti_toolbox.views import BaseLTIView
 from oauthlib import oauth1
 
 from .forms import BaseLTIUserForm
+from .token import LTIRefreshToken
 
 logger = logging.getLogger(__name__)
+
+
+class TokenMixin:
+    """Mixin class for handling token generation from an LTI request.
+
+    This mixin provides methods to parse user data from an LTI request
+    and generate access and refresh tokens.
+    """
+
+    def parse_user_data(self, lti_request: LTI):
+        """Parse user data from the given LTI request and validate it."""
+        lti_user_data = {
+            "platform": lti_request.get_consumer().url,
+            "course": lti_request.get_param("context_id"),
+            "user": lti_request.get_param("lis_person_sourcedid"),
+            "email": lti_request.get_param("lis_person_contact_email_primary"),
+        }
+        lti_user_form = BaseLTIUserForm(lti_user_data)
+        if not lti_user_form.is_valid():
+            logger.debug("LTI user is not valid: %s", lti_user_form.errors)
+            raise PermissionDenied
+
+        return lti_user_data
+
+    def generate_tokens(self, lti_request: LTI):
+        """Generate access and refresh tokens using the parsed LTI user data."""
+        lti_user_data = self.parse_user_data(lti_request)
+
+        session_id = str(uuid.uuid4())
+        refresh_token = LTIRefreshToken.from_lti(lti_request, lti_user_data, session_id)
+
+        return {
+            "access": str(refresh_token.access_token),
+            "refresh": str(refresh_token),
+        }
 
 
 class RenderMixins(TemplateResponseMixin):
@@ -53,7 +90,7 @@ class RenderMixins(TemplateResponseMixin):
         return super().render_to_response(context, **response_kwargs)
 
 
-class LTIRequestView(BaseLTIView, RenderMixins):
+class LTIRequestView(BaseLTIView, RenderMixins, TokenMixin):
     """Base view to handle LTI launch request verification."""
 
     def _do_on_success(self, lti_request: LTI, *args, **kwargs) -> HttpResponse:
@@ -74,7 +111,8 @@ class LTIRequestView(BaseLTIView, RenderMixins):
             logger.debug("LTI message type is not valid")
             raise PermissionDenied
 
-        self.app_data = {"lti_route": kwargs["selection"] or "demo"}
+        jwt = self.generate_tokens(lti_request)
+        self.app_data = {"lti_route": kwargs["selection"] or "demo", **jwt}
 
         return self.render_to_response()
 
@@ -112,7 +150,7 @@ class LTIConfigView(TemplateView):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class LTISelectView(BaseLTIView, RenderMixins):
+class LTISelectView(BaseLTIView, RenderMixins, TokenMixin):
     """View to handle LTI Content-Item selection request.
 
     This view handles LTI Content-Item selection requests submitted in a deep linking
@@ -127,17 +165,7 @@ class LTISelectView(BaseLTIView, RenderMixins):
 
     def _do_on_success(self, lti_request: LTI) -> HttpResponse:
         """Build app data and render the LTI view based on a successful request."""
-        lti_user = {
-            "platform": lti_request.get_consumer().url,
-            "course": lti_request.get_param("context_id"),
-            "user": lti_request.get_param("lis_person_sourcedid"),
-            "email": lti_request.get_param("lis_person_contact_email_primary"),
-        }
-
-        lti_user_form = BaseLTIUserForm(lti_user)
-        if not lti_user_form.is_valid():
-            logger.debug("LTI user is not valid: %s", lti_user_form.errors)
-            raise PermissionDenied
+        jwt = self.generate_tokens(lti_request)
 
         lti_select_form_data = self.request.POST.copy()
 
@@ -157,6 +185,7 @@ class LTISelectView(BaseLTIView, RenderMixins):
             "lti_route": "select",
             "lti_select_form_action_url": reverse("lti:lti-respond-view"),
             "lti_select_form_data": lti_select_form_data,
+            **jwt,
         }
 
         return self.render_to_response()
