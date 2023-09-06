@@ -3,7 +3,6 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException
 from typing_extensions import Annotated  # python <3.9 compat
-from warren.backends import lrs_client
 from warren.exceptions import LrsClientException
 from warren.fields import IRI
 from warren.filters import BaseQueryFilters, DatetimeRange
@@ -26,10 +25,9 @@ async def views(
 ) -> DailyCounts:
     """Number of views for `video_id` in the `since` -> `until` date range."""
     indicator_kwargs = {
-        "client": lrs_client,
         "video_id": video_id,
         "date_range": DatetimeRange.parse_obj(filters),
-        "remove_duplicate_actors": unique,
+        "unique": unique,
     }
 
     if complete:
@@ -53,10 +51,9 @@ async def downloads(
 ) -> DailyCounts:
     """Number of downloads for `video_id` in the `since` -> `until` date range."""
     indicator = DailyDownloads(
-        client=lrs_client,
         video_id=video_id,
         date_range=DatetimeRange.parse_obj(filters),
-        remove_duplicate_actors=unique,
+        unique=unique,
     )
 
     try:

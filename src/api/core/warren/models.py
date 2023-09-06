@@ -4,7 +4,9 @@ from itertools import groupby
 from typing import Any, Dict, List
 
 import arrow
+from pydantic.dataclasses import dataclass as pdt_dataclass
 from pydantic.main import BaseModel
+from ralph.backends.database.base import StatementParameters
 
 from warren.fields import Date
 from warren.filters import DatetimeRange
@@ -56,3 +58,9 @@ class DailyCounts(BaseModel):
             for k, v in groupby(self.counts, lambda dc: dc.date)
         ]
         self.total = sum(dc.count for dc in self.counts)
+
+
+# FIXME: prefer using a valid generic pydantic model, this is too convoluted.
+# See: https://github.com/openfun/ralph/issues/425
+# Get a pydantic model from a stdlib dataclass to use Pydantic helpers
+LRSStatementsQuery = pdt_dataclass(StatementParameters)
