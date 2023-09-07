@@ -56,6 +56,7 @@ dev = [
     "pytest-cov==4.1.0",
     "pytest-django==4.5.2",
     "ruff==0.0.287",
+    "xmltodict==0.13.0",
 ]
 ci = [
     "twine==4.0.2",
