@@ -71,7 +71,7 @@ class LTIRequestView(BaseLTIView, RenderMixins):
             raise PermissionDenied
 
         if lti_request.get_param("lti_message_type") != LTIMessageType.LAUNCH_REQUEST:
-            logger.debug("LTI message type is not valid.")
+            logger.debug("LTI message type is not valid")
             raise PermissionDenied
 
         self.app_data = {"lti_route": kwargs["selection"] or "demo"}
@@ -142,7 +142,7 @@ class LTISelectView(BaseLTIView, RenderMixins):
         lti_select_form_data = self.request.POST.copy()
 
         if lti_select_form_data["lti_message_type"] != LTIMessageType.SELECTION_REQUEST:
-            logger.debug("LTI message type is not valid.")
+            logger.debug("LTI message type is not valid")
             raise PermissionDenied
 
         lti_select_form_data["lti_message_type"] = LTIMessageType.SELECTION_RESPONSE

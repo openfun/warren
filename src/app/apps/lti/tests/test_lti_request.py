@@ -1,4 +1,4 @@
-"""Tests for the LTI select view."""
+"""Tests for the LTI request view."""
 
 
 import json
@@ -10,14 +10,13 @@ from urllib.parse import urlencode
 
 from django.test import TestCase, override_settings
 from lti_toolbox.factories import LTIConsumerFactory, LTIPassportFactory
-from lti_toolbox.launch_params import LTIMessageType
 from lti_toolbox.utils import CONTENT_TYPE, sign_parameters
 
-TARGET_URL_PATH = "/lti/select"
+TARGET_URL_PATH = "/lti/test/"
 
 
-class LTISelectViewTestCase(TestCase):
-    """Test the LTI select view."""
+class LTIRequestViewTestCase(TestCase):
+    """Test the LTI request view."""
 
     def setUp(self):
         """Set up an LTI consumer and passport for the tests."""
@@ -31,13 +30,15 @@ class LTISelectViewTestCase(TestCase):
 
     @override_settings(ALLOWED_HOSTS=["fake-lms.com"])
     @mock.patch.object(Logger, "debug")
-    def test_views_lti_select_invalid_request_type(self, mock_logger):
-        """Validate that view fails when the LTI request type is a basic launch."""
-        # Its type is not a Content-Item selection request.
+    def test_views_lti_request_invalid_request_type(self, mock_logger):
+        """Validate that view fails when the LTI request type is a selection."""
+        # Its type is not a basic launch request.
         lti_parameters = {
-            "lti_message_type": "basic-lti-launch-request",
+            "lti_message_type": "ContentItemSelectionRequest",
             "lti_version": "LTI-1p0",
-            "resource_link_id": "df7",
+            "accept_media_types": "application/vnd.ims.lti.v1.ltilink",
+            "accept_presentation_document_targets": "frame,iframe,window",
+            "content_item_return_url": "http://fake-lms.com/",
             "context_id": "1",
             "lis_person_sourcedid": "1",
             "lis_person_contact_email_primary": "contact@example.com",
@@ -59,14 +60,12 @@ class LTISelectViewTestCase(TestCase):
 
     @override_settings(ALLOWED_HOSTS=["fake-lms.com", "wrongserver.com"])
     @mock.patch.object(Logger, "info")
-    def test_views_lti_select_invalid_signature(self, mock_logger):
+    def test_views_lti_request_invalid_signature(self, mock_logger):
         """Validate that view fails when the LTI signature is invalid."""
         lti_parameters = {
-            "lti_message_type": "ContentItemSelectionRequest",
+            "lti_message_type": "basic-lti-launch-request",
             "lti_version": "LTI-1p0",
-            "accept_media_types": "application/vnd.ims.lti.v1.ltilink",
-            "accept_presentation_document_targets": "frame,iframe,window",
-            "content_item_return_url": "http://testserver/",
+            "resource_link_id": "df7",
         }
 
         signed_parameters = sign_parameters(
@@ -87,15 +86,13 @@ class LTISelectViewTestCase(TestCase):
 
     @override_settings(ALLOWED_HOSTS=["fake-lms.com"])
     @mock.patch.object(Logger, "debug")
-    def test_views_lti_select_invalid_user(self, mock_logger):
+    def test_views_lti_request_invalid_user(self, mock_logger):
         """Validate that view fails when the LTI user is invalid."""
         # LTI user information are missing.
         lti_parameters = {
-            "lti_message_type": "ContentItemSelectionRequest",
+            "lti_message_type": "basic-lti-launch-request",
             "lti_version": "LTI-1p0",
-            "accept_media_types": "application/vnd.ims.lti.v1.ltilink",
-            "accept_presentation_document_targets": "frame,iframe,window",
-            "content_item_return_url": "http://testserver/",
+            "resource_link_id": "df7",
         }
 
         signed_parameters = sign_parameters(
@@ -120,14 +117,12 @@ class LTISelectViewTestCase(TestCase):
         )
 
     @override_settings(ALLOWED_HOSTS=["fake-lms.com"])
-    def test_views_lti_select_valid(self):
+    def test_views_lti_request_valid(self):
         """Validate that view is correctly rendered."""
         lti_parameters = {
-            "lti_message_type": "ContentItemSelectionRequest",
+            "lti_message_type": "basic-lti-launch-request",
             "lti_version": "LTI-1p0",
-            "accept_media_types": "application/vnd.ims.lti.v1.ltilink",
-            "accept_presentation_document_targets": "frame,iframe,window",
-            "content_item_return_url": "http://fake-lms.com/",
+            "resource_link_id": "df7",
             "context_id": "1",
             "lis_person_sourcedid": "1",
             "lis_person_contact_email_primary": "contact@example.com",
@@ -156,14 +151,5 @@ class LTISelectViewTestCase(TestCase):
         # Load its json content
         context = json.loads(unescape(match.group(1)))
 
-        # Check that the frontend would route to the selection form
-        # and respond the correct view
-        self.assertEqual(context["lti_route"], "select")
-        self.assertEqual(context["lti_select_form_action_url"], "/lti/respond")
-
-        # LTI message type has to be changed from a
-        # SELECTION_REQUEST to a SELECTION_RESPONSE
-        signed_parameters.update(
-            {"lti_message_type": LTIMessageType.SELECTION_RESPONSE.value}
-        )
-        self.assertEqual(context["lti_select_form_data"], signed_parameters)
+        # Check that the frontend would route to the 'test' route
+        self.assertEqual(context["lti_route"], "test")
