@@ -5,7 +5,7 @@ import logging
 from urllib.parse import unquote
 
 from django.conf import settings
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import BadRequest, PermissionDenied
 from django.http import HttpRequest, HttpResponse
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -184,6 +184,12 @@ class LTIRespondView(TemplateResponseMixin, View):
 
         content_item_return_url = lti_select_form_data.get("content_item_return_url")
 
+        if not content_item_return_url:
+            logger.debug(
+                "LTI response failed with error: missing content-item return url"
+            )
+            raise BadRequest
+
         lti_parameters = {
             key: value
             for (key, value) in lti_select_form_data.items()
@@ -193,7 +199,8 @@ class LTIRespondView(TemplateResponseMixin, View):
         selection = lti_select_form_data.get("selection")
 
         if not selection:
-            raise Exception("error no selected route")
+            logger.debug("LTI response failed with error: no selection")
+            raise BadRequest
 
         selected_url = request.build_absolute_uri(f"/lti/{selection}/")
 
