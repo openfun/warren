@@ -46,13 +46,13 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = [
-    "black==23.7.0",
-    "build==1.0.0",
+    "black==23.9.1",
+    "build==1.0.3",
     "factory-boy==3.3.0",
-    "Faker==19.3.1",
+    "Faker==19.6.0",
     "ipdb==0.13.13",
     "ipython==8.10.0",
-    "pytest==7.4.1",
+    "pytest==7.4.2",
     "pytest-cov==4.1.0",
     "pytest-django==4.5.2",
     "ruff==0.0.287",
