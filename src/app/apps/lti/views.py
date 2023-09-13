@@ -138,7 +138,7 @@ class LTISelectView(BaseLTIView, RenderMixins):
         lti_select_form_data = self.request.POST.copy()
         lti_select_form_data[
             "lti_message_type"
-        ] = LTIMessageType.SELECTION_RESPONSE.value
+        ] = LTIMessageType.SELECTION_RESPONSE
 
         # todo - sign lti_select_form_data with an access token.
 
