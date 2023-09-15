@@ -129,4 +129,4 @@ services:
       - users
     volumes:
       - ./notebook/notebooks:/home/jovyan/work
-      - .:/home/jovyan/work/warren
+      - ./src/api:/home/jovyan/work/warren

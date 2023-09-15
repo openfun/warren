@@ -337,10 +337,10 @@ help:
 .PHONY: help
 
 jupytext--to-md: ## convert local ipynb files into md
-	bin/jupytext --to md work/**/*.ipynb
+	bin/jupytext --to md work/*.ipynb
 .PHONY: jupytext--to-md
 
 jupytext--to-ipynb: ## convert remote md files into ipynb
-	bin/jupytext --to ipynb work/**/*.md
+	bin/jupytext --to ipynb work/*.md
 .PHONY: jupytext--to-ipynb
 
