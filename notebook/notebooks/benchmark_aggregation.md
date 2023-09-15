@@ -13,7 +13,7 @@ jupyter:
 ---
 
 ```python
-!pip install pandas ralph-malph==3.7.0 more_itertools httpx
+!pip install ralph-malph==3.7.0 more_itertools httpx
 ```
 
 ```python
