@@ -41,6 +41,7 @@ class LTISelectViewTestCase(TestCase):
             "context_id": "1",
             "lis_person_sourcedid": "1",
             "lis_person_contact_email_primary": "contact@example.com",
+            "roles": "instructor",
         }
 
         signed_parameters = sign_parameters(
@@ -67,6 +68,7 @@ class LTISelectViewTestCase(TestCase):
             "accept_media_types": "application/vnd.ims.lti.v1.ltilink",
             "accept_presentation_document_targets": "frame,iframe,window",
             "content_item_return_url": "http://testserver/",
+            "roles": "instructor",
         }
 
         signed_parameters = sign_parameters(
@@ -96,6 +98,7 @@ class LTISelectViewTestCase(TestCase):
             "accept_media_types": "application/vnd.ims.lti.v1.ltilink",
             "accept_presentation_document_targets": "frame,iframe,window",
             "content_item_return_url": "http://testserver/",
+            "roles": "instructor",
         }
 
         signed_parameters = sign_parameters(
@@ -120,6 +123,37 @@ class LTISelectViewTestCase(TestCase):
         )
 
     @override_settings(ALLOWED_HOSTS=["fake-lms.com"])
+    @mock.patch.object(Logger, "debug")
+    def test_views_lti_select_invalid_role(self, mock_logger):
+        """Validate that view fails when the LTI role is invalid."""
+        # LTI user information are missing.
+        lti_parameters = {
+            "lti_message_type": "ContentItemSelectionRequest",
+            "lti_version": "LTI-1p0",
+            "accept_media_types": "application/vnd.ims.lti.v1.ltilink",
+            "accept_presentation_document_targets": "frame,iframe,window",
+            "content_item_return_url": "http://fake-lms.com/",
+            "context_id": "1",
+            "lis_person_sourcedid": "1",
+            "lis_person_contact_email_primary": "contact@example.com",
+            "roles": "student",
+        }
+
+        signed_parameters = sign_parameters(
+            self._passport, lti_parameters, f"http://fake-lms.com{TARGET_URL_PATH}"
+        )
+
+        response = self.client.post(
+            TARGET_URL_PATH,
+            urlencode(signed_parameters),
+            content_type=CONTENT_TYPE,
+            HTTP_REFERER="http://fake-lms.com",
+            HTTP_HOST="fake-lms.com",
+        )
+        self.assertEqual(response.status_code, 403)
+        mock_logger.assert_called_with("LTI role is not valid")
+
+    @override_settings(ALLOWED_HOSTS=["fake-lms.com"])
     def test_views_lti_select_valid(self):
         """Validate that view is correctly rendered."""
         lti_parameters = {
@@ -131,6 +165,7 @@ class LTISelectViewTestCase(TestCase):
             "context_id": "1",
             "lis_person_sourcedid": "1",
             "lis_person_contact_email_primary": "contact@example.com",
+            "roles": "instructor",
         }
 
         signed_parameters = sign_parameters(

@@ -145,6 +145,10 @@ class LTISelectView(BaseLTIView, RenderMixins):
             logger.debug("LTI message type is not valid")
             raise PermissionDenied
 
+        if not lti_request.can_edit_content:
+            logger.debug("LTI role is not valid")
+            raise PermissionDenied
+
         lti_select_form_data["lti_message_type"] = LTIMessageType.SELECTION_RESPONSE
 
         # todo - sign lti_select_form_data with an access token.
