@@ -1,7 +1,7 @@
 """Warren API filters."""
 
 import arrow
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from pydantic import BaseModel, ValidationError, root_validator
 
 from .conf import settings
@@ -65,7 +65,9 @@ class BaseQueryFilters(DatetimeRange):
         except ValidationError as err:
             for error in err.errors():
                 error["loc"] = ["query"] + list(error["loc"])
-            raise HTTPException(422, detail=err.errors()) from err
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_ENTITY, detail=err.errors()
+            ) from err
         return values
 
     @root_validator
@@ -74,5 +76,8 @@ class BaseQueryFilters(DatetimeRange):
         """Check that date/time range is not too greedy."""
         since, until = map(values.get, ["since", "until"])
         if since + settings.MAX_DATETIMERANGE_SPAN < until:
-            raise HTTPException(422, detail="Date/time range is too greedy.")
+            raise HTTPException(
+                status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Date/time range is too greedy.",
+            )
         return values

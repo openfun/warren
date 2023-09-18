@@ -1,7 +1,7 @@
 """Warren API v1 video router."""
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from typing_extensions import Annotated  # python <3.9 compat
 from warren.exceptions import LrsClientException
 from warren.fields import IRI
@@ -40,7 +40,9 @@ async def views(
     except (KeyError, AttributeError, LrsClientException) as exception:
         message = "An error occurred while computing the number of views"
         logger.error("%s: %s", message, exception)
-        raise HTTPException(status_code=500, detail=message) from exception
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=message
+        ) from exception
 
 
 @router.get("/{video_id:path}/downloads")
@@ -61,4 +63,6 @@ async def downloads(
     except (KeyError, AttributeError, LrsClientException) as exception:
         message = "An error occurred while computing the number of downloads"
         logger.error("%s: %s", message, exception)
-        raise HTTPException(status_code=500, detail=message) from exception
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=message
+        ) from exception
