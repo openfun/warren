@@ -65,7 +65,16 @@ class DailyCounts(BaseModel):
 
     @classmethod
     def from_range(cls, date_range: DatetimeRange):
-        """Initialize DailyCounts from a date range."""
+        """Initialize DailyCounts from a date range.
+
+        Examples:
+            # Initialize DailyCounts for a date range
+            date_range = DatetimeRange(
+                since=arrow.get("2023-01-01"),
+                until=arrow.get("2023-01-05")
+            )
+            daily_counts = DailyCounts.from_range(date_range)
+        """
         return cls(
             counts=[
                 DailyCount(date=d)
@@ -80,6 +89,23 @@ class DailyCounts(BaseModel):
         the existing 'counts' list, aggregating the counts for each date
         and ensuring that 'counts' contains only unique DailyCount objects
         with one count per day.
+
+        Examples:
+            # Initialize DailyCounts for a date range
+            date_range = DatetimeRange(
+                since=arrow.get("2023-01-01"),
+                until=arrow.get("2023-01-05")
+            )
+            daily_counts = DailyCounts.from_range(date_range)
+
+            # Merge new DailyCount
+            new_counts = [DailyCount(date="2023-09-19", count=10)]
+            daily_counts.merge_counts(new_counts)
+
+        Note:
+            When merging `DailyCount` instances, the merged output will
+            be sorted by ascending date.
+
         """
         self.counts += counts
         self.counts.sort(key=lambda x: x.date)
