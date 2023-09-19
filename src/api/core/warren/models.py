@@ -22,7 +22,36 @@ class DailyCount(BaseModel):
     count: int = 0
 
     def __add__(self, other):
-        """Add counters for two DailyCount instances with the same date."""
+        """Add counters for two DailyCount instances with the same date.
+
+        Args:
+            other (DailyCount): Another DailyCount instance with the same date.
+
+        Returns:
+            DailyCount: A new DailyCount instance with the combined count
+            for the same date.
+
+        Raises:
+            ValueError: If 'other' has a different date than the current
+            instance.
+
+        Example:
+            # Creating two DailyCount instances with the same date
+            count1 = DailyCount(date="2023-09-19", count=10)
+            count2 = DailyCount(date="2023-09-19", count=5)
+
+            # Adding the counts for these instances
+            total_count = count1 + count2
+
+            # The 'total_count' instance now has a count of 15 for the same
+            #  date "2023-09-19".
+
+        Note:
+            When adding two `DailyCount` instances, it's required that they
+            have the same date. Attempting to add instances with different
+            dates will raise a `ValueError`.
+
+        """
         if self.date != other.date:
             raise ValueError("Cannot add two DailyCount instances with different dates")
         return DailyCount(date=self.date, count=self.count + other.count)
