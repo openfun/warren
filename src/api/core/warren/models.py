@@ -24,7 +24,7 @@ class DailyCount(BaseModel):
     def __add__(self, other):
         """Add counters for two DailyCount instances with the same date."""
         if self.date != other.date:
-            raise Exception("Cannot add two DailyCount instances with different dates")
+            raise ValueError("Cannot add two DailyCount instances with different dates")
         return DailyCount(date=self.date, count=self.count + other.count)
 
 
