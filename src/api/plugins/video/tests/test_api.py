@@ -74,6 +74,37 @@ async def test_views_valid_video_id_path_but_no_matching_video(
 
 
 @pytest.mark.anyio
+async def test_views_invalid_auth_headers(http_client: AsyncClient):
+    """Test the video views endpoint with an invalid `auth_headers`."""
+    response = await http_client.get(
+        url="/api/v1/video/uuid://fake-uuid/views",
+        params={
+            "since": "2023-01-01",
+            "until": "2023-01-01",
+        },
+        headers={"Authorization": "Bearer Wrong_Token"},
+    )
+
+    assert response.status_code == 401
+    assert response.json().get("detail") == "Could not validate credentials"
+
+
+@pytest.mark.anyio
+async def test_views_missing_auth_headers(http_client: AsyncClient):
+    """Test the video views endpoint with missing `auth_headers`."""
+    response = await http_client.get(
+        url="/api/v1/video/uuid://fake-uuid/views",
+        params={
+            "since": "2023-01-01",
+            "until": "2023-01-01",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json().get("detail") == "Not authenticated"
+
+
+@pytest.mark.anyio
 async def test_views_backend_query(
     http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
 ):
@@ -232,6 +263,37 @@ async def test_downloads_invalid_video_id(
 
     assert response.status_code == 422
     assert "is not a valid 'IRI'." in response.json().get("detail")[0].get("msg")
+
+
+@pytest.mark.anyio
+async def test_downloads_invalid_auth_headers(http_client: AsyncClient):
+    """Test the video downloads endpoint with an invalid `auth_headers`."""
+    response = await http_client.get(
+        url="/api/v1/video/uuid://fake-uuid/downloads",
+        params={
+            "since": "2023-01-01",
+            "until": "2023-01-01",
+        },
+        headers={"Authorization": "Bearer Wrong_Token"},
+    )
+
+    assert response.status_code == 401
+    assert response.json().get("detail") == "Could not validate credentials"
+
+
+@pytest.mark.anyio
+async def test_downloads_missing_auth_headers(http_client: AsyncClient):
+    """Test the video downloads endpoint with missing `auth_headers`."""
+    response = await http_client.get(
+        url="/api/v1/video/uuid://fake-uuid/downloads",
+        params={
+            "since": "2023-01-01",
+            "until": "2023-01-01",
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json().get("detail") == "Not authenticated"
 
 
 @pytest.mark.anyio
