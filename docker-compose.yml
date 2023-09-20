@@ -130,3 +130,4 @@ services:
     volumes:
       - ./notebook/notebooks:/home/jovyan/work
       - ./src/api:/home/jovyan/work/warren
+      - ./data:/home/jovyan/work/data
