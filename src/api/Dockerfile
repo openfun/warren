@@ -11,7 +11,8 @@ RUN apt-get update && \
 
 
 # -- Builder --
-FROM base as builder
+# Core builder (no plugins installed)
+FROM base as core-builder
 
 WORKDIR /build
 
@@ -25,21 +26,31 @@ RUN apt-get update && \
         libffi-dev && \
     rm -rf /var/lib/apt/lists/*
 
-RUN pip install ./core ./plugins/*
+RUN pip install ./core
+
+# Full distro builder (all official plugins installed)
+FROM core-builder as full-builder
+
+RUN pip install ./plugins/*
 
 # -- Core --
 FROM base as core
 
-COPY --from=builder /usr/local /usr/local
+COPY --from=core-builder /usr/local /usr/local
 
 # Copy all sources, not only runtime-required files
 COPY . /app/
 
 WORKDIR /app
 
+# -- Full --
+FROM core as full
+
+COPY --from=full-builder /usr/local /usr/local
+
 
 # -- Development --
-FROM core as development
+FROM full as development
 
 # Uninstall warren and re-install it in editable mode along with development
 # dependencies
@@ -55,7 +66,24 @@ USER ${DOCKER_USER:-1000}
 
 
 # -- Production --
-FROM core as production
+# *** Core image ***
+FROM core as production-core
+
+# Un-privileged user running the application
+USER ${DOCKER_USER:-1000}
+
+CMD ["uvicorn", \
+     "warren.api:app", \
+     "--proxy-headers", \
+     "--log-config", \
+     "core/logging-config.yaml", \
+     "--host", \
+     "0.0.0.0", \
+     "--port", \
+     "8000"]
+
+# *** Full image ***
+FROM full as production-full
 
 # Un-privileged user running the application
 USER ${DOCKER_USER:-1000}

@@ -119,14 +119,20 @@ jobs:
       # Each image is tagged with the current git commit sha1 to avoid
       # collisions in parallel builds.
       - run:
-          name: Build production image
+          name: Build core production image
           command: |
-            WARREN_API_IMAGE_BUILD_TARGET=production \
-            WARREN_API_IMAGE_TAG=${CIRCLE_SHA1} \
+            WARREN_API_IMAGE_BUILD_TARGET=production-core \
+            WARREN_API_IMAGE_TAG=api-core-${CIRCLE_SHA1} \
+              make build-docker-api
+      - run:
+          name: Build full production image
+          command: |
+            WARREN_API_IMAGE_BUILD_TARGET=production-full \
+            WARREN_API_IMAGE_TAG=api-full-${CIRCLE_SHA1} \
               make build-docker-api
       - run:
           name: Check built image availability
-          command: docker images "warren-api:${CIRCLE_SHA1}*"
+          command: docker images "warren:api-*"
 
   build-docker-app:
     docker:
@@ -150,11 +156,11 @@ jobs:
           name: Build production image
           command: |
             WARREN_APP_IMAGE_BUILD_TARGET=production \
-            WARREN_APP_IMAGE_TAG=${CIRCLE_SHA1} \
+            WARREN_APP_IMAGE_TAG=app-${CIRCLE_SHA1} \
               make build-docker-app
       - run:
           name: Check built image availability
-          command: docker images "warren-app:${CIRCLE_SHA1}*"
+          command: docker images "warren:app-*"
 
   # ---- API jobs ----
   # Build API development environment
@@ -466,17 +472,26 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
-          name: Build production image
+          name: Build APP production image
           command: |
             WARREN_APP_IMAGE_BUILD_TARGET=production \
-            WARREN_APP_IMAGE_TAG=${CIRCLE_SHA1} \
+            WARREN_APP_IMAGE_TAG=app-${CIRCLE_SHA1} \
               make build-docker-app
-            WARREN_API_IMAGE_BUILD_TARGET=production \
-            WARREN_API_IMAGE_TAG=${CIRCLE_SHA1} \
+      - run:
+          name: Build API core production image
+          command: |
+            WARREN_API_IMAGE_BUILD_TARGET=production-core \
+            WARREN_API_IMAGE_TAG=api-core-${CIRCLE_SHA1} \
+              make build-docker-api
+      - run:
+          name: Build API full production image
+          command: |
+            WARREN_API_IMAGE_BUILD_TARGET=production-full \
+            WARREN_API_IMAGE_TAG=api-full-${CIRCLE_SHA1} \
               make build-docker-api
       - run:
           name: Check built image availability
-          command: docker images "warren-ap*:${CIRCLE_SHA1}*"
+          command: docker images "warren:*"
       # Tag docker images with the same pattern used in Git (Semantic Versioning)
       #
       # Git tag: v1.0.1
@@ -492,13 +507,15 @@ jobs:
             # or
             # - DOCKER_TAG: 1.1.2 (Git tag v1.1.2)
             echo "DOCKER_TAG: ${DOCKER_TAG} (Git ${RELEASE_TYPE}${CIRCLE_TAG})"
-            docker tag warren-app:${CIRCLE_SHA1} fundocker/warren-app:${DOCKER_TAG}
-            docker tag warren-api:${CIRCLE_SHA1} fundocker/warren-api:${DOCKER_TAG}
+            docker tag warren:app-${CIRCLE_SHA1} fundocker/warren:app-${DOCKER_TAG}
+            docker tag warren:api-core-${CIRCLE_SHA1} fundocker/warren:api-core-${DOCKER_TAG}
+            docker tag warren:api-full-${CIRCLE_SHA1} fundocker/warren:api-full-${DOCKER_TAG}
             if [[ -n "$CIRCLE_TAG" ]]; then
-                docker tag warren-app:${CIRCLE_SHA1} fundocker/warren-app:latest
-                docker tag warren-api:${CIRCLE_SHA1} fundocker/warren-api:latest
+                docker tag warren:app-${CIRCLE_SHA1} fundocker/warren:app-latest
+                docker tag warren:api-core-${CIRCLE_SHA1} fundocker/warren:api-core-latest
+                docker tag warren:api-full-${CIRCLE_SHA1} fundocker/warren:api-full-latest
             fi
-            docker images "fundocker/warren-ap*"
+            docker images "fundocker/warren:*"
 
       # Publish images to DockerHub
       #
@@ -515,11 +532,13 @@ jobs:
             # or
             # - DOCKER_TAG: 1.1.2 (Git tag v1.1.2)
             echo "DOCKER_TAG: ${DOCKER_TAG} (Git ${RELEASE_TYPE}${CIRCLE_TAG})"
-            docker push fundocker/warren-app:${DOCKER_TAG}
-            docker push fundocker/warren-api:${DOCKER_TAG}
+            docker push fundocker/warren:app-${DOCKER_TAG}
+            docker push fundocker/warren:api-core-${DOCKER_TAG}
+            docker push fundocker/warren:api-full-${DOCKER_TAG}
             if [[ -n "$CIRCLE_TAG" ]]; then
-              docker push fundocker/warren-app:latest
-              docker push fundocker/warren-api:latest
+              docker push fundocker/warren:app-latest
+              docker push fundocker/warren:api-core-latest
+              docker push fundocker/warren:api-full-latest
             fi
 
 workflows:
