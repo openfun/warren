@@ -13,7 +13,7 @@ services:
       args:
         DOCKER_USER: ${DOCKER_USER:-1000}
     user: ${DOCKER_USER:-1000}
-    image: "${WARREN_APP_IMAGE_NAME:-warren-app}:${WARREN_APP_IMAGE_TAG:-development}"
+    image: "${WARREN_APP_IMAGE_NAME:-warren}:${WARREN_APP_IMAGE_TAG:-app-development}"
     environment:
       PYLINTHOME: /app/.pylint.d
     env_file:
@@ -34,7 +34,7 @@ services:
       args:
         DOCKER_USER: ${DOCKER_USER:-1000}
     user: ${DOCKER_USER:-1000}
-    image: "${WARREN_API_IMAGE_NAME:-warren-api}:${WARREN_API_IMAGE_TAG:-development}"
+    image: "${WARREN_API_IMAGE_NAME:-warren}:${WARREN_API_IMAGE_TAG:-api-development}"
     env_file:
       - .env
     environment:
@@ -66,7 +66,7 @@ services:
       args:
         DOCKER_USER: ${DOCKER_USER:-1000}
     user: ${DOCKER_USER:-1000}
-    image: "${WARREN_FRONTEND_IMAGE_NAME:-warren-frontend}:${WARREN_FRONTEND_IMAGE_TAG:-development}"
+    image: "${WARREN_FRONTEND_IMAGE_NAME:-warren}:${WARREN_FRONTEND_IMAGE_TAG:-frontend-development}"
     environment:
       HOME: /tmp
     command:

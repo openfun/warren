@@ -33,16 +33,16 @@ DB_HOST = postgresql
 DB_PORT = 5432
 
 # -- Warren
-WARREN_APP_IMAGE_NAME              ?= warren-app
-WARREN_APP_IMAGE_TAG               ?= development
+WARREN_APP_IMAGE_NAME              ?= warren
+WARREN_APP_IMAGE_TAG               ?= app-development
 WARREN_APP_IMAGE_BUILD_TARGET      ?= development
 WARREN_APP_SERVER_PORT             ?= 8090
-WARREN_API_IMAGE_NAME              ?= warren-api
-WARREN_API_IMAGE_TAG               ?= development
+WARREN_API_IMAGE_NAME              ?= warren
+WARREN_API_IMAGE_TAG               ?= api-development
 WARREN_API_IMAGE_BUILD_TARGET      ?= development
 WARREN_API_SERVER_PORT             ?= 8100
-WARREN_FRONTEND_IMAGE_NAME         ?= warren-frontend
-WARREN_FRONTEND_IMAGE_TAG          ?= development
+WARREN_FRONTEND_IMAGE_NAME         ?= warren
+WARREN_FRONTEND_IMAGE_TAG          ?= frontend-development
 WARREN_FRONTEND_IMAGE_BUILD_TARGET ?= development
 WARREN_FRONTEND_IMAGE_BUILD_PATH   ?= app/staticfiles/js/build/assets/index.js
 
