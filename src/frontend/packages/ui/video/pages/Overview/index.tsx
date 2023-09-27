@@ -11,7 +11,7 @@ import Filters from "../../../components/filters";
  */
 export default () => {
   return (
-    <div>
+    <div className="c__overview">
       <Filters />
       <DailyViews />
     </div>
