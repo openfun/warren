@@ -8,7 +8,7 @@ interface ContentComponents {
 
 const Contents: ContentComponents = {
   select: lazy(() => import("../SelectContent")),
-  demo: lazy(() => import("ui/video/pages/Demo")),
+  demo: lazy(() => import("ui/video/pages/Overview/index")),
 };
 
 interface AppContentLoaderProps {
