@@ -1,0 +1,35 @@
+
+.c__card {
+    // FIXME - Remove dependencies on Cunningham variables for improved code modularity.
+    border-radius: var(--c--components--forms-input--border-radius);
+    border-width: var(--c--components--forms-input--border-width);
+    border-color: var(--c--theme--colors--greyscale-300);
+    border-style: var(--c--components--forms-input--border-style);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 0.75rem;
+    position: relative;
+
+    &__title {
+        margin-top: 1rem;
+
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 0.25rem;
+
+        h3 {
+            font-weight: 400;
+            margin: 0;
+        }
+    }
+
+    &__content {
+        min-width: 100%;
+        flex-grow: 1;
+        text-align: center;
+    }
+}
