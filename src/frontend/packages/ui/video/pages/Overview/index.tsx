@@ -1,4 +1,4 @@
-import { DailyViews } from "../../Views";
+import { DailyViews } from "../../components/Views";
 import Filters from "../../../components/filters";
 
 /**
