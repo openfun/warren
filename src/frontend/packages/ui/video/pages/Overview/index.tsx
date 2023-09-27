@@ -1,5 +1,5 @@
 import { DailyViews } from "../../components/Views";
-import Filters from "../../../components/filters";
+import { Filters } from "../../components/Filters";
 
 /**
  * A React component responsible for rendering a dashboard overview of video statistics.
