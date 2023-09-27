@@ -1,0 +1,15 @@
+
+.c__metric {
+
+  &__value {
+    font-size: 3rem;
+    line-height: 3rem;
+    margin: 1.5rem 0;
+
+    opacity: 1;
+
+    &--fetching {
+      opacity: 0.2;
+    }
+  }
+}
