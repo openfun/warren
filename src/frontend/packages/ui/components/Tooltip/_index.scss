@@ -1,0 +1,55 @@
+
+.c__tooltip__icon {
+
+  position: relative;
+
+  .material-icons {
+    --icon-size: 1rem;
+    font-size: var(--icon-size);
+    max-width: var(--icon-size);
+    display: flex;
+    align-items: center;
+
+    cursor: help;
+
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+  }
+
+  &::before, &::after {
+    --scale: 0;
+    --opacity: 0;
+    --arrow-size: 10px;
+    // FIXME - Centralize color variables for better maintainability.
+    --color-tooltip: black;
+    color: white;
+    position: absolute;
+    top: -.25rem;
+    left: 0;
+    opacity: var(--opacity);
+    transform: translateX(var(--translate-x, 0)) translateY(var(--translate-y, 0)) scale(var(--scale));
+    transition: 50ms transform, 50ms opacity;
+    transform-origin: bottom left;
+    border-radius: 0.3rem;
+    z-index: 1;
+  }
+
+  &::before {
+    --translate-y: 1.5rem;
+    --translate-x: -50%;
+    content: attr(data-tooltip);
+    font-size: 1rem;
+    padding: .7rem;
+    width: max-content;
+    max-width: 16rem;
+    background-color: var(--color-tooltip);
+    color: white;
+  }
+
+  &:hover::before,
+  &:hover::after {
+    --scale: 1;
+    --opacity: 1;
+  }
+}
