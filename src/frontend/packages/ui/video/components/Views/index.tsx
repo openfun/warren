@@ -2,10 +2,10 @@ import React, { useMemo } from "react";
 import type { EChartsOption } from "echarts-for-react";
 
 import cloneDeep from "lodash.clonedeep";
-import useFilters from "../../../hooks/useFilters";
 import { Line } from "../../../components/Plots/Line";
 import { VideoViewsResponse } from "../../types";
 import { useVideosViews } from "../../api/getVideoViews";
+import useFilters from "../../hooks/useFilters";
 
 type Series = {
   id: string;

@@ -1,3 +1,5 @@
-@forward 'video/pages/Overview';
 @forward 'components/Card';
 @forward 'components/Tooltip';
+
+@forward 'video/components/Filters';
+@forward 'video/pages/Overview';

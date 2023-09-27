@@ -1,12 +1,14 @@
 import React from "react";
-import { DateRangePicker, Select } from "@openfun/cunningham-react";
-import useFilters from "../hooks/useFilters";
+import { DateRangePicker, Select, Button } from "@openfun/cunningham-react";
+import useFilters from "../../hooks/useFilters";
+import { queryClient } from "../../../libs/react-query";
 
 type VideoOption = {
   value: string;
   label: string;
 };
 
+// FIXME - refactor this part with the prototype of Experience Index.
 const VIDEO_IDS = [
   "uuid://0aecfa93-cef3-45ae-b7f5-a603e9e45f50",
   "uuid://1c0c127a-f121-4bd1-8db6-918605c2645d",
@@ -20,7 +22,14 @@ const VIDEO_IDS = [
   "uuid://e151ee65-7a72-478c-ac57-8a02f19e748b",
 ];
 
-const Filters: React.FC = () => {
+/**
+ * A React functional component for filtering videos and specifying a date range.
+ *
+ * This component provides user interface elements to select videos from a list,
+ * specify a date range, and trigger a data refresh.
+ *
+ */
+export const Filters: React.FC = () => {
   const { date, setDate, setVideoIds } = useFilters();
 
   const getVideoOptions = (): VideoOption[] => {
@@ -37,16 +46,14 @@ const Filters: React.FC = () => {
 
     if (Array.isArray(value)) {
       videoIds = value;
-    } else if (value !== undefined && value !== null) {
+    } else if (value !== undefined) {
       videoIds = [value.toString()];
     }
-
     setVideoIds(videoIds);
   };
 
   const handleDateChange = (value: [string, string] | null): void => {
-    // todo - handle start at 00:00:00 and end at 23:59:59
-    // todo - component api is going to change soon. Let's wait for its change.
+    // FIXME - handle start at 00:00:00 and end at 23:59:59
     if (value) {
       setDate(value);
     } else {
@@ -55,7 +62,7 @@ const Filters: React.FC = () => {
   };
 
   return (
-    <div style={{ display: "flex", gap: "1rem" }}>
+    <div className="c__filters">
       <Select
         label="Videos"
         defaultValue={VIDEO_IDS[0]}
@@ -64,12 +71,19 @@ const Filters: React.FC = () => {
         onChange={(e) => handleVideoIdsChange(e.target.value)}
       />
       <DateRangePicker
+        className="c__filters__range-picker"
         startLabel="Start"
         endLabel="End"
         value={date}
         onChange={(value) => handleDateChange(value)}
       />
+      <Button
+        className="c__filters__refresh"
+        aria-label="Refresh dashboard"
+        color="tertiary"
+        icon={<span className="material-icons">cached</span>}
+        onClick={() => queryClient.refetchQueries({ type: "active" })}
+      />
     </div>
   );
 };
-export default Filters;
