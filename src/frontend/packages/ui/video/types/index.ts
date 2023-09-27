@@ -8,3 +8,10 @@ export type VideoViewsResponse = {
   total: number;
   counts: Array<VideoViewsResponseItem>;
 };
+
+export type VideoViewsQueryParams = {
+  since: string;
+  until: string;
+  unique?: boolean;
+  complete?: boolean;
+};
