@@ -32,6 +32,14 @@ COPY --from=builder /install /usr/local
 # Copy runtime-required files
 COPY . /app/
 
+# Clean up frontend static files
+# Nota bene: it requires that the frontend application to be already built
+RUN rm -fr /app/staticfiles/warren/* && mkdir -p /app/staticfiles/warren/assets/
+COPY ./staticfiles/warren/assets/index.js \
+        ./staticfiles/warren/assets/index-*.js \
+        ./staticfiles/warren/assets/index.css \
+        /app/staticfiles/warren/assets/
+
 # Prepare production run using gunicorn
 RUN mkdir -p /usr/local/etc/gunicorn
 COPY ./docker/files/usr/local/etc/gunicorn/warren.py /usr/local/etc/gunicorn/warren.py

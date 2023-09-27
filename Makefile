@@ -45,7 +45,7 @@ WARREN_API_TEST_DB_NAME            ?= test-warren-api
 WARREN_FRONTEND_IMAGE_NAME         ?= warren
 WARREN_FRONTEND_IMAGE_TAG          ?= frontend-development
 WARREN_FRONTEND_IMAGE_BUILD_TARGET ?= development
-WARREN_FRONTEND_IMAGE_BUILD_PATH   ?= app/staticfiles/js/build/assets/index.js
+WARREN_FRONTEND_IMAGE_BUILD_PATH   ?= app/staticfiles/warren/assets/index.js
 
 
 # ==============================================================================
@@ -92,7 +92,7 @@ bootstrap: \
   data/statements.jsonl.gz \
   build \
   migrate-api \
-	create-api-test-db \
+  create-api-test-db \
   migrate-app \
   fixtures
 .PHONY: bootstrap
@@ -105,7 +105,10 @@ build: \
 .PHONY: build
 
 build-docker-app: ## build the app container
-build-docker-app: .env
+build-docker-app: \
+  .env \
+  build-docker-frontend \
+  build-frontend
 	WARREN_APP_IMAGE_BUILD_TARGET=$(WARREN_APP_IMAGE_BUILD_TARGET) \
 	WARREN_APP_IMAGE_NAME=$(WARREN_APP_IMAGE_NAME) \
 	WARREN_APP_IMAGE_TAG=$(WARREN_APP_IMAGE_TAG) \
