@@ -7,6 +7,7 @@ import {
   TotalViewers,
   CompleteViewers,
 } from "../../components/Metrics";
+import { VideosData } from "../../components/Datagrid";
 
 /**
  * A React component responsible for rendering a dashboard overview of video statistics.
@@ -27,6 +28,7 @@ export default () => {
         <CompleteViewers />
       </Autogrid>
       <DailyViews />
+      <VideosData />
     </div>
   );
 };
