@@ -8,6 +8,7 @@ from urllib.parse import unquote
 from django.conf import settings
 from django.core.exceptions import BadRequest, PermissionDenied
 from django.http import HttpRequest, HttpResponse
+from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
@@ -136,14 +137,20 @@ class LTIConfigView(TemplateView):
 
     def get_context_data(self, **kwargs):
         """Get context data for rendering the template."""
+        host = self.request.get_host()
+        icon_scheme_relative_url = (
+            f"//{host}{static(settings.LTI_CONFIG_ICON)}"
+            if settings.LTI_CONFIG_ICON
+            else ""
+        )
         return {
             "code": settings.LTI_CONFIG_TITLE.lower()
             if settings.LTI_CONFIG_TITLE
             else None,
             "contact_email": settings.LTI_CONFIG_CONTACT_EMAIL,
             "description": settings.LTI_CONFIG_DESCRIPTION,
-            "host": self.request.get_host(),
-            "icon_url": settings.LTI_CONFIG_ICON,
+            "host": host,
+            "icon_scheme_relative_url": icon_scheme_relative_url,
             "title": settings.LTI_CONFIG_TITLE,
             "url": settings.LTI_CONFIG_URL,
         }
