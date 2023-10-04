@@ -13,9 +13,11 @@ export default () => {
       method="POST"
       aria-label="select"
     >
-      {Object.entries(appData.lti_select_form_data).map(([name, value]) => (
-        <input key={name} type="hidden" name={name} value={value} />
-      ))}
+      <input
+        type="hidden"
+        name="lti_select_form_jwt"
+        value={appData.lti_select_form_jwt}
+      />
       <Select
         name="selection"
         label="Selected view"
