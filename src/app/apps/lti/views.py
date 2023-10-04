@@ -20,9 +20,10 @@ from lti_toolbox.lti import LTI
 from lti_toolbox.models import LTIPassport
 from lti_toolbox.views import BaseLTIView
 from oauthlib import oauth1
+from rest_framework_simplejwt.exceptions import TokenError
 
 from .forms import BaseLTIUserForm
-from .token import LTIRefreshToken
+from .token import LTIContentItemSelectionToken, LTIRefreshToken
 
 logger = logging.getLogger(__name__)
 
@@ -185,13 +186,12 @@ class LTISelectView(BaseLTIView, RenderMixin, TokenMixin):
             raise PermissionDenied
 
         lti_select_form_data["lti_message_type"] = LTIMessageType.SELECTION_RESPONSE
-
-        # todo - sign lti_select_form_data with an access token.
+        signed_form_data = LTIContentItemSelectionToken.from_dict(lti_select_form_data)
 
         self.app_data = {
             "lti_route": "select",
             "lti_select_form_action_url": reverse("lti:lti-respond-view"),
-            "lti_select_form_data": lti_select_form_data,
+            "lti_select_form_jwt": str(signed_form_data),
             **jwt,
         }
 
@@ -220,7 +220,17 @@ class LTIRespondView(TemplateResponseMixin, View):
     def post(self, request, *args, **kwargs):
         """Handle the POST request for Content-Item selection submission."""
         # todo - decode lti_select_form_data from a signed token.
-        lti_select_form_data = self.request.POST.copy()
+        body = self.request.POST.copy()
+
+        try:
+            lti_select_form_data = LTIContentItemSelectionToken(
+                body.get("lti_select_form_jwt", "")
+            ).lti_select_form_data
+        except TokenError as error:
+            logger.warning(
+                "The LTI select form token is either invalid, expired, or malformed"
+            )
+            raise PermissionDenied from error
 
         content_item_return_url = lti_select_form_data.get("content_item_return_url")
 
@@ -236,7 +246,7 @@ class LTIRespondView(TemplateResponseMixin, View):
             if "oauth" not in key
         }
 
-        selection = lti_select_form_data.get("selection")
+        selection = body.get("selection")
 
         if not selection:
             logger.debug("LTI response failed with error: no selection")

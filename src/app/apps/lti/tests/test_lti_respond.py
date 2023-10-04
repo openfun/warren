@@ -10,6 +10,8 @@ from lti_toolbox.factories import LTIConsumerFactory, LTIPassportFactory
 from lti_toolbox.models import LTIPassport
 from lti_toolbox.utils import sign_parameters
 
+from ..token import LTIContentItemSelectionToken
+
 
 class LTIRespondViewTestCase(TestCase):
     """Test the LTI respond view."""
@@ -34,11 +36,16 @@ class LTIRespondViewTestCase(TestCase):
             self._passport, lti_select_form_data, "http://testserver.com/lti/select"
         )
 
-        signed_parameters.update({"selection": "demo"})
+        body = {
+            "lti_select_form_jwt": str(
+                LTIContentItemSelectionToken.from_dict(signed_parameters)
+            ),
+            "selection": "demo",
+        }
 
         response = self.client.post(
             "/lti/respond",
-            signed_parameters,
+            body,
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "<html>")
@@ -97,9 +104,15 @@ class LTIRespondViewTestCase(TestCase):
             self._passport, lti_select_form_data, "http://testserver.com/lti/select"
         )
 
+        body = {
+            "lti_select_form_jwt": str(
+                LTIContentItemSelectionToken.from_dict(signed_parameters)
+            ),
+        }
+
         response = self.client.post(
             "/lti/respond",
-            signed_parameters,
+            body,
         )
         self.assertEqual(response.status_code, 400)
         mock_logger.assert_called_with("LTI response failed with error: no selection")
@@ -127,11 +140,16 @@ class LTIRespondViewTestCase(TestCase):
             mocked_passport, lti_select_form_data, "http://testserver.com/lti/select"
         )
 
-        signed_parameters.update({"selection": "demo"})
+        body = {
+            "lti_select_form_jwt": str(
+                LTIContentItemSelectionToken.from_dict(signed_parameters)
+            ),
+            "selection": "demo",
+        }
 
         response = self.client.post(
             "/lti/respond",
-            signed_parameters,
+            body,
         )
         context = response.context_data
         form_data = context.get("form_data")
@@ -139,7 +157,7 @@ class LTIRespondViewTestCase(TestCase):
         self.assertEqual(mock_timestamp.return_value, form_data.get("oauth_timestamp"))
         self.assertEqual(mock_nonce.return_value, form_data.get("oauth_nonce"))
         self.assertEqual(
-            "9Nn4MRLzOLV4/tSWzQwMGttG60Y=", form_data.get("oauth_signature")
+            "yVrLAIsJsHX7ar59fz5QaQws01A=", form_data.get("oauth_signature")
         )
 
     @mock.patch.object(Logger, "debug")
@@ -151,13 +169,49 @@ class LTIRespondViewTestCase(TestCase):
             self._passport, lti_select_form_data, "http://testserver.com/lti/select"
         )
 
-        signed_parameters.update({"selection": "demo"})
+        body = {
+            "lti_select_form_jwt": str(
+                LTIContentItemSelectionToken.from_dict(signed_parameters)
+            ),
+            "selection": "demo",
+        }
 
         response = self.client.post(
             "/lti/respond",
-            signed_parameters,
+            body,
         )
         self.assertEqual(response.status_code, 400)
         mock_logger.assert_called_with(
             "LTI response failed with error: missing content-item return url"
+        )
+
+    @mock.patch.object(Logger, "warning")
+    def test_views_lti_respond_missing_form_jwt(self, mock_logger):
+        """Validate that view fails when the lti_select_form_jwt is missing."""
+        response = self.client.post(
+            "/lti/respond",
+            {},
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            mock_logger.call_args_list[0],
+            mock.call(
+                "The LTI select form token is either invalid, expired, or malformed"
+            ),
+        )
+
+    @mock.patch.object(Logger, "warning")
+    def test_views_lti_respond_malformed_form_jwt(self, mock_logger):
+        """Validate that view fails when the lti_select_form_jwt is malformed."""
+        response = self.client.post(
+            "/lti/respond",
+            {"lti_select_form_jwt": str(LTIContentItemSelectionToken())},
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(
+            mock_logger.call_args_list[0],
+            mock.call(
+                "The LTI select form token is either invalid, expired, or malformed"
+            ),
         )

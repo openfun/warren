@@ -237,6 +237,14 @@ class Base(Configuration):
         "DEFAULT_VERSIONING_CLASS": "rest_framework.versioning.URLPathVersioning",
     }
 
+    LTI_ACCESS_TOKEN_LIFETIME = timedelta(
+        seconds=values.FloatValue(
+            default=86400,  # 24 hours
+            environ_name="WARREN_APP_LTI_ACCESS_TOKEN_LIFETIME",
+            environ_prefix=None,
+        )
+    )
+
     SIMPLE_JWT = {
         "ACCESS_TOKEN_LIFETIME": timedelta(
             seconds=values.FloatValue(
