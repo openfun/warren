@@ -226,8 +226,7 @@ class Base(Configuration):
     LTI_CONFIG_DESCRIPTION = values.Value(
         "An opensource visualization platform for learning analytics."
     )
-    # todo : update it with a favicon
-    LTI_CONFIG_ICON = values.Value()
+    LTI_CONFIG_ICON = values.Value("warren_52x52.svg")
     LTI_CONFIG_URL = values.Value()
     LTI_CONFIG_CONTACT_EMAIL = values.Value()
 
