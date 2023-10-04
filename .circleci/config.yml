@@ -591,7 +591,7 @@ workflows:
       - build-api:
           matrix:
             parameters:
-              python-image: [python:3.8, python:3.9, python:3.10, python:3.11]
+              python-image: [python:3.8, python:3.9, python:3.10, python:3.11, python:3.12]
           filters:
             tags:
               only: /.*/
@@ -604,7 +604,7 @@ workflows:
       - test-api:
           matrix:
             parameters:
-              python-image: [python:3.8, python:3.9, python:3.10, python:3.11]
+              python-image: [python:3.8, python:3.9, python:3.10, python:3.11, python:3.12]
           requires:
             - build-api
           filters:
@@ -618,7 +618,7 @@ workflows:
       - build-app:
           matrix:
             parameters:
-              python-image: [python:3.8, python:3.9, python:3.10, python:3.11]
+              python-image: [python:3.8, python:3.9, python:3.10, python:3.11, python:3.12]
           filters:
             tags:
               only: /.*/
@@ -631,7 +631,7 @@ workflows:
       - test-app:
           matrix:
             parameters:
-              python-image: [python:3.8, python:3.9, python:3.10, python:3.11]
+              python-image: [python:3.8, python:3.9, python:3.10, python:3.11, python:3.12]
           requires:
             - build-app
           filters:
