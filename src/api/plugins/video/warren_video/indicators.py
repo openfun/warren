@@ -20,6 +20,9 @@ class BaseDailyEvent(BaseIndicator):
     This class defines a base daily event indicator. Given an event type, a video,
     and a date range, it calculates the total number of events and the number
     of events per day.
+
+    Required: Indicators inheriting from this base class must declare a 'verb_id'
+    class attribute with their xAPI verb ID.
     """
 
     def __init__(
@@ -41,6 +44,12 @@ class BaseDailyEvent(BaseIndicator):
         self.unique = unique
         self.video_id = video_id
         self.date_range = date_range
+
+    def __init_subclass__(cls, **kwargs):
+        """Ensure subclasses have a 'verb_id' class attribute."""
+        super().__init_subclass__(**kwargs)
+        if not hasattr(cls, "verb_id"):
+            raise TypeError("Indicators must declare a 'verb_id' class attribute")
 
     def get_lrs_query(
         self,
