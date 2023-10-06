@@ -1,10 +1,12 @@
+@use "./components/Header";
+@use "./components/SelectContent";
+
 @import "@openfun/cunningham-react/fonts";
 @import "@openfun/cunningham-react/icons";
 @import "@openfun/cunningham-react/style";
 @import "cunningham-tokens";
 
-@import "./components/Header";
-@import "./components/SelectContent";
+@import "ui/index";
 
 :root {
   @extend .bg-greyscale-100;
