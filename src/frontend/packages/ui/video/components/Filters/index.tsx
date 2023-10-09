@@ -1,7 +1,9 @@
 import React from "react";
 import { DateRangePicker, Select, Button } from "@openfun/cunningham-react";
+import dayjs from "dayjs";
 import useFilters from "../../hooks/useFilters";
 import { queryClient } from "../../../libs/react-query";
+import { formatDates, getDefaultDates } from "../../utils";
 
 type VideoOption = {
   value: string;
@@ -53,11 +55,11 @@ export const Filters: React.FC = () => {
   };
 
   const handleDateChange = (value: [string, string] | null): void => {
-    // FIXME - handle start at 00:00:00 and end at 23:59:59
     if (value) {
-      setDate(value);
+      setDate(formatDates(value));
     } else {
-      setDate(["", ""]);
+      const defaultDates = getDefaultDates();
+      setDate(defaultDates);
     }
   };
 
@@ -74,6 +76,7 @@ export const Filters: React.FC = () => {
         className="c__filters__range-picker"
         startLabel="Start"
         endLabel="End"
+        maxValue={dayjs().endOf("day").format()}
         value={date}
         onChange={(value) => handleDateChange(value)}
       />

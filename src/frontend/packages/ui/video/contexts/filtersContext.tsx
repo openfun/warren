@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { getDefaultDates } from "../utils";
 
 export interface FiltersContextType {
   date: [string, string];
@@ -16,7 +17,9 @@ export interface FiltersContextType {
 const FiltersContext = createContext<FiltersContextType | null>(null);
 
 export const FiltersProvider: React.FC<{ children: any }> = ({ children }) => {
-  const [date, setDate] = useState<[string, string]>(["", ""]);
+  const defaultDates = getDefaultDates();
+  // todo - Rethink naming + format the dates are stored
+  const [date, setDate] = useState<[string, string]>(defaultDates);
   const [videoIds, setVideoIds] = useState<Array<string>>([]);
 
   const value = useMemo(
