@@ -1,0 +1,40 @@
+
+.c__comparison {
+
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 2rem;
+
+  --icon-size: 1.2rem;
+
+  &--fetching {
+    opacity: 0.2;
+  }
+
+  &--negative:not(&--fetching) {
+    color: red;
+  }
+
+  &--positive:not(&--fetching) {
+    color: green;
+  }
+
+  .material-icons {
+    font-size: var(--icon-size);
+    max-width: var(--icon-size);
+    display: flex;
+    align-items: center;
+
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+  }
+
+  p {
+    font-size: var(--icon-size);
+    margin: 0;
+  }
+}
