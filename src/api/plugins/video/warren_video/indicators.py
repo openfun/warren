@@ -75,6 +75,22 @@ class BaseDailyEvent(BaseIndicator):
             return statements.drop_duplicates(subset="actor.uid")
         return statements
 
+    def to_date_range_timezone(self, statements: pd.DataFrame) -> pd.DataFrame:
+        """Convert 'timestamps' column to the DatetimeRange's timezone."""
+        statements = statements.copy()
+        statements["timestamp"] = statements["timestamp"].dt.tz_convert(
+            self.date_range.tzinfo
+        )
+        return statements
+
+    @staticmethod
+    def extract_date_from_timestamp(statements: pd.DataFrame) -> pd.DataFrame:
+        """Convert the 'timestamp' column to a 'date' column with its date values."""
+        statements = statements.copy()
+        statements["date"] = statements["timestamp"].dt.date
+        statements.drop(["timestamp"], axis=1, inplace=True)
+        return statements
+
     async def compute(self) -> DailyCounts:
         """Fetch statements and computes the current indicator.
 
@@ -92,6 +108,8 @@ class BaseDailyEvent(BaseIndicator):
         statements = pipe(
             StatementsTransformer.preprocess,
             self.filter_statements,
+            self.to_date_range_timezone,
+            self.extract_date_from_timestamp,
         )(statements)
 
         # Compute daily counts from 'statements' DataFrame

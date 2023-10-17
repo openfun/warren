@@ -22,7 +22,7 @@ def test_statements_transformer_normalize():
     assert len(statements) == len(raw_statements)
 
 
-def test_statements_transformer_add_date_column():
+def test_statements_transformer_to_datetime():
     """Test the parsing of 2 simple statements, with the addition of a "date" column."""
     raw_statements = [
         BaseXapiStatementFactory.build(
@@ -34,12 +34,20 @@ def test_statements_transformer_add_date_column():
     ]
 
     statements = StatementsTransformer.normalize(raw_statements)
-    statements = StatementsTransformer.add_date_column(statements)
+    statements = StatementsTransformer.to_datetime(statements)
 
     assert type(statements) is pd.DataFrame
     assert len(statements) == len(raw_statements)
-    assert statements["date"].equals(
-        pd.to_datetime(pd.Series(["2023-01-01", "2023-01-03"], name="date")).dt.date
+    assert statements["timestamp"].equals(
+        pd.to_datetime(
+            pd.Series(
+                [
+                    "2023-01-01T00:10:00.000000+00:00",
+                    "2023-01-03T00:10:00.000000+00:00",
+                ],
+                name="timestamp",
+            )
+        )
     )
 
 
@@ -105,7 +113,7 @@ def test_statements_transformer_add_actor_uid():
     ]
 
     statements = StatementsTransformer.normalize(raw_statements)
-    statements = StatementsTransformer.add_date_column(statements)
+    statements = StatementsTransformer.to_datetime(statements)
     statements = StatementsTransformer.add_actor_uid_column(statements)
 
     assert type(statements) == pd.DataFrame
@@ -183,13 +191,19 @@ def test_statements_transformer_preprocess_statements_workflow():
     assert type(statements) == pd.DataFrame
     assert "actor.uid" in statements.columns
     assert statements["actor.uid"].notna
-    assert statements["date"].equals(
+    assert statements["timestamp"].equals(
         pd.to_datetime(
             pd.Series(
-                ["2023-01-01", "2023-01-02", "2023-01-02", "2023-01-03", "2023-01-03"],
-                name="date",
+                [
+                    "2023-01-01T00:10:00.000000+00:00",
+                    "2023-01-02T00:10:00.000000+00:00",
+                    "2023-01-02T00:10:00.000000+00:00",
+                    "2023-01-03T00:10:00.000000+00:00",
+                    "2023-01-03T00:10:00.000000+00:00",
+                ],
+                name="timestamp",
             )
-        ).dt.date
+        )
     )
     # Check that 2 identical actors have the same UID
     ids_john = statements[statements["actor.account.name"] == "John"]["actor.uid"]

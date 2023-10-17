@@ -112,6 +112,7 @@ async def test_views_backend_query(
     # Define 3 video views fixtures
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
     video_views_fixtures = [
+        {"timestamp": "2019-12-31T20:00:00.000+00:00", "time": 100},
         {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 100},
         {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
         {"timestamp": "2020-01-02T00:00:00.000+00:00", "time": 300},
@@ -149,8 +150,8 @@ async def test_views_backend_query(
     response = await http_client.get(
         url=f"/api/v1/video/{video_id}/views",
         params={
-            "since": "2020-01-01",
-            "until": "2020-01-03",
+            "since": "2020-01-01T00:00:00+05:00",
+            "until": "2020-01-03T23:59:00+05:00",
         },
         headers=auth_headers,
     )
@@ -159,9 +160,9 @@ async def test_views_backend_query(
 
     # Counting all views is expected
     expected_video_views = {
-        "total": 3,
+        "total": 4,
         "counts": [
-            {"date": "2020-01-01", "count": 2},
+            {"date": "2020-01-01", "count": 3},
             {"date": "2020-01-02", "count": 1},
             {"date": "2020-01-03", "count": 0},
         ],
@@ -178,7 +179,7 @@ async def test_unique_views_backend_query(
     # Define 3 video views fixtures
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
     video_views_fixtures = [
-        {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 100},
+        {"timestamp": "2019-12-31T22:00:00.000+00:00", "time": 100},
         {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
         {"timestamp": "2020-01-02T00:00:00.000+00:00", "time": 300},
     ]
@@ -221,8 +222,8 @@ async def test_unique_views_backend_query(
     response = await http_client.get(
         url=f"/api/v1/video/{video_id}/views?unique=true",
         params={
-            "since": "2020-01-01",
-            "until": "2020-01-03",
+            "since": "2020-01-01T00:00:00+02:00",
+            "until": "2020-01-03T23:59:00+02:00",
         },
         headers=auth_headers,
     )
@@ -342,6 +343,7 @@ async def test_downloads_backend_query(
     # Define 3 video downloads fixtures
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
     video_download_timestamps = [
+        "2019-12-31T23:00:00.000+00:00",
         "2020-01-01T00:00:00.000+00:00",
         "2020-01-01T00:00:30.000+00:00",
         "2020-01-02T00:00:00.000+00:00",
@@ -378,8 +380,8 @@ async def test_downloads_backend_query(
     response = await http_client.get(
         url=f"/api/v1/video/{video_id}/downloads",
         params={
-            "since": "2020-01-01",
-            "until": "2020-01-03",
+            "since": "2020-01-01T00:00:00+02:00",
+            "until": "2020-01-03T00:00:00+02:00",
         },
         headers=auth_headers,
     )
@@ -388,9 +390,9 @@ async def test_downloads_backend_query(
 
     # Counting all downloads is expected
     expected_video_downloads = {
-        "total": 3,
+        "total": 4,
         "counts": [
-            {"date": "2020-01-01", "count": 2},
+            {"date": "2020-01-01", "count": 3},
             {"date": "2020-01-02", "count": 1},
             {"date": "2020-01-03", "count": 0},
         ],
