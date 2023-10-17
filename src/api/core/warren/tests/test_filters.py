@@ -5,6 +5,7 @@ import datetime
 import arrow
 import pytest
 from fastapi import HTTPException
+from freezegun import freeze_time
 from pydantic import ValidationError
 
 from warren.conf import settings
@@ -46,21 +47,38 @@ def test_datetime_range_model():
     ):
         DatetimeRange(since="2023-01-02", until="2023-01-01")
 
+    with pytest.raises(
+        ValidationError,
+        match="Invalid date range: since and until cannot have different timezones",
+    ):
+        DatetimeRange(
+            since="2023-01-01T00:00:00+02:00", until="2023-01-03T22:00:00+04:00"
+        )
+
+    with pytest.raises(
+        ValidationError,
+        match="Invalid date range: since and until cannot have different timezones",
+    ):
+        period.since = arrow.get("2023-01-01T00:00:00+04:00")
+
 
 # pylint: disable=no-member
 def test_datetime_range_model_defaults(monkeypatch):
     """Test the DatetimeRange model defaults."""
-    now = arrow.utcnow()
-    monkeypatch.setattr(arrow, "utcnow", lambda: now)
+    utcnow = arrow.utcnow()
+    monkeypatch.setattr(arrow, "utcnow", lambda: utcnow)
 
     # Since and until fields are not required. We should not raise exceptions
     # if not all fields are provided.
     period = DatetimeRange()
-    assert period.since == now.shift(days=-7)
-    assert period.until == now
+    assert period.since == utcnow.shift(days=-7)
+    assert period.until == utcnow
 
-    period = DatetimeRange(since=now.shift(months=-6))
-    assert period.until == now
+    with freeze_time("2023-01-14T12:00:00+02:00"):
+        now = arrow.now(tz="Europe/Paris")
+        period = DatetimeRange(since=now.shift(months=-6))
+        assert period.until.tzinfo == now.tzinfo
+        assert period.until == now
 
     period = DatetimeRange(until="2023.01.02")
     assert period.since == period.until - datetime.timedelta(days=7)
@@ -75,6 +93,11 @@ def test_base_query_filters_model():
     # Date/time range consistency
     with pytest.raises(HTTPException, match="422"):
         BaseQueryFilters(since="2023-01-11", until="2023-01-10")
+
+    with pytest.raises(HTTPException, match="422"):
+        BaseQueryFilters(
+            since="2023-01-01T00:00:00+02:00", until="2023-01-03T22:00:00+04:00"
+        )
 
     # Check Date/time range max span
     now = arrow.utcnow()

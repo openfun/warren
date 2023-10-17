@@ -18,22 +18,32 @@ class DatetimeRange(BaseModel):
         """Datetime range model configuration."""
 
         arbitrary_types_allowed = True
+        validate_assignment = True
 
     @root_validator(pre=True)
     @classmethod
     def set_datetime_range_defaults(cls, values):
         """Set date/time range defaults to the last DEFAULT_DATETIMERANGE_SPAN days."""
-        now = arrow.utcnow()
         since, until = map(values.get, ["since", "until"])
-        if until is None:
-            until = Datetime.validate(now)
-        else:
+
+        if since is None and until is None:
+            until = arrow.utcnow()
+            since = until - settings.DEFAULT_DATETIMERANGE_SPAN
+
+        elif until is None:
+            since = Datetime.validate(since)
+            until = arrow.now(since.tzinfo)
+
+        elif since is None:
             until = Datetime.validate(until)
-        values["until"] = until
-        if since is None:
-            values["since"] = Datetime.validate(
-                until - settings.DEFAULT_DATETIMERANGE_SPAN
-            )
+            since = until - settings.DEFAULT_DATETIMERANGE_SPAN
+
+        values.update(
+            {
+                "since": since,
+                "until": until,
+            }
+        )
         return values
 
     @root_validator
@@ -42,6 +52,10 @@ class DatetimeRange(BaseModel):
         """Check date/time range consistency."""
         if values.get("since") > values.get("until"):
             raise ValueError("Invalid date range: since cannot be after until")
+        if values.get("since").tzinfo != values.get("until").tzinfo:
+            raise ValueError(
+                "Invalid date range: since and until cannot have different timezones"
+            )
         return values
 
 
