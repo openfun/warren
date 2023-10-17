@@ -24,13 +24,10 @@ class StatementsTransformer:
         return pd.json_normalize(statements)
 
     @staticmethod
-    def add_date_column(statements: pd.DataFrame) -> pd.DataFrame:
-        """Add a 'date' column computed from statement's timestamp."""
+    def to_datetime(statements: pd.DataFrame) -> pd.DataFrame:
+        """Convert statement's timestamp from string to datetime."""
         statements = statements.copy()
-        # Disable chained assignment warning to make the transformation inplace
-        with pd.option_context("mode.chained_assignment", None):
-            # Transform 'timestamp' column into a date with the format (YYYY-MM-DD)
-            statements["date"] = pd.to_datetime(statements["timestamp"]).dt.date
+        statements["timestamp"] = pd.to_datetime(statements["timestamp"])
         return statements
 
     @staticmethod
@@ -68,5 +65,5 @@ class StatementsTransformer:
         return pipe(
             StatementsTransformer.normalize,
             StatementsTransformer.add_actor_uid_column,
-            StatementsTransformer.add_date_column,
+            StatementsTransformer.to_datetime,
         )(statements)
