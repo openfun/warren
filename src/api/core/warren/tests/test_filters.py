@@ -4,6 +4,7 @@ import datetime
 
 import arrow
 import pytest
+from dateutil.tz import tzoffset, tzutc
 from fastapi import HTTPException
 from freezegun import freeze_time
 from pydantic import ValidationError
@@ -82,6 +83,24 @@ def test_datetime_range_model_defaults(monkeypatch):
 
     period = DatetimeRange(until="2023.01.02")
     assert period.since == period.until - datetime.timedelta(days=7)
+
+
+def test_datetime_range_tzinfo():
+    """Test the DatetimeRange tzinfo property."""
+    period_utc = DatetimeRange(
+        since=arrow.get("2023-01-01"), until=arrow.get("2023-01-02")
+    )
+    assert period_utc.tzinfo == tzutc()
+
+    period_default = DatetimeRange()
+    assert period_default.tzinfo == tzutc()
+
+    period_timezone = DatetimeRange(
+        since=arrow.get("2023-01-01T00:00:00+02:00"),
+        until=arrow.get("2023-01-02T00:00:00+02:00"),
+    )
+    # 7200 seconds is equal to 2 hours
+    assert period_timezone.tzinfo == tzoffset(None, 7200)
 
 
 def test_base_query_filters_model():

@@ -58,6 +58,11 @@ class DatetimeRange(BaseModel):
             )
         return values
 
+    @property
+    def tzinfo(self):
+        """Return the shared timezone information of the date range."""
+        return self.since.tzinfo
+
 
 class BaseQueryFilters(DatetimeRange):
     """Common query filters that every API endpoint should implement."""
