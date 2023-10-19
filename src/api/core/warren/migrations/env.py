@@ -1,5 +1,5 @@
 """Alembic configuration."""
-
+# ruff: noqa: I001
 from logging.config import fileConfig
 
 from alembic import context
@@ -7,7 +7,9 @@ from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
 from warren.conf import settings
 
-# Nota bene: be sure to import all models that needs to be migrated here
+# Nota bene: be sure to import all models that need to be migrated here
+from warren.xi.models import Experience, Relation  # noqa: F401
+
 from warren.indicators.models import CacheEntry  # noqa: F401
 
 # this is the Alembic Config object, which provides

@@ -10,4 +10,5 @@ from .fixtures.db import (
     db_engine,
     db_session,
     force_db_test_session,
+    override_db_test_session,
 )

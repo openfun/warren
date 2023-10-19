@@ -42,3 +42,8 @@ loggers:
       - default
     level: DEBUG
     propagate: false
+  warren.xi.routers:
+    handlers:
+      - default
+    level: DEBUG
+    propagate: false
