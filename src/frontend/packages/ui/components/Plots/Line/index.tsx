@@ -5,7 +5,6 @@ import { Card } from "../../Card";
 type LineProps = {
   option: EChartsOption;
   title?: string;
-  isLoading?: boolean;
 };
 
 /**
@@ -15,13 +14,8 @@ type LineProps = {
  * @returns {JSX.Element} The JSX for the Line component.
  */
 // FIXME - overcome ReactECharts limitations, issue 43 is opened.
-export const Line: React.FC<LineProps> = ({ option, title, isLoading }) => (
+export const Line: React.FC<LineProps> = ({ option, title }) => (
   <Card title={title}>
-    <ReactECharts
-      option={option}
-      notMerge={true}
-      style={{ height: 500 }}
-      showLoading={isLoading}
-    />
+    <ReactECharts option={option} notMerge={true} style={{ height: 500 }} />
   </Card>
 );

@@ -1,0 +1,48 @@
+@use 'ui/utils' as *;
+
+.c__header {
+  // FIXME - Centralize and reorganize variables for better maintainability.
+  $border-color: #dadce0;
+  $body-padding: 8px;
+  $separator-margin: 1.5rem;
+
+  height: 4rem;
+  border-bottom: px-to-rem(1px) solid $border-color;
+  background-color: white;
+
+  padding: 0 0.5rem;
+  margin: auto $body-padding*-1;
+
+  display: flex;
+  align-items: center;
+
+  z-index: 2;
+  position: relative;
+
+  &__logo-title {
+    width: calc(12rem + $separator-margin);
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+
+    margin-right: $separator-margin;
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 400;
+      // FIXME - Remove dependencies on Cunningham variables for improved code modularity.
+      color: var(--c--theme--colors--secondary-text);
+    }
+    svg {
+      height: 2.5rem;
+    }
+
+    &::after {
+      content: '';
+      height: 2rem;
+      width: px-to-rem(2);
+      background-color: $border-color;
+      margin-left: $separator-margin;
+    }
+  }
+}

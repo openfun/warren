@@ -1,0 +1,12 @@
+
+.c__loading-bar {
+  // FIXME - Centralize and reorganize variables for better maintainability.
+  $body-padding: 8px;
+  &__container {
+    // Override default styling from the library react Loading Bar
+    position: relative !important;
+    z-index: 1 !important;
+    margin: 0 $body-padding*-1;
+    width: calc(100% + 2 * $body-padding) !important
+  }
+}

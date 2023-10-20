@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import Header from "../Header";
+import { Header } from "ui/components/Header";
 import Footer from "../Footer";
 
 type Props = {
