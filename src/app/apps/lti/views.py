@@ -114,7 +114,17 @@ class LTIRequestView(BaseLTIView, RenderMixin, TokenMixin):
             raise PermissionDenied
 
         jwt = self.generate_tokens(lti_request)
-        self.app_data = {"lti_route": kwargs["selection"] or "demo", **jwt}
+        course_info = lti_request.get_course_info()
+
+        # Rename 'school_name' to a LMS-generic name
+        course_info["organization"] = course_info.pop("school_name")
+
+        self.app_data = {
+            "lti_route": kwargs["selection"] or "demo",
+            "context_title": lti_request.context_title,
+            "course_info": course_info,
+            **jwt,
+        }
 
         return self.render_to_response()
 

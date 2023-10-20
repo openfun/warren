@@ -125,7 +125,8 @@ class LTIRequestViewTestCase(TestCase):
             "lti_message_type": "basic-lti-launch-request",
             "lti_version": "LTI-1p0",
             "resource_link_id": "df7",
-            "context_id": "1",
+            "context_id": "course-v1:openfun+mathematics101+session01",
+            "context_title": "Mathematics 101",
             "lis_person_sourcedid": "1",
             "lis_person_contact_email_primary": "contact@example.com",
         }
@@ -155,6 +156,17 @@ class LTIRequestViewTestCase(TestCase):
 
         # Check that the frontend would route to the 'test' route
         self.assertEqual(context["lti_route"], "test")
+
+        # Check that the frontend would receive course and context info
+        self.assertEqual(context["context_title"], "Mathematics 101")
+        self.assertEqual(
+            context["course_info"],
+            {
+                "organization": "openfun",
+                "course_name": "mathematics101",
+                "course_run": "session01",
+            },
+        )
 
         LTIRefreshToken(context["refresh"]).verify()
         LTIAccessToken(context["access"]).verify()
