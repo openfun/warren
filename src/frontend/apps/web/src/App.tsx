@@ -8,10 +8,10 @@ const dataContext = parseDataContext();
 
 export const App = () => {
   return (
-    <Layout>
-      <AppProvider>
+    <AppProvider>
+      <Layout>
         <AppContentLoader dataContext={dataContext} />
-      </AppProvider>
-    </Layout>
+      </Layout>
+    </AppProvider>
   );
 };

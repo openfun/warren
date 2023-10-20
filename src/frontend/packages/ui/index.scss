@@ -3,6 +3,8 @@
 @forward 'components/Metrics';
 @forward 'components/Tooltip';
 @forward 'components/Comparison';
+@forward 'components/Header';
+@forward 'components/LoadingBarWrapper';
 
 @forward 'video/components/Filters';
 @forward 'video/pages/Overview';

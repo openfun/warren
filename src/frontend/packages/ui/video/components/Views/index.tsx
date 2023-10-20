@@ -62,7 +62,7 @@ export const DailyViews: React.FC = () => {
     videoIds,
   } = useFilters();
 
-  const { videoViews, isFetching } = useVideosViews(videoIds, { since, until });
+  const { videoViews } = useVideosViews(videoIds, { since, until });
 
   // Convert API response to an EChart series.
   const parseSeries = (item: VideoViewsResponse): Series => ({
@@ -91,5 +91,5 @@ export const DailyViews: React.FC = () => {
     return newOption;
   }, [videoViews]);
 
-  return <Line title="Views" option={formattedOption} isLoading={isFetching} />;
+  return <Line title="Views" option={formattedOption} />;
 };
