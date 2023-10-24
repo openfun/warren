@@ -9,9 +9,8 @@ from warren.xapi import StatementsTransformer
 from warren_video.indicators import BaseDailyEvent
 
 
-@pytest.mark.anyio
-async def test_base_daily_event_subclass_verb_id():
-    """Test __init_subclass__ for the BaseDailyEvent class."""
+def test_base_daily_event_subclass_verb_id():
+    """Test '__init_subclass__' for the BaseDailyEvent class."""
 
     class MyIndicator(BaseDailyEvent):
         verb_id = "test"
