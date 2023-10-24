@@ -39,7 +39,7 @@ async def student_activity(
         logger.error("%s: %s", message, exception)
         raise HTTPException(status_code=500, detail=message) from exception
     
-@router.get("{activity-id}/cohort/{cohort-id}")
+@router.get("{activity-id}/cohort")
 async def cohort_activity(
     activity_id: IRI,
     filters: Annotated[BaseQueryFilters, Depends()],
@@ -60,4 +60,4 @@ async def cohort_activity(
         logger.error("%s: %s", message, exception)
         raise HTTPException(status_code=500, detail=message) from exception
     
-# Add an indicator for position on the cohort
+# TODO Add an indicator for position on the cohort
