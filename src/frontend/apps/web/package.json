@@ -13,14 +13,14 @@
     "@vitejs/plugin-react": "4.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "sass": "1.69.4",
+    "sass": "1.69.5",
     "ui": "*",
     "vite": "4.5.0"
   },
   "devDependencies": {
     "@babel/core": "7.23.2",
-    "@types/node": "18.18.6",
-    "@types/react": "18.2.31",
+    "@types/node": "20.8.9",
+    "@types/react": "18.2.33",
     "@types/react-dom": "18.2.14",
     "eslint": "8.52.0",
     "eslint-config-custom": "*",
