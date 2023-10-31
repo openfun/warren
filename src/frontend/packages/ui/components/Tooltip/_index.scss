@@ -30,9 +30,10 @@
     opacity: var(--opacity);
     transform: translateX(var(--translate-x, 0)) translateY(var(--translate-y, 0)) scale(var(--scale));
     transition: 50ms transform, 50ms opacity;
-    transform-origin: bottom left;
+    transform-origin: top center;
     border-radius: 0.3rem;
     z-index: 1;
+    text-align: left;
   }
 
   &::before {

@@ -3,6 +3,7 @@ import { AxiosInstance } from "axios";
 import { VideoViewsQueryParams, VideoViewsResponse } from "../types";
 import { apiAxios } from "../../libs/axios";
 import useTokenInterceptor from "../../hooks/useTokenInterceptor";
+import { Video } from "../components/Filters";
 
 export const DEFAULT_BASE_QUERY_KEY = "videoViews";
 
@@ -38,14 +39,14 @@ type UseVideoViewsReturn = {
 /**
  * A custom hook for fetching video views data for multiple videos in parallel.
  *
- * @param {Array<string>} videoIds - An array of video IDs to fetch views for.
+ * @param {Array<Video>} videos - An array of videos to fetch views for.
  * @param {VideoViewsQueryParams} queryParams - Optional filters for the requests.
  * @param {boolean} wait - Optional flag to control the order of execution.
  * @param {string} baseQueryKey - Optional base query key.
  * @returns {UseVideoViewsReturn} An object containing the fetched data and loading status.
  */
 export const useVideosViews = (
-  videoIds: Array<string>,
+  videos: Array<Video>,
   queryParams: VideoViewsQueryParams,
   wait: boolean = false,
   baseQueryKey: string = DEFAULT_BASE_QUERY_KEY,
@@ -58,9 +59,17 @@ export const useVideosViews = (
   // Generate a query object for each video
   const queries = wait
     ? []
-    : videoIds?.map((videoId) => ({
-        queryKey: [baseQueryKey, videoId, since, until, unique, complete],
-        queryFn: () => getVideoViews(client, videoId, queryParams),
+    : videos?.map((video) => ({
+        queryKey: [
+          baseQueryKey,
+          video.id,
+          since,
+          until,
+          unique || false,
+          complete || false,
+        ],
+        queryFn: () => getVideoViews(client, video.id, queryParams),
+        staleTime: Infinity,
       }));
 
   // Use useQueries hook to fetch data for all videoIds in parallel

@@ -1,0 +1,11 @@
+
+.c__flexgrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.c__flexgrid > * {
+  flex: 1;
+  display: none;
+}

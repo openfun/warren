@@ -6,12 +6,13 @@ import React, {
   useState,
 } from "react";
 import { getDefaultDates } from "../utils";
+import { Video } from "../components/Filters";
 
 export interface FiltersContextType {
   date: [string, string];
-  videoIds: Array<string>;
+  videos: Array<Video>;
   setDate: Dispatch<SetStateAction<[string, string]>>;
-  setVideoIds: Dispatch<SetStateAction<Array<string>>>;
+  setVideos: Dispatch<SetStateAction<Array<Video>>>;
 }
 
 const FiltersContext = createContext<FiltersContextType | null>(null);
@@ -20,11 +21,11 @@ export const FiltersProvider: React.FC<{ children: any }> = ({ children }) => {
   const defaultDates = getDefaultDates();
   // todo - Rethink naming + format the dates are stored
   const [date, setDate] = useState<[string, string]>(defaultDates);
-  const [videoIds, setVideoIds] = useState<Array<string>>([]);
+  const [videos, setVideos] = useState<Array<string>>([]);
 
   const value = useMemo(
-    () => ({ date, setDate, videoIds, setVideoIds }),
-    [date, videoIds],
+    () => ({ date, setDate, videos, setVideos }),
+    [date, videos],
   );
 
   return (
