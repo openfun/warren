@@ -10,6 +10,13 @@
 
   --icon-size: 1.2rem;
 
+  &__small {
+    gap: 0.1rem;
+    min-height: 1.2rem;
+    line-height: 1.2rem;
+    --icon-size: 0.75rem;
+  }
+
   &--fetching {
     opacity: 0.2;
   }

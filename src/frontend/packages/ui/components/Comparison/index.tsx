@@ -5,7 +5,9 @@ import { MetricProps } from "../Metrics";
 const formatPercent = (percent: number) => `${(percent * 100).toFixed(0)}%`;
 
 export interface ComparisonProps
-  extends Pick<MetricProps, ["metric", "comparison"]> {}
+  extends Pick<MetricProps, ["metric", "comparison"]> {
+  size?: "medium" | "small";
+}
 
 /**
  * A React component for displaying a comparison metric with a dynamic icon and percentage change.
@@ -21,6 +23,7 @@ export interface ComparisonProps
 export const Comparison: React.FC<ComparisonProps> = ({
   metric,
   comparison,
+  size = "medium",
 }) => {
   const comparisonToNull = useMemo(() => comparison.value === 0, [comparison]);
 
@@ -43,6 +46,7 @@ export const Comparison: React.FC<ComparisonProps> = ({
   return (
     <div
       className={classNames(["c__comparison"], {
+        c__comparison__small: size === "small",
         "c__comparison--fetching": comparison.isFetching || metric.isFetching,
         "c__comparison--negative": isStrictlyNegative,
         "c__comparison--positive": isStrictlyPositive,
