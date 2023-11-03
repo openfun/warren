@@ -4,6 +4,8 @@ import { VideoViewsQueryParams, VideoViewsResponse } from "../types";
 import { apiAxios } from "../../libs/axios";
 import useTokenInterceptor from "../../hooks/useTokenInterceptor";
 
+export const DEFAULT_BASE_QUERY_KEY = "videoViews";
+
 /**
  * Retrieves video views data for a specific video with optional filters.
  *
@@ -46,7 +48,7 @@ export const useVideosViews = (
   videoIds: Array<string>,
   queryParams: VideoViewsQueryParams,
   wait: boolean = false,
-  baseQueryKey: string = "videoViews",
+  baseQueryKey: string = DEFAULT_BASE_QUERY_KEY,
 ): UseVideoViewsReturn => {
   const { since, until, unique, complete } = queryParams;
 
