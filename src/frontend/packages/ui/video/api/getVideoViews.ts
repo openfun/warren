@@ -38,11 +38,13 @@ type UseVideoViewsReturn = {
  *
  * @param {Array<string>} videoIds - An array of video IDs to fetch views for.
  * @param {VideoViewsQueryParams} queryParams - Optional filters for the requests.
+ * @param {boolean} wait - Optional flag to control the order of execution.
  * @returns {UseVideoViewsReturn} An object containing the fetched data and loading status.
  */
 export const useVideosViews = (
   videoIds: Array<string>,
   queryParams: VideoViewsQueryParams,
+  wait: boolean = false,
 ): UseVideoViewsReturn => {
   const { since, until, unique, complete } = queryParams;
 
@@ -50,10 +52,12 @@ export const useVideosViews = (
   const client = useTokenInterceptor(apiAxios);
 
   // Generate a query object for each video
-  const queries = videoIds?.map((videoId) => ({
-    queryKey: ["videoViews", videoId, since, until, unique, complete],
-    queryFn: () => getVideoViews(client, videoId, queryParams),
-  }));
+  const queries = wait
+    ? []
+    : videoIds?.map((videoId) => ({
+        queryKey: ["videoViews", videoId, since, until, unique, complete],
+        queryFn: () => getVideoViews(client, videoId, queryParams),
+      }));
 
   // Use useQueries hook to fetch data for all videoIds in parallel
   const queryResults = useQueries({ queries });
