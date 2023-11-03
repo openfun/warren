@@ -39,12 +39,14 @@ type UseVideoViewsReturn = {
  * @param {Array<string>} videoIds - An array of video IDs to fetch views for.
  * @param {VideoViewsQueryParams} queryParams - Optional filters for the requests.
  * @param {boolean} wait - Optional flag to control the order of execution.
+ * @param {string} baseQueryKey - Optional base query key.
  * @returns {UseVideoViewsReturn} An object containing the fetched data and loading status.
  */
 export const useVideosViews = (
   videoIds: Array<string>,
   queryParams: VideoViewsQueryParams,
   wait: boolean = false,
+  baseQueryKey: string = "videoViews",
 ): UseVideoViewsReturn => {
   const { since, until, unique, complete } = queryParams;
 
@@ -55,7 +57,7 @@ export const useVideosViews = (
   const queries = wait
     ? []
     : videoIds?.map((videoId) => ({
-        queryKey: ["videoViews", videoId, since, until, unique, complete],
+        queryKey: [baseQueryKey, videoId, since, until, unique, complete],
         queryFn: () => getVideoViews(client, videoId, queryParams),
       }));
 
