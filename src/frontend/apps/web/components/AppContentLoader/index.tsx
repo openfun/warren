@@ -1,4 +1,4 @@
-import React, { lazy, useMemo, Suspense } from "react";
+import React, { lazy, useMemo, Suspense, useEffect } from "react";
 import useLTIContext from "ui/hooks/useLTIContext";
 import { AppData } from "ui/types";
 
@@ -17,7 +17,10 @@ interface AppContentLoaderProps {
 
 export const AppContentLoader = ({ dataContext }: AppContentLoaderProps) => {
   const { setAppData } = useLTIContext();
-  setAppData(dataContext);
+
+  useEffect(() => {
+    setAppData(dataContext);
+  }, []);
 
   const Content = useMemo(() => {
     // todo - render a fallback if the lti route is invalid
