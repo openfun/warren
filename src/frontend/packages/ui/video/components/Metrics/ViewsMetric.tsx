@@ -1,7 +1,11 @@
 import React, { useMemo } from "react";
 import dayjs from "dayjs";
+import { useIsFetching } from "@tanstack/react-query";
 import useFilters from "../../hooks/useFilters";
-import { useVideosViews } from "../../api/getVideoViews";
+import {
+  DEFAULT_BASE_QUERY_KEY,
+  useVideosViews,
+} from "../../api/getVideoViews";
 import { formatDates, sumViews } from "../../utils";
 import { Metric, MetricProps } from "../../../components/Metrics";
 
@@ -48,6 +52,7 @@ export const ViewsMetric: React.FC<ViewsMetricProps> = ({
   unique,
   complete,
 }) => {
+  const fetchingCount = useIsFetching({ queryKey: [DEFAULT_BASE_QUERY_KEY] });
   const {
     date: [since, until],
     videoIds,
@@ -66,13 +71,24 @@ export const ViewsMetric: React.FC<ViewsMetricProps> = ({
     () => previousPeriod(since, until),
     [since, until],
   );
-  const { videoViews: comparisonData, isFetching: isComparisonFetching } =
-    useVideosViews(videoIds, {
-      since: comparisonSince,
-      until: comparisonUntil,
-      ...params,
-    });
 
+  // Wait until the before last video views has resolved
+  const isComparisonWaiting = useMemo(
+    () => !videoViews.length || fetchingCount > 1,
+    [isFetching, videoViews],
+  );
+
+  const { videoViews: comparisonData, isFetching: isComparisonFetching } =
+    useVideosViews(
+      videoIds,
+      {
+        since: comparisonSince,
+        until: comparisonUntil,
+        ...params,
+      },
+      isComparisonWaiting,
+      DEFAULT_BASE_QUERY_KEY + "Comparison",
+    );
   const comparison = useMemo(() => sumViews(comparisonData), [comparisonData]);
 
   return (
@@ -82,7 +98,7 @@ export const ViewsMetric: React.FC<ViewsMetricProps> = ({
       metric={{ value: total, isFetching }}
       comparison={{
         value: comparison,
-        isFetching: isComparisonFetching,
+        isFetching: isComparisonFetching || isComparisonWaiting,
       }}
     />
   );
