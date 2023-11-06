@@ -1,12 +1,15 @@
 """xAPI data transformers."""
 import hashlib
-from typing import List
+import logging
+from typing import List, Optional
 
 import pandas as pd
 
 from warren.conf import settings
 from warren.models import XAPI_STATEMENT
 from warren.utils import pipe
+
+logger = logging.getLogger(__name__)
 
 
 class StatementsTransformer:
@@ -60,8 +63,14 @@ class StatementsTransformer:
         return statements
 
     @staticmethod
-    def preprocess(statements: List[XAPI_STATEMENT]) -> pd.DataFrame:
+    def preprocess(
+        statements: Optional[List[XAPI_STATEMENT]] = None,
+    ) -> Optional[pd.DataFrame]:
         """Normalize raw statements, and add utility columns."""
+        if statements is None or not len(statements):
+            logger.info("There are no statements to process")
+            return
+
         return pipe(
             StatementsTransformer.normalize,
             StatementsTransformer.add_actor_uid_column,
