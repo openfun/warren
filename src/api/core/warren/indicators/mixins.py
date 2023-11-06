@@ -10,7 +10,7 @@ import arrow
 from pydantic.main import BaseModel
 from sqlmodel import Session, select
 
-from warren.db import engine as db_engine
+from warren.db import get_session as get_db_session
 from warren.filters import DatetimeRange
 
 from .models import CacheEntry, CacheEntryCreate
@@ -43,13 +43,10 @@ logger = logging.getLogger(__name__)
 class CacheMixin:
     """A cache mixin that handles indicator persistence."""
 
-    db_engine = db_engine
-
     @cached_property
-    def db_session(self):
-        """Get a database session."""
-        with Session(self.db_engine) as session:
-            return session
+    def db_session(self) -> Session:
+        """Get the database session singleton."""
+        return next(get_db_session())
 
     @cached_property
     def cache_key(self) -> str:
