@@ -48,7 +48,6 @@ def db_session(db_engine):
 
 
 @pytest.fixture(autouse=True, scope="function")
-def force_db_test_session(db_engine, db_session, monkeypatch):
+def force_db_test_session(db_session, monkeypatch):
     """Use test database along with a test session by default."""
-    monkeypatch.setattr(CacheMixin, "db_engine", db_engine)
     monkeypatch.setattr(CacheMixin, "db_session", db_session)

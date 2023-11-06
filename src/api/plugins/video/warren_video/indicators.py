@@ -7,14 +7,14 @@ from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.filters import DatetimeRange
-from warren.indicators import BaseIndicator
-from warren.models import DailyCount, DailyCounts
+from warren.indicators import BaseIndicator, IncrementalCacheMixin
+from warren.models import DailyCount, DailyCounts, DailyUniqueCount, DailyUniqueCounts
 from warren.utils import pipe
 from warren.xapi import StatementsTransformer
 from warren_video.conf import settings as video_plugin_settings
 
 
-class BaseDailyEvent(BaseIndicator):
+class BaseDailyEvent(BaseIndicator, IncrementalCacheMixin):
     """Base Daily Event indicator.
 
     This class defines a base daily event indicator. Given an event type, a video,
@@ -25,31 +25,24 @@ class BaseDailyEvent(BaseIndicator):
     class attribute with their xAPI verb ID.
     """
 
+    frame: str = "day"
+    verb_id: str = None
+
     def __init__(
         self,
         video_id: str,
-        date_range: DatetimeRange,
-        unique: bool,
+        span_range: DatetimeRange,
     ):
         """Instantiate the Daily Event Indicator.
 
         Args:
             video_id: The ID of the video on which to compute the metric
-            date_range: The date range on which to compute the indicator. It has
+            span_range: The date range on which to compute the indicator. It has
                 2 fields, `since` and `until` which are dates or timestamps that must be
                 in ISO format (YYYY-MM-DD, YYYY-MM-DDThh:mm:ss.sss±hh:mm or
                 YYYY-MM-DDThh:mm:ss.sssZ")
-            unique (bool): If True, filter out rows with duplicate 'actor.uid'.
         """
-        self.unique = unique
-        self.video_id = video_id
-        self.date_range = date_range
-
-    def __init_subclass__(cls, **kwargs):
-        """Ensure subclasses have a 'verb_id' class attribute."""
-        super().__init_subclass__(**kwargs)
-        if not hasattr(cls, "verb_id"):
-            raise TypeError("Indicators must declare a 'verb_id' class attribute")
+        super().__init__(span_range=span_range, video_id=video_id)
 
     def get_lrs_query(
         self,
@@ -59,27 +52,23 @@ class BaseDailyEvent(BaseIndicator):
             query={
                 "verb": self.verb_id,
                 "activity": self.video_id,
-                "since": self.date_range.since.isoformat(),
-                "until": self.date_range.until.isoformat(),
+                "since": self.since.isoformat(),
+                "until": self.until.isoformat(),
             }
         )
 
     def filter_statements(self, statements: pd.DataFrame) -> pd.DataFrame:
         """Filter statements required for this indicator.
 
-        If necessary, this method removes any duplicate actors from the statements.
-        This filtering step is typically done to ensure that each actor's
-        contributions are counted only once.
+        This method may be override for indicator-specific filtering.
         """
-        if self.unique:
-            return statements.drop_duplicates(subset="actor.uid")
         return statements
 
-    def to_date_range_timezone(self, statements: pd.DataFrame) -> pd.DataFrame:
+    def to_span_range_timezone(self, statements: pd.DataFrame) -> pd.DataFrame:
         """Convert 'timestamps' column to the DatetimeRange's timezone."""
         statements = statements.copy()
         statements["timestamp"] = statements["timestamp"].dt.tz_convert(
-            self.date_range.tzinfo
+            self.span_range.tzinfo
         )
         return statements
 
@@ -99,16 +88,16 @@ class BaseDailyEvent(BaseIndicator):
         """
         # Initialize daily counts within the specified date range,
         # with counts equal to zero
-        daily_counts = DailyCounts.from_range(self.date_range)
-        statements = await self.fetch_statements()
+        daily_counts = DailyCounts.from_range(self.since, self.until)
 
+        statements = await self.fetch_statements()
         if not statements:
             return daily_counts
 
         statements = pipe(
             StatementsTransformer.preprocess,
             self.filter_statements,
-            self.to_date_range_timezone,
+            self.to_span_range_timezone,
             self.extract_date_from_timestamp,
         )(statements)
 
@@ -122,17 +111,92 @@ class BaseDailyEvent(BaseIndicator):
         )
         return daily_counts
 
+    @staticmethod
+    def merge(a: DailyCounts, b: DailyCounts) -> DailyCounts:
+        """Merging function for computed indicators."""
+        a.merge_counts(b.counts)
+        return a
 
-class DailyViews(BaseDailyEvent):
-    """Daily Completed Views indicator.
 
-    Calculate the total and daily counts of views.
+class DailyEvent(BaseDailyEvent):
+    """Daily Event indicator.
 
-    Inherit from BaseDailyEvent, which provides functionality for calculating
-    indicators based on different xAPI verbs.
+    Required: Indicators inheriting from this base class must declare a 'verb_id'
+    class attribute with their xAPI verb ID.
     """
 
-    verb_id = PlayedVerb().id
+    def __init_subclass__(cls, **kwargs):
+        """Ensure subclasses have a 'verb_id' class attribute."""
+        super().__init_subclass__(**kwargs)
+        if cls.verb_id is None:
+            raise TypeError("Indicators must declare a 'verb_id' class attribute")
+
+
+class DailyUniqueEvent(BaseDailyEvent):
+    """Daily Unique Event indicator.
+
+    This class defines a base unique daily event indicator. Given an event
+    type, a video, and a date range, it calculates the total number of unique
+    user events and the number of unique user events per day.
+    """
+
+    def __init_subclass__(cls, **kwargs):
+        """Ensure subclasses have a 'verb_id' class attribute."""
+        super().__init_subclass__(**kwargs)
+        if cls.verb_id is None:
+            raise TypeError("Indicators must declare a 'verb_id' class attribute")
+
+    def filter_statements(self, statements: pd.DataFrame) -> pd.DataFrame:
+        """Filter statements required for this indicator.
+
+        If necessary, this method removes any duplicate actors from the statements.
+        This filtering step is typically done to ensure that each actor's
+        contributions are counted only once.
+        """
+        return statements.drop_duplicates(subset="actor.uid")
+
+    async def compute(self) -> DailyUniqueCounts:
+        """Fetch statements and computes the current indicator.
+
+        Fetch the statements from the LRS, filter and aggregate them to return the
+        number of unique video events per day.
+        """
+        # Initialize daily unique counts within the specified date range,
+        # with counts equal to zero
+        daily_unique_counts = DailyUniqueCounts.from_range(self.since, self.until)
+
+        statements = await self.fetch_statements()
+        if not statements:
+            return daily_unique_counts
+
+        statements = pipe(
+            StatementsTransformer.preprocess,
+            self.filter_statements,
+            self.to_span_range_timezone,
+            self.extract_date_from_timestamp,
+        )(statements)
+
+        counts = []
+        for date, users in statements.groupby("date")["actor.uid"].unique().items():
+            counts.append(
+                DailyUniqueCount(date=date, count=len(users), users=set(users))
+            )
+        daily_unique_counts.merge_counts(counts)
+
+        return daily_unique_counts
+
+    @staticmethod
+    def merge(a: DailyUniqueCounts, b: DailyUniqueCounts) -> DailyUniqueCounts:
+        """Merging function for computed indicators."""
+        a.merge_counts(b.counts)
+        return a
+
+
+class DailyViewsMixin:
+    """Daily Views mixin.
+
+    Calculate the total and daily counts of views.
+    """
 
     def filter_statements(self, statements: pd.DataFrame) -> pd.DataFrame:
         """Filter view statements based on additional conditions.
@@ -152,25 +216,73 @@ class DailyViews(BaseDailyEvent):
         return statements[statements.apply(filter_view_duration, axis=1)]
 
 
-class DailyCompletedViews(BaseDailyEvent):
+class DailyViews(DailyEvent, DailyViewsMixin):
+    """Daily Views indicator.
+
+    Calculate the total and daily counts of views.
+
+    Inherit from DailyEvent, which provides functionality for calculating
+    indicators based on different xAPI verbs.
+    """
+
+    verb_id: str = PlayedVerb().id
+
+
+class DailyUniqueViews(DailyUniqueEvent, DailyViewsMixin):
+    """Daily Unique Views indicator.
+
+    Calculate the total, unique and daily counts of views.
+
+    Inherit from DailyUniqueEvent, which provides functionality for calculating
+    indicators based on different xAPI verbs and users.
+    """
+
+    verb_id: str = PlayedVerb().id
+
+
+class DailyCompletedViews(DailyEvent):
     """Daily Completed Views indicator.
 
     Calculate the total and daily counts of completed views.
 
-    Inherit from BaseDailyEvent, which provides functionality for calculating
+    Inherit from DailyEvent, which provides functionality for calculating
     indicators based on different xAPI verbs.
     """
 
-    verb_id = CompletedVerb().id
+    verb_id: str = CompletedVerb().id
 
 
-class DailyDownloads(BaseDailyEvent):
+class DailyUniqueCompletedViews(DailyUniqueEvent):
+    """Daily Unique Completed Views indicator.
+
+    Calculate the total, unique and daily counts of completed views.
+
+    Inherit from DailyUniqueEvent, which provides functionality for calculating
+    indicators based on different xAPI verbs and users.
+    """
+
+    verb_id: str = CompletedVerb().id
+
+
+class DailyDownloads(DailyEvent):
     """Daily Downloads indicator.
 
     Calculate the total and daily counts of downloads.
 
-    Inherit from BaseDailyEvent, which provides functionality for calculating
+    Inherit from DailyEvent, which provides functionality for calculating
     indicators based on different xAPI verbs.
     """
 
-    verb_id = DownloadedVerb().id
+    verb_id: str = DownloadedVerb().id
+
+
+class DailyUniqueDownloads(DailyUniqueEvent):
+    """Daily Unique Downloads indicator.
+
+    Calculate the total, unique and daily counts of downloads.
+
+    Inherit from DailyUniqueEvent, which provides functionality for calculating
+    indicators based on different xAPI verbs and users.
+    """
+
+    verb_id: str = DownloadedVerb().id

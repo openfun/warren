@@ -1,13 +1,12 @@
 """Tests for the video API endpoints."""
 import json
 import re
+import urllib
 
+import httpx
 import pytest
-from httpx import AsyncClient
 from pytest_httpx import HTTPXMock
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
-from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
-from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.backends import lrs_client
 from warren_video.factories import VideoDownloadedFactory, VideoPlayedFactory
 
@@ -17,7 +16,7 @@ from warren_video.factories import VideoDownloadedFactory, VideoPlayedFactory
     "video_id", ["foo", "foo/bar", "/foo/bar", "foo%2Fbar", "%2Ffoo%2Fbar"]
 )
 async def test_views_invalid_video_id(
-    http_client: AsyncClient, auth_headers: dict, video_id: str
+    http_client: httpx.AsyncClient, auth_headers: dict, video_id: str
 ):
     """Test the video views endpoint with an invalid `video_id` path."""
     date_query_params = {
@@ -37,7 +36,10 @@ async def test_views_invalid_video_id(
 
 @pytest.mark.anyio
 async def test_views_valid_video_id_path_but_no_matching_video(
-    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
+    http_client: httpx.AsyncClient,
+    httpx_mock: HTTPXMock,
+    auth_headers: dict,
+    db_session,
 ):
     """Test the video views endpoint with a valid `video_id` but no results."""
     lrs_client.base_url = "http://fake-lrs.com"
@@ -74,7 +76,7 @@ async def test_views_valid_video_id_path_but_no_matching_video(
 
 
 @pytest.mark.anyio
-async def test_views_invalid_auth_headers(http_client: AsyncClient):
+async def test_views_invalid_auth_headers(http_client: httpx.AsyncClient):
     """Test the video views endpoint with an invalid `auth_headers`."""
     response = await http_client.get(
         url="/api/v1/video/uuid://fake-uuid/views",
@@ -90,7 +92,7 @@ async def test_views_invalid_auth_headers(http_client: AsyncClient):
 
 
 @pytest.mark.anyio
-async def test_views_missing_auth_headers(http_client: AsyncClient):
+async def test_views_missing_auth_headers(http_client: httpx.AsyncClient):
     """Test the video views endpoint with missing `auth_headers`."""
     response = await http_client.get(
         url="/api/v1/video/uuid://fake-uuid/views",
@@ -106,43 +108,75 @@ async def test_views_missing_auth_headers(http_client: AsyncClient):
 
 @pytest.mark.anyio
 async def test_views_backend_query(
-    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
+    http_client: httpx.AsyncClient,
+    httpx_mock: HTTPXMock,
+    auth_headers: dict,
+    db_session,
 ):
     """Test the video views endpoint backend query results."""
     # Define 3 video views fixtures
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
-    video_views_fixtures = [
-        {"timestamp": "2019-12-31T20:00:00.000+00:00", "time": 100},
-        {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 100},
-        {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
-        {"timestamp": "2020-01-02T00:00:00.000+00:00", "time": 300},
-    ]
+    local_template = VideoPlayedFactory.template
+    local_template["object"]["id"] = video_id
 
-    # Build video statements from fixtures
-    video_statements = [
-        VideoPlayedFactory.build(
-            [
-                {"object": {"id": video_id, "objectType": "Activity"}},
-                {"verb": {"id": PlayedVerb().id}},
-                {"result": {"extensions": {RESULT_EXTENSION_TIME: view_data["time"]}}},
-                {"timestamp": view_data["timestamp"]},
+    class LocalVideoPlayedFactory(VideoPlayedFactory):
+        template: dict = local_template
+
+    def lrs_response(request: httpx.Request):
+        """Dynamic mock for the LRS response."""
+        statements = []
+        params = urllib.parse.parse_qs(request.url.query)
+        if (
+            params.get(b"since")[0] == b"2020-01-01T00:00:00+05:00"
+            and params.get(b"until")[0] == b"2020-01-01T23:59:59.999999+05:00"
+        ):
+            statements = [
+                json.loads(
+                    LocalVideoPlayedFactory.build(
+                        [
+                            {
+                                "result": {
+                                    "extensions": {
+                                        RESULT_EXTENSION_TIME: view_data["time"]
+                                    }
+                                }
+                            },
+                            {"timestamp": view_data["timestamp"]},
+                        ]
+                    ).json(),
+                )
+                for view_data in [
+                    {"timestamp": "2019-12-31T20:00:00.000+00:00", "time": 100},
+                    {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 100},
+                    {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
+                ]
             ]
-        )
-        for view_data in video_views_fixtures
-    ]
+        elif (
+            params.get(b"since")[0] == b"2020-01-02T00:00:00+05:00"
+            and params.get(b"until")[0] == b"2020-01-02T23:59:59.999999+05:00"
+        ):
+            statements = [
+                json.loads(
+                    LocalVideoPlayedFactory.build(
+                        [
+                            {"result": {"extensions": {RESULT_EXTENSION_TIME: 300}}},
+                            {"timestamp": "2020-01-02T00:00:00.000+00:00"},
+                        ]
+                    ).json(),
+                )
+            ]
 
-    # Convert each video statement to a JSON object
-    video_statements_json = [
-        json.loads(statement.json()) for statement in video_statements
-    ]
+        return httpx.Response(
+            status_code=200,
+            json={"statements": statements},
+        )
 
     # Mock the LRS call so that it returns the fixture statements
     lrs_client.base_url = "http://fake-lrs.com"
-    httpx_mock.add_response(
+    httpx_mock.add_callback(
+        callback=lrs_response,
         url=re.compile(r"^http://fake-lrs\.com/xAPI/statements\?.*$"),
         method="GET",
-        json={"statements": video_statements_json},
-        status_code=200,
     )
 
     # Perform the call to warren backend. When fetching the LRS statements, it will
@@ -173,48 +207,52 @@ async def test_views_backend_query(
 
 @pytest.mark.anyio
 async def test_unique_views_backend_query(
-    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
+    http_client: httpx.AsyncClient,
+    httpx_mock: HTTPXMock,
+    auth_headers: dict,
+    db_session,
 ):
     """Test the video views endpoint, with parameter unique=True."""
-    # Define 3 video views fixtures
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
-    video_views_fixtures = [
-        {"timestamp": "2019-12-31T22:00:00.000+00:00", "time": 100},
-        {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
-        {"timestamp": "2020-01-02T00:00:00.000+00:00", "time": 300},
-    ]
+    local_template = VideoPlayedFactory.template
+    local_template["object"]["id"] = video_id
 
-    # Build video statements from fixtures
-    video_statements = [
-        VideoPlayedFactory.build(
-            [
-                {
-                    "actor": {
-                        "objectType": "Agent",
-                        "account": {"name": "John", "homePage": "http://fun-mooc.fr"},
-                    }
-                },
-                {"object": {"id": video_id, "objectType": "Activity"}},
-                {"verb": {"id": PlayedVerb().id}},
-                {"result": {"extensions": {RESULT_EXTENSION_TIME: view_data["time"]}}},
-                {"timestamp": view_data["timestamp"]},
+    class LocalVideoPlayedFactory(VideoPlayedFactory):
+        template: dict = local_template
+
+    def lrs_response(request: httpx.Request):
+        """Dynamic mock for the LRS response."""
+        statements = [
+            json.loads(
+                LocalVideoPlayedFactory.build(
+                    [
+                        {
+                            "result": {
+                                "extensions": {RESULT_EXTENSION_TIME: view_data["time"]}
+                            }
+                        },
+                        {"timestamp": view_data["timestamp"]},
+                    ]
+                ).json(),
+            )
+            for view_data in [
+                {"timestamp": "2019-12-31T22:00:00.000+00:00", "time": 100},
+                {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
+                {"timestamp": "2020-01-02T00:00:30.000+00:00", "time": 300},
             ]
-        )
-        for view_data in video_views_fixtures
-    ]
+        ]
 
-    # Convert each video statement to a JSON object
-    video_statements_json = [
-        json.loads(statement.json()) for statement in video_statements
-    ]
+        return httpx.Response(
+            status_code=200,
+            json={"statements": statements},
+        )
 
     # Mock the LRS call so that it returns the fixture statements
     lrs_client.base_url = "http://fake-lrs.com"
-    httpx_mock.add_response(
+    httpx_mock.add_callback(
+        callback=lrs_response,
         url=re.compile(r"^http://fake-lrs\.com/xAPI/statements\?.*$"),
         method="GET",
-        json={"statements": video_statements_json},
-        status_code=200,
     )
 
     # Perform the call to warren backend. When fetching the LRS statements, it will
@@ -248,7 +286,7 @@ async def test_unique_views_backend_query(
     "video_id", ["foo", "foo/bar", "/foo/bar", "foo%2Fbar", "%2Ffoo%2Fbar"]
 )
 async def test_downloads_invalid_video_id(
-    http_client: AsyncClient, auth_headers: dict, video_id: str
+    http_client: httpx.AsyncClient, auth_headers: dict, video_id: str
 ):
     """Test the video downloads endpoint with an invalid `video_id` path."""
     date_query_params = {
@@ -267,7 +305,7 @@ async def test_downloads_invalid_video_id(
 
 
 @pytest.mark.anyio
-async def test_downloads_invalid_auth_headers(http_client: AsyncClient):
+async def test_downloads_invalid_auth_headers(http_client: httpx.AsyncClient):
     """Test the video downloads endpoint with an invalid `auth_headers`."""
     response = await http_client.get(
         url="/api/v1/video/uuid://fake-uuid/downloads",
@@ -283,7 +321,7 @@ async def test_downloads_invalid_auth_headers(http_client: AsyncClient):
 
 
 @pytest.mark.anyio
-async def test_downloads_missing_auth_headers(http_client: AsyncClient):
+async def test_downloads_missing_auth_headers(http_client: httpx.AsyncClient):
     """Test the video downloads endpoint with missing `auth_headers`."""
     response = await http_client.get(
         url="/api/v1/video/uuid://fake-uuid/downloads",
@@ -299,7 +337,10 @@ async def test_downloads_missing_auth_headers(http_client: AsyncClient):
 
 @pytest.mark.anyio
 async def test_downloads_valid_video_id_path_but_no_matching_video(
-    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
+    http_client: httpx.AsyncClient,
+    httpx_mock: HTTPXMock,
+    auth_headers: dict,
+    db_session,
 ):
     """Test the video downloads endpoint with a valid `video_id` but no results."""
     lrs_client.base_url = "http://fake-lrs.com"
@@ -337,42 +378,66 @@ async def test_downloads_valid_video_id_path_but_no_matching_video(
 
 @pytest.mark.anyio
 async def test_downloads_backend_query(
-    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
+    http_client: httpx.AsyncClient,
+    httpx_mock: HTTPXMock,
+    auth_headers: dict,
+    db_session,
 ):
     """Test the video downloads endpoint backend query results."""
-    # Define 3 video downloads fixtures
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
-    video_download_timestamps = [
-        "2019-12-31T23:00:00.000+00:00",
-        "2020-01-01T00:00:00.000+00:00",
-        "2020-01-01T00:00:30.000+00:00",
-        "2020-01-02T00:00:00.000+00:00",
-    ]
+    local_template = VideoDownloadedFactory.template
+    local_template["object"]["id"] = video_id
 
-    # Build video statements from fixtures
-    video_statements = [
-        VideoDownloadedFactory.build(
-            [
-                {"object": {"id": video_id, "objectType": "Activity"}},
-                {"verb": {"id": DownloadedVerb().id}},
-                {"timestamp": download_timestamp},
+    class LocalVideoDownloadFactory(VideoDownloadedFactory):
+        template: dict = local_template
+
+    def lrs_response(request: httpx.Request):
+        """Dynamic mock for the LRS response."""
+        statements = []
+        params = urllib.parse.parse_qs(request.url.query)
+        if (
+            params.get(b"since")[0] == b"2020-01-01T00:00:00+02:00"
+            and params.get(b"until")[0] == b"2020-01-01T23:59:59.999999+02:00"
+        ):
+            statements = [
+                json.loads(
+                    LocalVideoDownloadFactory.build(
+                        [
+                            {"timestamp": timestamp},
+                        ]
+                    ).json(),
+                )
+                for timestamp in [
+                    "2019-12-31T23:00:00.000+00:00",
+                    "2020-01-01T00:00:00.000+00:00",
+                    "2020-01-01T00:00:30.000+00:00",
+                ]
             ]
-        )
-        for download_timestamp in video_download_timestamps
-    ]
+        elif (
+            params.get(b"since")[0] == b"2020-01-02T00:00:00+02:00"
+            and params.get(b"until")[0] == b"2020-01-02T23:59:59.999999+02:00"
+        ):
+            statements = [
+                json.loads(
+                    LocalVideoDownloadFactory.build(
+                        [
+                            {"timestamp": "2020-01-02T00:00:00.000+00:00"},
+                        ]
+                    ).json(),
+                )
+            ]
 
-    # Convert each video statement to a JSON object
-    video_statements_json = [
-        json.loads(statement.json()) for statement in video_statements
-    ]
+        return httpx.Response(
+            status_code=200,
+            json={"statements": statements},
+        )
 
     # Mock the LRS call so that it returns the fixture statements
     lrs_client.base_url = "http://fake-lrs.com"
-    httpx_mock.add_response(
+    httpx_mock.add_callback(
+        callback=lrs_response,
         url=re.compile(r"^http://fake-lrs\.com/xAPI/statements\?.*$"),
         method="GET",
-        json={"statements": video_statements_json},
-        status_code=200,
     )
 
     # Perform the call to warren backend. When fetching the LRS statements, it will
@@ -403,47 +468,48 @@ async def test_downloads_backend_query(
 
 @pytest.mark.anyio
 async def test_unique_downloads_backend_query(
-    http_client: AsyncClient, httpx_mock: HTTPXMock, auth_headers: dict
+    http_client: httpx.AsyncClient,
+    httpx_mock: HTTPXMock,
+    auth_headers: dict,
+    db_session,
 ):
     """Test the video downloads endpoint, with parameter unique=True."""
-    # Define 3 video views fixtures
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
-    video_download_timestamps = [
-        "2020-01-01T00:00:00.000+00:00",
-        "2020-01-01T00:00:30.000+00:00",
-        "2020-01-02T00:00:00.000+00:00",
-    ]
 
-    # Build video statements from fixtures
-    video_statements = [
-        VideoDownloadedFactory.build(
-            [
-                {
-                    "actor": {
-                        "objectType": "Agent",
-                        "account": {"name": "John", "homePage": "http://fun-mooc.fr"},
-                    }
-                },
-                {"object": {"id": video_id, "objectType": "Activity"}},
-                {"verb": {"id": DownloadedVerb().id}},
-                {"timestamp": download_timestamp},
+    local_template = VideoDownloadedFactory.template
+    local_template["object"]["id"] = video_id
+
+    class LocalVideoDownloadFactory(VideoDownloadedFactory):
+        template: dict = local_template
+
+    def lrs_response(request: httpx.Request):
+        """Dynamic mock for the LRS response."""
+        statements = [
+            json.loads(
+                LocalVideoDownloadFactory.build(
+                    [
+                        {"timestamp": timestamp},
+                    ]
+                ).json(),
+            )
+            for timestamp in [
+                "2020-01-01T00:00:00.000+00:00",
+                "2020-01-01T00:00:30.000+00:00",
+                "2020-01-02T00:00:30.000+00:00",
             ]
-        )
-        for download_timestamp in video_download_timestamps
-    ]
+        ]
 
-    # Convert each video statement to a JSON object
-    video_statements_json = [
-        json.loads(statement.json()) for statement in video_statements
-    ]
+        return httpx.Response(
+            status_code=200,
+            json={"statements": statements},
+        )
 
     # Mock the LRS call so that it returns the fixture statements
     lrs_client.base_url = "http://fake-lrs.com"
-    httpx_mock.add_response(
+    httpx_mock.add_callback(
+        callback=lrs_response,
         url=re.compile(r"^http://fake-lrs\.com/xAPI/statements\?.*$"),
         method="GET",
-        json={"statements": video_statements_json},
-        status_code=200,
     )
 
     # Perform the call to warren backend. When fetching the LRS statements, it will
