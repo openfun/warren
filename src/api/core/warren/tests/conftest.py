@@ -9,6 +9,5 @@ from .fixtures.auth import auth_headers
 from .fixtures.db import (
     db_engine,
     db_session,
-    db_transaction,
     force_db_test_session,
 )

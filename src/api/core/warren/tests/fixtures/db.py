@@ -28,17 +28,23 @@ def db_engine():
 @pytest.fixture(scope="function")
 def db_session(db_engine):
     """Test session fixture."""
-    session = Session(db_engine)
+    # Setup
+    #
+    # Connect to the database and create a non-ORM transaction. Our connection
+    # is bound to the test session.
+    connection = db_engine.connect()
+    transaction = connection.begin()
+    session = Session(bind=connection)
+
     yield session
-    session.rollback()
+
+    # Teardown
+    #
+    # Rollback everything that happened with the Session above (including
+    # explicit commits).
     session.close()
-
-
-@pytest.fixture(autouse=True, scope="function")
-def db_transaction(db_session):
-    """Force nested transaction usage."""
-    nested = db_session.begin_nested()
-    yield nested
+    transaction.rollback()
+    connection.close()
 
 
 @pytest.fixture(autouse=True, scope="function")
