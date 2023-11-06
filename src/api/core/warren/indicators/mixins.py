@@ -1,13 +1,17 @@
 """Mixins for indicators."""
 import hashlib
+import inspect
+import logging
 from abc import ABC, abstractmethod
 from functools import cached_property, reduce
-from typing import Iterator, List, Literal, Union
+from typing import Any, Iterator, List, Literal, Union
 
-from arrow import Arrow
+import arrow
+from pydantic.main import BaseModel
 from sqlmodel import Session, select
 
 from warren.db import engine as db_engine
+from warren.filters import DatetimeRange
 
 from .models import CacheEntry, CacheEntryCreate
 
@@ -33,6 +37,8 @@ Frames = Literal[
     "quarters",
 ]
 
+logger = logging.getLogger(__name__)
+
 
 class CacheMixin:
     """A cache mixin that handles indicator persistence."""
@@ -49,7 +55,7 @@ class CacheMixin:
     def cache_key(self) -> str:
         """Calculate the indicator cache key.
 
-        The cache key is composed of the class name and an hexadecimal digest
+        The cache key is composed of the class name and a hexadecimal digest
         of the LRS query hash (excluding the since and until fields if present),
         e.g. fooindicator-44709d6fcb83d92a76dcb0b668c98e1b1d3dafe7.
 
@@ -69,9 +75,39 @@ class CacheMixin:
         """Save cache instance(s) to the database."""
         if not isinstance(caches, list):
             caches = [caches]
-        for cache in caches:
-            self.db_session.add(cache)
+        with self.db_session.begin_nested():
+            for cache in caches:
+                self.db_session.add(cache)
         self.db_session.commit()
+
+    @cached_property
+    def _compute_annotation(self):
+        """Get the annotation type returned by the compute method.
+
+        Raises:
+            TypeError if no type annotation is defined for the compute method.
+        """
+        annotation = inspect.signature(self.compute).return_annotation
+        if annotation == inspect.Signature.empty:
+            raise TypeError(
+                "compute method of an indicator should declare a return annotation"
+            )
+        return annotation
+
+    @staticmethod
+    def _to_pydantic(model: BaseModel, value: Any):
+        """Deserialize values to the given Pydantic model."""
+        return (
+            model.parse_raw(value) if isinstance(value, str) else model.parse_obj(value)
+        )
+
+    def _raw_or_pydantic(self, value: Any):
+        """Return raw value or pydantic model instance."""
+        return (
+            self._to_pydantic(self._compute_annotation, value)
+            if issubclass(self._compute_annotation, BaseModel)
+            else value
+        )
 
     async def get_or_compute(self, update: bool = False):
         """Get cached result (if any) or compute the result.
@@ -83,7 +119,7 @@ class CacheMixin:
 
         # Return cached value
         if cache is not None and not update:
-            return cache.value
+            return self._raw_or_pydantic(cache.value)
 
         value = await self.compute()
 
@@ -94,7 +130,7 @@ class CacheMixin:
             cache.value = value
             await self.save(cache)
 
-        return cache.value
+        return self._raw_or_pydantic(cache.value)
 
 
 class IncrementalCacheMixin(CacheMixin, ABC):
@@ -120,7 +156,7 @@ class IncrementalCacheMixin(CacheMixin, ABC):
             .where(
                 CacheEntry.key == self.cache_key,
                 CacheEntry.since >= self.since,
-                CacheEntry.until <= self.until,
+                CacheEntry.until <= arrow.get(self.until).ceil(self.frame).datetime,
             )
             .order_by(CacheEntry.since)
         ).all()
@@ -137,7 +173,9 @@ class IncrementalCacheMixin(CacheMixin, ABC):
                 until=until.datetime,
                 value=None,
             )
-            for since, until in Arrow.span_range(self.frame, self.since, self.until)
+            for since, until in arrow.Arrow.span_range(
+                self.frame, self.since, self.until
+            )
         ]
 
         # Mutate dummy cache entries with DB cached ones
@@ -155,14 +193,30 @@ class IncrementalCacheMixin(CacheMixin, ABC):
         """
         caches = await self._get_continuous_cache_for_time_span()
         to_save = []
+        to_update = []
         for cache in caches:
             if isinstance(cache, CacheEntry) and not update:
+                logger.debug("Cache entry with ID %s wont be updated", str(cache.id))
                 continue
-            cache.value = await self.compute(since=cache.since, until=cache.until)
-            if isinstance(cache, CacheEntryCreate):
+            # Get a new indicator instance for a reduced date/time span range
+            other = self._replace(
+                span_range=DatetimeRange(since=cache.since, until=cache.until)
+            )
+            result = await other.compute()
+
+            # Pydantic case
+            if isinstance(result, BaseModel):
+                result = result.json()
+
+            cache.value = result
+            if isinstance(cache, CacheEntry):
+                to_update.append(cache)
+            elif isinstance(cache, CacheEntryCreate):
                 to_save.append(CacheEntry.from_orm(cache))
-            elif update:
-                to_save.append(cache)
+
+        await self.save(to_update)
         await self.save(to_save)
 
-        return reduce(self.merge, [cache.value for cache in caches])
+        values = [self._raw_or_pydantic(cache.value) for cache in caches]
+
+        return reduce(self.merge, values)
