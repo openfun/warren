@@ -126,6 +126,15 @@ def test_statements_transformer_add_actor_uid():
     assert len(ids_john.unique()) == 1
 
 
+def test_statements_transformer_preprocess_empty_statements():
+    """Test the preprocess_statements method of the PreprocessMixin.
+
+    Statements sent as arguments are None or an empty list.
+    """
+    assert StatementsTransformer.preprocess([]) is None
+    assert StatementsTransformer.preprocess(None) is None
+
+
 def test_statements_transformer_preprocess_statements_workflow():
     """Test the preprocess_statements method of the PreprocessMixin."""
     raw_statements = [
