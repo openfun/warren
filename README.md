@@ -22,7 +22,9 @@ $ make run
 ```
 
 You may now take a look at the frontend development server at:
-[http://localhost:3000](http://localhost:3000)
+[http://localhost:8090/development](http://localhost:8090/development)
+
+Click on <kbd>Submit Query</kbd> and scroll down to get the development LTI iframe rendering.
 
 To run tests and linters, there are commands for that! You can list them using:
 
