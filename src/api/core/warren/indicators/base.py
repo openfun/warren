@@ -52,7 +52,7 @@ class BaseIndicator(ABC):
 
         Disclaimer:
             As by default we perform a shallow copy of indicator attributes,
-            you must be aware of consequencies when an indicator attribute is
+            you must be aware of consequences when an indicator attribute is
             passed as reference: the original object passed as a reference may
             be modified in the original indicator instance AND its copy.
         """
