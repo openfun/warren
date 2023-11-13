@@ -210,7 +210,7 @@ class DailyViewsMixin:
         def filter_view_duration(row):
             return (
                 row[f"result.extensions.{RESULT_EXTENSION_TIME}"]
-                >= video_plugin_settings.VIEWS_COUNT_TIME_THRESHOLD
+                <= video_plugin_settings.VIEWS_COUNT_TIME_THRESHOLD
             )
 
         return statements[statements.apply(filter_view_duration, axis=1)]
