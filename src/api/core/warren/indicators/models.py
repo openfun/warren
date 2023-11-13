@@ -11,7 +11,7 @@ from sqlmodel import Field, SQLModel
 
 
 class CacheEntryCreate(SQLModel):
-    """Indicator generic persistency."""
+    """Indicator generic persistence."""
 
     id: Optional[UUID] = Field(default_factory=lambda: uuid4().hex, primary_key=True)
     key: str = Field(max_length=100, index=True)
@@ -25,4 +25,4 @@ class CacheEntryCreate(SQLModel):
 
 
 class CacheEntry(CacheEntryCreate, table=True):
-    """Indicator generic persistency (table version)."""
+    """Indicator generic persistence (table version)."""

@@ -9,7 +9,7 @@ from pydantic import AnyHttpUrl, BaseModel, BaseSettings
 
 
 class ESClientOptions(BaseModel):
-    """Pydantic model for Elasticsearch additionnal client options."""
+    """Pydantic model for Elasticsearch additional client options."""
 
     ca_certs: Path = None
     verify_certs: bool = None
