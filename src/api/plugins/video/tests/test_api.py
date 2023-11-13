@@ -146,9 +146,9 @@ async def test_views_backend_query(
                     ).json(),
                 )
                 for view_data in [
-                    {"timestamp": "2019-12-31T20:00:00.000+00:00", "time": 100},
-                    {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 100},
-                    {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
+                    {"timestamp": "2019-12-31T20:00:00.000+00:00", "time": 3},
+                    {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 23},
+                    {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 18},
                 ]
             ]
         elif (
@@ -159,7 +159,7 @@ async def test_views_backend_query(
                 json.loads(
                     LocalVideoPlayedFactory.build(
                         [
-                            {"result": {"extensions": {RESULT_EXTENSION_TIME: 300}}},
+                            {"result": {"extensions": {RESULT_EXTENSION_TIME: 5}}},
                             {"timestamp": "2020-01-02T00:00:00.000+00:00"},
                         ]
                     ).json(),
