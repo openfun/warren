@@ -35,7 +35,7 @@ def get_release():
 class Base(Configuration):
     """Base configuration every configuration should inherit from.
 
-    This is the base configuration every configuration (aka environnement)
+    This is the base configuration every configuration (aka environment)
     should inherit from. It is recommended to configure third-party
     applications by creating a configuration mixins in ./configurations and
     compose the Base configuration with those mixins.
@@ -374,7 +374,7 @@ class Test(Base):
 
 
 class ContinuousIntegration(Test):
-    """Continous Integration environment settings.
+    """Continuous Integration environment settings.
 
     nota bene: it should inherit from the Test environment.
     """

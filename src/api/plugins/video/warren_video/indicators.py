@@ -60,7 +60,7 @@ class BaseDailyEvent(BaseIndicator, IncrementalCacheMixin):
     def filter_statements(self, statements: pd.DataFrame) -> pd.DataFrame:
         """Filter statements required for this indicator.
 
-        This method may be override for indicator-specific filtering.
+        This method may be overridden for indicator-specific filtering.
         """
         return statements
 

@@ -27,7 +27,7 @@ def test_date_field(date):
 
 
 def test_date_field_with_invalid_inputs():
-    """Test the Date warren field with invalud inputs."""
+    """Test the Date warren field with invalid inputs."""
 
     # pylint: disable=missing-class-docstring
     class MyModel(BaseModel):
@@ -55,7 +55,7 @@ def test_datetime_field(date_time):
 
 
 def test_datetime_field_with_invalid_inputs():
-    """Test  the Datetime warren field with invalud inputs."""
+    """Test the Datetime warren field with invalid inputs."""
 
     # pylint: disable=missing-class-docstring
     class MyModel(BaseModel):

@@ -222,7 +222,7 @@ class DailyUniqueCounts(BaseModel):
             reduce(lambda x, y: x + y, v)
             for k, v in groupby(self.counts, lambda dc: dc.date)
         ]
-        # Only consider the first occurence of a user along the date range
+        # Only consider the first occurrence of a user along the date range
         users = set()
         self.total = 0
         for count in self.counts:

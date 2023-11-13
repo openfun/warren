@@ -17,7 +17,7 @@ def test_cache_model_with_supported_value_types(value, db_session):
     assert cache.key == "my-super-key"
     assert cache.value == value or json.loads(value)
     assert cache.id is not None
-    # Validate the identifer as a valid UUID hex string representation
+    # Validate the identifier as a valid UUID hex string representation
     assert UUID(cache.id)
     assert cache.since is None
     assert cache.until is None
@@ -47,7 +47,7 @@ def test_cache_model_with_unsupported_value_types(value, db_session):
 
 def test_cache_model_since_until_tz_awareness(db_session):
     """Test the timezone awareness of since and until fields."""
-    # By default the creation model does not make datetime fields timezone aware
+    # By default, the creation model does not make datetime fields timezone aware
     cache = CacheEntryCreate(
         key="my-super-key",
         value=[1, 2, 3],
