@@ -1,0 +1,15 @@
+envSecrets:
+  RALPH_BACKENDS__DATABASE__ES__INDEX: statements
+  RALPH_BACKENDS__DATABASE__ES__CLIENT_OPTIONS__ca_certs: "/usr/local/share/ca-certificates/ca.crt"
+  RALPH_BACKENDS__DATABASE__ES__CLIENT_OPTIONS__verify_certs: "true"
+
+lrs:
+  auth:
+    - username: "admin"
+      hash: "$2b$12$JFK.YCdbUWD2rS94fT4.m.KC/fIMzUMPMtjaD4t3t1iAfqki3ZPOq"
+      scopes: ["example_scope"]
+
+elastic:
+  enabled: true
+  mountCACert: true
+  caSecretName: "data-lake-es-http-certs-public"

@@ -1,0 +1,21 @@
+apiVersion: v2
+
+name: warren
+description: A visualization toolkit for your learning analytics
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+
+dependencies:
+  - name: app
+    version: "x.x.x"
+    repository: "file://./charts/app"
+    condition: app.enabled
+  - name: api
+    version: "x.x.x"
+    repository: "file://./charts/api"
+    condition: api.enabled
+  - name: postgresql
+    version: 13.x.x
+    repository: oci://registry-1.docker.io/bitnamicharts
+    condition: postgresql.enabled

@@ -1,0 +1,33 @@
+# Helm chart values used for development
+
+# -- Warren - app service --
+app:
+  enabled: true
+  allowedHosts:
+    - "localhost"
+  djangoConfiguration: Development
+  image:
+    pullPolicy: Always
+  persistence:
+    enabled: true
+
+# -- Warren - api service --
+api:
+  enabled: true
+  allowedHosts:
+    - "http://localhost:8080"
+  image:
+    pullPolicy: Always
+
+# -- Warren - postgresql service --
+postgresql:
+  enabled: true
+  image:
+    tag: 12.17.0-debian-11-r12
+
+global:
+  postgresql:
+    auth:
+      username: fun
+      password: pass
+      database: warren-api
