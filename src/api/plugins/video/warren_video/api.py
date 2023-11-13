@@ -34,6 +34,7 @@ async def views(
 ) -> DailyCounts:
     """Number of views for `video_id` in the `since` -> `until` date range."""
     # Switch/case pattern matching with the (complete, unique) boolean tuple
+    logger.debug("Start computing 'views' indicator")
     klass_mapping = {
         (True, True): DailyUniqueCompletedViews,
         (True, False): DailyCompletedViews,
@@ -43,20 +44,24 @@ async def views(
     indicator = klass_mapping.get((complete, unique), DailyViews)(
         video_id=video_id, span_range=DatetimeRange.parse_obj(filters)
     )
-    logger.debug("Will compute indicator %s", indicator)
+    logger.debug("Will compute indicator %s", type(indicator).__name__)
+    logger.debug(
+        "From %s to %s", indicator.span_range.since, indicator.span_range.until
+    )
 
     try:
         results = await indicator.get_or_compute()
     except (KeyError, AttributeError, LrsClientException) as exception:
         message = "An error occurred while computing the number of views"
-        logger.error("%s: %s", message, exception)
+        logger.exception("%s. Exception:", message)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=message
         ) from exception
 
     if isinstance(results, DailyUniqueCounts):
         results = results.to_daily_counts()
-    logger.debug("results = %s", results)
+    logger.debug("Results = %s", results)
+    logger.debug("Finish computing 'views' indicator")
     return results
 
 
@@ -68,22 +73,27 @@ async def downloads(
     unique: bool = False,
 ) -> DailyCounts:
     """Number of downloads for `video_id` in the `since` -> `until` date range."""
+    logger.debug("Start computing 'downloads' indicator")
     indicator_klass = DailyUniqueDownloads if unique else DailyDownloads
     indicator = indicator_klass(
         video_id=video_id, span_range=DatetimeRange.parse_obj(filters)
     )
-    logger.debug("Will compute indicator %s", indicator)
+    logger.debug("Will compute indicator %s", type(indicator).__name__)
+    logger.debug(
+        "From %s to %s", indicator.span_range.since, indicator.span_range.until
+    )
 
     try:
         results = await indicator.get_or_compute()
     except (KeyError, AttributeError, LrsClientException) as exception:
         message = "An error occurred while computing the number of downloads"
-        logger.error("%s: %s", message, exception)
+        logger.exception("%s. Exception:", message)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=message
         ) from exception
 
     if isinstance(results, DailyUniqueCounts):
         results = results.to_daily_counts()
-    logger.debug("results = %s", results)
+    logger.debug("Results = %s", results)
+    logger.debug("Finish computing 'downloads' indicator")
     return results
