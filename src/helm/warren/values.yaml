@@ -1,0 +1,31 @@
+# Values for warren.
+#
+# Note that warren is a meta-chart depending on two subcharts:
+#
+# - api
+# - app
+
+# Values from those two charts can be overridden by prefixing the value's path
+# by the subchart name:
+app:
+  enabled: true
+  # Define values for the app subchart here
+  #
+  # replicaCount: 3
+  # postgresql:
+  #   enabled: true
+
+api:
+  enabled: true
+  # Define values for the api subchart here
+  #
+  # replicaCount: 2
+
+postgresql:
+  # If enabled, a postgresql database will be deployed in the k8s cluster, else
+  # a simple gateway can be used (see the postgresql-gw chart)
+  enabled: true
+
+# Global variables are accessible both from charts and subcharts templates using
+# the "global" prefix path: {{ .Values.global.var_name }}
+# global:

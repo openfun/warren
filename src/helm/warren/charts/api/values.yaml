@@ -1,0 +1,157 @@
+# Default values for api.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: fundocker/warren
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "api-full-main"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+podLabels: {}
+podCommand:
+  - "uvicorn"
+  - "warren.api:app"
+  - "--proxy-headers"
+  - "--log-config"
+  - "/etc/warren/api/logging-config.yaml"
+  - "--host"
+  - "0.0.0.0"
+  - "--port"
+  - "8000"
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+# Secret name to inject as environment variables
+envVarsSecret: "warren-api-env"
+
+jobs:
+  dbMigrate:
+    name: "warren-api-db-migrate"
+    command:
+      - "alembic"
+      - "-c"
+      - "core/alembic.ini"
+      - "upgrade"
+      - "head"
+    restartPolicy: Never
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes:
+  - name: logging-config
+    configMap:
+      name: api-logging-config
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts:
+  - name: logging-config
+    mountPath: "/etc/warren/api"
+    readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+# API configuration
+allowedHosts: []
+database:
+  engine: postgresql
+  port: 5432
+loggingConfigConfigMap: api-logging-config
+loggingConfig:
+  version: 1
+  disable_existing_loggers: false
+  formatters:
+    default:
+      "()": uvicorn.logging.DefaultFormatter
+      fmt: "%(levelprefix)s %(message)s"
+      use_colors:
+    access:
+      "()": uvicorn.logging.AccessFormatter
+      fmt: '%(levelprefix)s %(client_addr)s - "%(request_line)s" %(status_code)s'
+  handlers:
+    default:
+      formatter: default
+      class: logging.StreamHandler
+      stream: ext://sys.stderr
+    access:
+      formatter: access
+      class: logging.StreamHandler
+      stream: ext://sys.stdout
+  loggers:
+    uvicorn:
+      handlers:
+        - default
+      level: INFO
+      propagate: false
+    uvicorn.error:
+      level: INFO
+    uvicorn.access:
+      handlers:
+        - access
+      level: INFO
+      propagate: false
+    warren.api:
+      handlers:
+        - default
+      level: INFO
+      propagate: false
+signingAlgorithm: HS256

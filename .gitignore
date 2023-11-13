@@ -81,3 +81,6 @@ venv.bak/
 bin/patch_statements_date.py
 data
 .ralph/auth.json
+
+# Helm
+src/helm/warren/charts/*.tgz
