@@ -176,7 +176,9 @@ async def test_daily_unique_views(httpx_mock: HTTPXMock, db_session):
     )
 
     span_range = DatetimeRange(since="2020-01-01", until="2020-01-03")
-    indicator = DailyUniqueViews(video_id=video_id, span_range=span_range)
+    indicator = DailyUniqueViews(
+        video_id=video_id, span_range=span_range, db_session=db_session
+    )
     daily_counts = await indicator.get_or_compute()
 
     # Generate an example statement to get default actor uid

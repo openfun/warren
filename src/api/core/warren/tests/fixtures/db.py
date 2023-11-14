@@ -4,8 +4,9 @@ from alembic import command
 from alembic.config import Config
 from sqlmodel import Session, SQLModel, create_engine
 
+from warren.api.v1 import app as v1
 from warren.conf import settings
-from warren.indicators.mixins import CacheMixin
+from warren.db import get_session
 
 
 @pytest.fixture(scope="session")
@@ -47,7 +48,13 @@ def db_session(db_engine):
     connection.close()
 
 
-@pytest.fixture(autouse=True, scope="function")
-def force_db_test_session(db_session, monkeypatch):
+@pytest.fixture(autouse=True)
+def force_db_test_session(db_session):
     """Use test database along with a test session by default."""
-    monkeypatch.setattr(CacheMixin, "db_session", db_session)
+
+    def get_session_override():
+        return db_session
+
+    v1.dependency_overrides[get_session] = get_session_override
+
+    yield

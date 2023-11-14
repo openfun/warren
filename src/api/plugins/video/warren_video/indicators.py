@@ -28,11 +28,7 @@ class BaseDailyEvent(BaseIndicator, IncrementalCacheMixin):
     frame: str = "day"
     verb_id: str = None
 
-    def __init__(
-        self,
-        video_id: str,
-        span_range: DatetimeRange,
-    ):
+    def __init__(self, video_id: str, span_range: DatetimeRange, **kwargs):
         """Instantiate the Daily Event Indicator.
 
         Args:
@@ -41,8 +37,10 @@ class BaseDailyEvent(BaseIndicator, IncrementalCacheMixin):
                 2 fields, `since` and `until` which are dates or timestamps that must be
                 in ISO format (YYYY-MM-DD, YYYY-MM-DDThh:mm:ss.sss±hh:mm or
                 YYYY-MM-DDThh:mm:ss.sssZ")
+            kwargs (dict): indicator-specific extra arguments that will
+                be stored as indicator attributes.
         """
-        super().__init__(span_range=span_range, video_id=video_id)
+        super().__init__(span_range=span_range, video_id=video_id, **kwargs)
 
     def get_lrs_query(
         self,

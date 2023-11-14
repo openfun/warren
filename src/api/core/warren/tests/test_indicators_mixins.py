@@ -82,6 +82,9 @@ async def test_save_with_single_cache_instance(db_session):
     class MyIndicator(CacheMixin, BaseIndicator):
         """Dummy indicator."""
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(self) -> LRSQuery:
             return LRSQuery(query={"verb": "played"})
 
@@ -91,7 +94,7 @@ async def test_save_with_single_cache_instance(db_session):
         async def compute(self):
             pass
 
-    indicator = MyIndicator()
+    indicator = MyIndicator(db_session=db_session)
     caches = db_session.exec(
         select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
     ).all()
@@ -117,6 +120,9 @@ async def test_save_with_multiple_cache_instances(db_session):
     class MyIndicator(CacheMixin, BaseIndicator):
         """Dummy indicator."""
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(self) -> LRSQuery:
             return LRSQuery(query={"verb": "played"})
 
@@ -126,7 +132,7 @@ async def test_save_with_multiple_cache_instances(db_session):
         async def compute(self):
             pass
 
-    indicator = MyIndicator()
+    indicator = MyIndicator(db_session=db_session)
     caches = db_session.exec(
         select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
     ).all()
@@ -162,6 +168,9 @@ async def test_get_cache(db_session):
     class MyIndicatorA(CacheMixin, BaseIndicator):
         """Dummy indicator."""
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(self) -> LRSQuery:
             return LRSQuery(query={"verb": "played"})
 
@@ -174,6 +183,9 @@ async def test_get_cache(db_session):
     class MyIndicatorB(CacheMixin, BaseIndicator):
         """Dummy indicator."""
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(self) -> LRSQuery:
             return LRSQuery(query={"verb": "played"})
 
@@ -183,8 +195,8 @@ async def test_get_cache(db_session):
         async def compute(self):
             pass
 
-    a = MyIndicatorA()
-    b = MyIndicatorB()
+    a = MyIndicatorA(db_session=db_session)
+    b = MyIndicatorB(db_session=db_session)
 
     db_session.add(CacheEntry(key=a.cache_key, value={"foo": [1, 2, 3]}))
     db_session.add(CacheEntry(key=b.cache_key, value={"foo": [4, 5, 6]}))
@@ -205,6 +217,9 @@ async def test_get_cache_when_no_cache_exists(db_session):
     class MyIndicator(CacheMixin, BaseIndicator):
         """Dummy indicator."""
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(self) -> LRSQuery:
             return LRSQuery(query={"verb": "played"})
 
@@ -214,7 +229,7 @@ async def test_get_cache_when_no_cache_exists(db_session):
         async def compute(self):
             pass
 
-    indicator = MyIndicator()
+    indicator = MyIndicator(db_session=db_session)
 
     caches = db_session.exec(
         select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
@@ -230,6 +245,9 @@ async def test_get_cache_when_unexpected_multiple_cache_exist(db_session):
     class MyIndicator(CacheMixin, BaseIndicator):
         """Dummy indicator."""
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(self) -> LRSQuery:
             return LRSQuery(query={"verb": "played"})
 
@@ -239,7 +257,7 @@ async def test_get_cache_when_unexpected_multiple_cache_exist(db_session):
         async def compute(self):
             pass
 
-    indicator = MyIndicator()
+    indicator = MyIndicator(db_session=db_session)
 
     db_session.add(CacheEntry(key=indicator.cache_key, value={"foo": [1, 2, 3]}))
     db_session.add(CacheEntry(key=indicator.cache_key, value={"foo": [4, 5, 6]}))
@@ -257,6 +275,9 @@ def test_compute_annotation():
 
     class MyIndicator(CacheMixin, BaseIndicator):
         """Dummy indicator."""
+
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
 
         def get_lrs_query(self) -> LRSQuery:
             return None
@@ -364,6 +385,9 @@ async def test_get_or_compute(db_session, monkeypatch):
     class MyIndicator(CacheMixin, BaseIndicator):
         """Dummy indicator."""
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(self) -> LRSQuery:
             return LRSQuery(query={"verb": "played"})
 
@@ -373,7 +397,7 @@ async def test_get_or_compute(db_session, monkeypatch):
         async def compute(self) -> dict:
             return {"foo": [1, 2, 3]}
 
-    indicator = MyIndicator()
+    indicator = MyIndicator(db_session=db_session)
 
     # Check that nothing already exists in the database
     caches = db_session.exec(
@@ -393,6 +417,9 @@ async def test_get_or_compute(db_session, monkeypatch):
     class MyIndicator(CacheMixin, BaseIndicator):
         """Dummy mocked indicator."""
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(self) -> LRSQuery:
             return LRSQuery(query={"verb": "played"})
 
@@ -405,7 +432,7 @@ async def test_get_or_compute(db_session, monkeypatch):
 
         compute = AsyncMock(return_value={"foo": [4, 5, 6]})
 
-    indicator = MyIndicator()
+    indicator = MyIndicator(db_session=db_session)
 
     # Call compute once again and ensure we don't recalculate the results
     result = await indicator.get_or_compute()
@@ -432,6 +459,9 @@ async def test_incremental_get_cache(db_session):
 
         frame = "day"
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(
             self, since: datetime = None, until: datetime = None
         ) -> LRSQuery:
@@ -453,7 +483,8 @@ async def test_incremental_get_cache(db_session):
     indicator = MyDailyIndicator(
         span_range=DatetimeRange(
             since=datetime(2023, 1, 1), until=datetime(2023, 1, 31)
-        )
+        ),
+        db_session=db_session,
     )
     # Check that nothing already exists in the database
     caches = db_session.exec(
@@ -497,6 +528,9 @@ async def test_incremental_get_cache_when_multiple_cache_exists(db_session):
 
         frame = "day"
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(
             self, since: datetime = None, until: datetime = None
         ) -> LRSQuery:
@@ -518,7 +552,8 @@ async def test_incremental_get_cache_when_multiple_cache_exists(db_session):
     indicator = MyDailyIndicator(
         span_range=DatetimeRange(
             since=datetime(2023, 1, 1), until=datetime(2023, 1, 31)
-        )
+        ),
+        db_session=db_session,
     )
     # Check that nothing already exists in the database
     caches = db_session.exec(
@@ -570,6 +605,9 @@ async def test_incremental_get_cache_limits(db_session):
 
         frame = "day"
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(
             self, since: datetime = None, until: datetime = None
         ) -> LRSQuery:
@@ -591,7 +629,8 @@ async def test_incremental_get_cache_limits(db_session):
     indicator = MyDailyIndicator(
         span_range=DatetimeRange(
             since=datetime(2023, 1, 1), until=datetime(2023, 1, 31)
-        )
+        ),
+        db_session=db_session,
     )
     # Check that nothing already exists in the database
     caches = db_session.exec(
@@ -635,6 +674,9 @@ async def test_incremental_get_continuous_cache_for_time_span(db_session):
 
         frame = "day"
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(
             self, since: datetime = None, until: datetime = None
         ) -> LRSQuery:
@@ -656,7 +698,8 @@ async def test_incremental_get_continuous_cache_for_time_span(db_session):
     indicator = MyDailyIndicator(
         span_range=DatetimeRange(
             since=datetime(2023, 1, 1), until=datetime(2023, 1, 31)
-        )
+        ),
+        db_session=db_session,
     )
     # Check that nothing already exists in the database
     caches = db_session.exec(
@@ -698,6 +741,9 @@ async def test_incremental_get_continuous_cache_for_time_span_with_week_frame(
 
         frame = "week"
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(
             self, since: datetime = None, until: datetime = None
         ) -> LRSQuery:
@@ -718,7 +764,8 @@ async def test_incremental_get_continuous_cache_for_time_span_with_week_frame(
     indicator = MyWeeklyIndicator(
         span_range=DatetimeRange(
             since=datetime(2023, 5, 12), until=datetime(2023, 7, 24)
-        )
+        ),
+        db_session=db_session,
     )
     # Check that nothing already exists in the database
     caches = db_session.exec(
@@ -883,6 +930,9 @@ async def test_incremental_get_or_compute(db_session):
 
         frame = "day"
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(self) -> LRSQuery:
             return LRSQuery(
                 query={"verb": "played", "since": self.since, "until": self.until}
@@ -906,7 +956,8 @@ async def test_incremental_get_or_compute(db_session):
     indicator = MyDailyIndicator(
         span_range=DatetimeRange(
             since=datetime(2023, 1, 1), until=datetime(2023, 1, 31)
-        )
+        ),
+        db_session=db_session,
     )
     # Check that nothing already exists in the database
     caches = db_session.exec(
@@ -967,6 +1018,9 @@ async def test_incremental_get_or_compute_update(db_session):
 
         frame = "day"
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(self) -> LRSQuery:
             return LRSQuery(
                 query={"verb": "played", "since": self.since, "until": self.until}
@@ -990,7 +1044,8 @@ async def test_incremental_get_or_compute_update(db_session):
     indicator = MyDailyIndicator(
         span_range=DatetimeRange(
             since=datetime(2023, 1, 1), until=datetime(2023, 1, 31)
-        )
+        ),
+        db_session=db_session,
     )
     # Check that nothing already exists in the database
     caches = db_session.exec(
@@ -1060,6 +1115,9 @@ async def test_incremental_get_or_compute_update_and_create(db_session):
 
         frame = "day"
 
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
         def get_lrs_query(self) -> LRSQuery:
             return LRSQuery(
                 query={"verb": "played", "since": self.since, "until": self.until}
@@ -1083,7 +1141,8 @@ async def test_incremental_get_or_compute_update_and_create(db_session):
     indicator = MyDailyIndicator(
         span_range=DatetimeRange(
             since=datetime(2023, 1, 1), until=datetime(2023, 1, 31)
-        )
+        ),
+        db_session=db_session,
     )
     # Check that nothing already exists in the database
     assert (
