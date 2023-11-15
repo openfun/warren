@@ -71,10 +71,14 @@ ci = [
 [tool.setuptools.dynamic]
 version = { attr = "warren.__version__" }
 
+[tool.coverage.run]
+omit = [
+    "*/tests/*",
+]
 
 # Third party packages configuration
 [tool.pytest.ini_options]
-addopts = "-v --cov-report term-missing --cov=core --cov=plugins"
+addopts = "-v --cov-config=core/pyproject.toml --cov-report term-missing --cov=core --cov=plugins"
 python_files = [
     "test_*.py",
     "tests.py",

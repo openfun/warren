@@ -72,8 +72,14 @@ packages = ["warren", "apps"]
 version = { attr = "warren.__version__" }
 
 # Third party packages configuration
+[tool.coverage.run]
+omit = [
+    "*/tests/*",
+    "tests.py",
+]
+
 [tool.pytest.ini_options]
-addopts = "-v --cov-report term-missing --cov=apps"
+addopts = "-v --cov-config=pyproject.toml --cov-report term-missing --cov=apps"
 python_files = [
     "test_*.py",
     "tests.py",
