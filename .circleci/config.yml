@@ -452,11 +452,9 @@ jobs:
 
   # ---- DockerHub publication job ----
   hub:
-    docker:
-      - image: cimg/base:current
-        auth:
-          username: $DOCKER_HUB_USER
-          password: $DOCKER_HUB_PASSWORD
+    machine:
+      image: ubuntu-2204:2023.07.2
+      docker_layer_caching: true
     working_directory: ~/fun
     steps:
       # Checkout repository sources
@@ -464,14 +462,12 @@ jobs:
       # Generate a version.json file describing app release & login to DockerHub
       - *generate-version-file
       - *docker-login
-      # Activate docker-in-docker (with layers caching enabled)
-      - setup_remote_docker:
-          docker_layer_caching: true
       - run:
           name: Build APP production image
           command: |
             WARREN_APP_IMAGE_BUILD_TARGET=production \
             WARREN_APP_IMAGE_TAG=app-${CIRCLE_SHA1} \
+            WARREN_FRONTEND_IMAGE_BUILD_TARGET=production \
               make build-docker-app
       - run:
           name: Build API core production image
