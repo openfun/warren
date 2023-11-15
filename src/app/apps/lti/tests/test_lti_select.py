@@ -155,7 +155,17 @@ class LTISelectViewTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
         mock_logger.assert_called_with("LTI role is not valid")
 
-    @override_settings(ALLOWED_HOSTS=["fake-lms.com"])
+    @override_settings(
+        ALLOWED_HOSTS=["fake-lms.com"],
+        STORAGES={
+            "default": {
+                "BACKEND": "django.core.files.storage.FileSystemStorage",
+            },
+            "staticfiles": {
+                "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            },
+        },
+    )
     def test_views_lti_select_valid(self):
         """Validate that view is correctly rendered."""
         lti_parameters = {

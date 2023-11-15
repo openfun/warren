@@ -1,10 +1,18 @@
 """Tests for the LTI configuration view."""
-
-
 import xmltodict
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 
+@override_settings(
+    STORAGES={
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+)
 class LTIConfigViewTestCase(TestCase):
     """Test LTI configuration view."""
 
