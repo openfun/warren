@@ -119,8 +119,30 @@ class Base(Configuration):
 
     # Static files (CSS, JavaScript, Images)
     # https://docs.djangoproject.com/en/4.1/howto/static-files/
+    STATIC_ROOT = values.Value(
+        BASE_DIR / Path("static"),
+        environ_name="WARREN_APP_STATIC_ROOT",
+        environ_prefix=None,
+    )
     STATIC_URL = "static/"
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "staticfiles")]
+
+    # Media
+    MEDIA_ROOT = values.Value(
+        BASE_DIR / Path("media"),
+        environ_name="WARREN_APP_MEDIA_ROOT",
+        environ_prefix=None,
+    )
+
+    # Storages
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        },
+    }
 
     # Default primary key field type
     # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -175,6 +197,7 @@ class Base(Configuration):
 
     MIDDLEWARE = [
         "django.middleware.security.SecurityMiddleware",
+        "whitenoise.middleware.WhiteNoiseMiddleware",
         "django.contrib.sessions.middleware.SessionMiddleware",
         "django.middleware.locale.LocaleMiddleware",
         "corsheaders.middleware.CorsMiddleware",
@@ -187,6 +210,7 @@ class Base(Configuration):
 
     # Django applications from the highest priority to the lowest
     INSTALLED_APPS = [
+        "whitenoise.runserver_nostatic",
         "django.contrib.admin",
         "django.contrib.auth",
         "django.contrib.contenttypes",

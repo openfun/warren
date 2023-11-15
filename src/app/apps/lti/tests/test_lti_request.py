@@ -118,7 +118,17 @@ class LTIRequestViewTestCase(TestCase):
             },
         )
 
-    @override_settings(ALLOWED_HOSTS=["fake-lms.com"])
+    @override_settings(
+        ALLOWED_HOSTS=["fake-lms.com"],
+        STORAGES={
+            "default": {
+                "BACKEND": "django.core.files.storage.FileSystemStorage",
+            },
+            "staticfiles": {
+                "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            },
+        },
+    )
     def test_views_lti_request_valid(self):
         """Validate that view is correctly rendered."""
         lti_parameters = {
