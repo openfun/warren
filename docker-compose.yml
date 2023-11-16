@@ -52,6 +52,8 @@ services:
       - "--port"
       - "${WARREN_API_SERVER_PORT:-8100}"
       - "--reload"
+      - "--log-level"
+      - "debug"
     volumes:
       - ./src/api:/app
       - ./bin/patch_statements_date.py:/opt/src/patch_statements_date.py
