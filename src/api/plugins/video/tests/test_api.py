@@ -236,9 +236,9 @@ async def test_unique_views_backend_query(
                 ).json(),
             )
             for view_data in [
-                {"timestamp": "2019-12-31T22:00:00.000+00:00", "time": 100},
-                {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
-                {"timestamp": "2020-01-02T00:00:30.000+00:00", "time": 300},
+                {"timestamp": "2019-12-31T22:00:00.000+00:00", "time": 3},
+                {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 29},
+                {"timestamp": "2020-01-02T00:00:30.000+00:00", "time": 10},
             ]
         ]
 
