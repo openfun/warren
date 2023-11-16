@@ -2,6 +2,11 @@
 
 <!DOCTYPE html>
 <html>
+  <!-- Pass App and API base URLs to the frontend as global variable if specified in the .env file -->
+  <script>
+    const API_ROOT_URL = "{{ API_ROOT_URL }}";
+    const APP_ROOT_URL = "{{ APP_ROOT_URL }}";
+  </script>
   <head>
     <link rel="stylesheet" type="text/css" href="{% static 'warren/assets/index.css' %}">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">

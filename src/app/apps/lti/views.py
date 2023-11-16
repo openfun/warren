@@ -89,6 +89,11 @@ class RenderMixin(TemplateResponseMixin):
             context = {}
 
         context["app_data"] = json.dumps(self.app_data)
+
+        # Pass App's API and Warren's API base URLs to the frontend.
+        # If not specified in the .env, frontend should declare their values.
+        context.update(settings.ROOT_URLS)
+
         return super().render_to_response(context, **response_kwargs)
 
 

@@ -298,6 +298,16 @@ class Base(Configuration):
 
     CORS_ALLOWED_ORIGINS = []
 
+    # Frontend
+    ROOT_URLS = {
+        "API_ROOT_URL": values.Value(
+            "", environ_name="WARREN_API_ROOT_URL", environ_prefix=None
+        ),
+        "APP_ROOT_URL": values.Value(
+            "", environ_name="WARREN_APP_ROOT_URL", environ_prefix=None
+        ),
+    }
+
     @classmethod
     def post_setup(cls):
         """Post setup configuration.
