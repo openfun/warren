@@ -143,8 +143,8 @@ async def test_daily_unique_views(httpx_mock: HTTPXMock, db_session):
                     ).json(),
                 )
                 for view_data in [
-                    {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 100},
-                    {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 200},
+                    {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 17},
+                    {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 23},
                 ]
             ]
         elif (

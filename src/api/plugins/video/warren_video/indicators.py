@@ -93,14 +93,12 @@ class BaseDailyEvent(BaseIndicator, IncrementalCacheMixin):
         statements = await self.fetch_statements()
         if not statements:
             return daily_counts
-
         statements = pipe(
             StatementsTransformer.preprocess,
             self.filter_statements,
             self.to_span_range_timezone,
             self.extract_date_from_timestamp,
         )(statements)
-
         # Compute daily counts from 'statements' DataFrame
         # and merge them into the 'daily_counts' object
         daily_counts.merge_counts(
@@ -216,7 +214,7 @@ class DailyViewsMixin:
         return statements[statements.apply(filter_view_duration, axis=1)]
 
 
-class DailyViews(DailyEvent, DailyViewsMixin):
+class DailyViews(DailyViewsMixin, DailyEvent):
     """Daily Views indicator.
 
     Calculate the total and daily counts of views.
@@ -228,7 +226,7 @@ class DailyViews(DailyEvent, DailyViewsMixin):
     verb_id: str = PlayedVerb().id
 
 
-class DailyUniqueViews(DailyUniqueEvent, DailyViewsMixin):
+class DailyUniqueViews(DailyViewsMixin, DailyUniqueEvent):
     """Daily Unique Views indicator.
 
     Calculate the total, unique and daily counts of views.
