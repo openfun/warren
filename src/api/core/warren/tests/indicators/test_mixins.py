@@ -24,7 +24,7 @@ from warren.indicators.models import CacheEntry
 def test_cache_key_calculation():
     """Test the cache key calculation."""
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -48,7 +48,7 @@ def test_cache_key_calculation_with_lrs_query_datetime_range():
 
     """  # noqa: D205
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -79,7 +79,7 @@ def test_cache_key_calculation_with_lrs_query_datetime_range():
 async def test_save_with_single_cache_instance(db_session):
     """Test saving cached results to the database."""
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -114,7 +114,7 @@ async def test_save_with_single_cache_instance(db_session):
 async def test_save_with_multiple_cache_instances(db_session):
     """Test saving cached results to the database (multiple values case)."""
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -159,7 +159,7 @@ async def test_save_with_multiple_cache_instances(db_session):
 async def test_get_cache(db_session):
     """Test getting cached results from the database."""
 
-    class MyIndicatorA(CacheMixin, BaseIndicator):
+    class MyIndicatorA(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -171,7 +171,7 @@ async def test_get_cache(db_session):
         async def compute(self):
             pass
 
-    class MyIndicatorB(CacheMixin, BaseIndicator):
+    class MyIndicatorB(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -202,7 +202,7 @@ async def test_get_cache(db_session):
 async def test_get_cache_when_no_cache_exists(db_session):
     """Test getting cached results from the database when none has been saved yet."""
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -227,7 +227,7 @@ async def test_get_cache_when_no_cache_exists(db_session):
 async def test_get_cache_when_unexpected_multiple_cache_exist(db_session):
     """Test getting cached results from the database when multiple entries exist."""
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -255,7 +255,7 @@ async def test_get_cache_when_unexpected_multiple_cache_exist(db_session):
 def test_compute_annotation():
     """Test the _compute_annotation cached property."""
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -295,7 +295,7 @@ async def test_to_pydantic(value):
         foo: str
         bar: int
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -325,7 +325,7 @@ async def test_raw_or_pydantic(value):
         foo: str
         bar: int
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -337,7 +337,7 @@ async def test_raw_or_pydantic(value):
     indicator = MyIndicator()
     assert indicator._raw_or_pydantic(value) == MyType(foo="lol", bar=1)
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -361,7 +361,7 @@ async def test_raw_or_pydantic(value):
 async def test_get_or_compute(db_session, monkeypatch):
     """Test getting cached results from the database or compute them."""
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -390,7 +390,7 @@ async def test_get_or_compute(db_session, monkeypatch):
     assert len(cached) == 1
     assert cached[0].value == {"foo": [1, 2, 3]}
 
-    class MyIndicator(CacheMixin, BaseIndicator):
+    class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy mocked indicator."""
 
         def get_lrs_query(self) -> LRSQuery:
@@ -427,7 +427,7 @@ async def test_get_or_compute(db_session, monkeypatch):
 async def test_incremental_get_cache(db_session):
     """Test getting cache(s) for the incremental mixin."""
 
-    class MyDailyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyDailyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "day"
@@ -455,12 +455,13 @@ async def test_incremental_get_cache(db_session):
             since=datetime(2023, 1, 1), until=datetime(2023, 1, 31)
         )
     )
+
     # Check that nothing already exists in the database
     caches = db_session.exec(
         select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
     ).all()
     assert len(caches) == 0
-    caches = await indicator.get_cache()
+    caches = await indicator.get_caches()
     assert len(caches) == 0
 
     # Create a cache entry and check we can get it back
@@ -482,7 +483,8 @@ async def test_incremental_get_cache(db_session):
             )
         )
     db_session.commit()
-    caches = await indicator.get_cache()
+
+    caches = await indicator.get_caches()
     assert len(caches) == 10
     for cache, day in zip(caches, chain(range(10, 16), range(18, 22))):
         assert cache.value.get("day") == day
@@ -492,7 +494,7 @@ async def test_incremental_get_cache(db_session):
 async def test_incremental_get_cache_when_multiple_cache_exists(db_session):
     """Test getting cache(s) for the incremental mixin with existing cache."""
 
-    class MyDailyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyDailyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "day"
@@ -555,7 +557,7 @@ async def test_incremental_get_cache_when_multiple_cache_exists(db_session):
         )
     )
     db_session.commit()
-    caches = await indicator.get_cache()
+    caches = await indicator.get_caches()
     assert len(caches) == 10
     for cache, day in zip(caches, chain(range(10, 16), range(18, 22))):
         assert cache.value.get("day") == day
@@ -565,7 +567,7 @@ async def test_incremental_get_cache_when_multiple_cache_exists(db_session):
 async def test_incremental_get_cache_limits(db_session):
     """Test getting cache(s) for the incremental mixin when querying date span range."""
 
-    class MyDailyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyDailyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "day"
@@ -620,7 +622,7 @@ async def test_incremental_get_cache_limits(db_session):
     ).all()
     assert len(caches) == 31
 
-    caches = await indicator.get_cache()
+    caches = await indicator.get_caches()
     assert len(caches) == 31
     for cache, day in zip(caches, range(1, 31)):
         assert cache.value.get("day") == day
@@ -630,7 +632,7 @@ async def test_incremental_get_cache_limits(db_session):
 async def test_incremental_get_continuous_cache_for_time_span(db_session):
     """Test getting continuous cache(s) for the incremental mixin."""
 
-    class MyDailyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyDailyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "day"
@@ -663,7 +665,7 @@ async def test_incremental_get_continuous_cache_for_time_span(db_session):
         select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
     ).all()
     assert len(caches) == 0
-    caches = await indicator.get_cache()
+    caches = await indicator.get_caches()
     assert len(caches) == 0
 
     # Create cache entries and check we can get them back
@@ -682,7 +684,7 @@ async def test_incremental_get_continuous_cache_for_time_span(db_session):
             )
         )
     db_session.commit()
-    caches = await indicator._get_continuous_cache_for_time_span()
+    caches = await indicator._get_continuous_caches_for_time_span()
     assert len(caches) == 31
     assert len([c.value for c in caches if c.value is not None]) == 6
 
@@ -693,7 +695,7 @@ async def test_incremental_get_continuous_cache_for_time_span_with_week_frame(
 ):
     """Test getting continuous cache(s) for the incremental mixin with a week frame."""
 
-    class MyWeeklyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyWeeklyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "week"
@@ -725,7 +727,7 @@ async def test_incremental_get_continuous_cache_for_time_span_with_week_frame(
         select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
     ).all()
     assert len(caches) == 0
-    caches = await indicator.get_cache()
+    caches = await indicator.get_caches()
     assert len(caches) == 0
 
     # Create cache entries and check we can get them back
@@ -741,7 +743,7 @@ async def test_incremental_get_continuous_cache_for_time_span_with_week_frame(
             )
         )
     db_session.commit()
-    caches = await indicator._get_continuous_cache_for_time_span()
+    caches = await indicator._get_continuous_caches_for_time_span()
     assert len(caches) == 12
     assert len([c.value for c in caches if c.value is not None]) == 5
 
@@ -750,7 +752,7 @@ async def test_incremental_get_continuous_cache_for_time_span_with_week_frame(
 async def test_incremental_merge():
     """Test merge method of the incremental mixin."""
 
-    class MyDailyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyDailyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "day"
@@ -780,7 +782,7 @@ async def test_incremental_merge():
 async def test_incremental_compute_annotation():
     """Test _compute_annotation property of the incremental mixin."""
 
-    class MyDailyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyDailyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "day"
@@ -807,7 +809,7 @@ async def test_incremental_compute_annotation():
         foo: str
         bar: dict
 
-    class MyDailyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyDailyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "day"
@@ -846,7 +848,7 @@ async def test_incremental_to_pydantic(values):
         foo: str
         bar: int
 
-    class MyDailyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyDailyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "day"
@@ -878,7 +880,7 @@ async def test_incremental_to_pydantic(values):
 async def test_incremental_get_or_compute(db_session):
     """Test get or compute method of the incremental mixin."""
 
-    class MyDailyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyDailyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "day"
@@ -913,7 +915,7 @@ async def test_incremental_get_or_compute(db_session):
         select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
     ).all()
     assert len(caches) == 0
-    caches = await indicator.get_cache()
+    caches = await indicator.get_caches()
     assert len(caches) == 0
 
     # Create cache entries and check we can get them back
@@ -962,7 +964,7 @@ async def test_incremental_get_or_compute_update(db_session):
     """Test incremental cache update."""
     delta = 1
 
-    class MyDailyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyDailyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "day"
@@ -997,7 +999,7 @@ async def test_incremental_get_or_compute_update(db_session):
         select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
     ).all()
     assert len(caches) == 0
-    caches = await indicator.get_cache()
+    caches = await indicator.get_caches()
     assert len(caches) == 0
 
     # Create cache entries and check we can get them back
@@ -1053,7 +1055,7 @@ async def test_incremental_get_or_compute_update_and_create(db_session):
     """
     delta = 2
 
-    class MyDailyIndicator(IncrementalCacheMixin, BaseIndicator):
+    class MyDailyIndicator(BaseIndicator, IncrementalCacheMixin):
         """Dummy indicator."""
 
         frame = "day"
@@ -1096,7 +1098,7 @@ async def test_incremental_get_or_compute_update_and_create(db_session):
         select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
     ).all()
     assert len(caches) == 0
-    caches = await indicator.get_cache()
+    caches = await indicator.get_caches()
     assert len(caches) == 0
 
     # Create cache entries and check we can get them back

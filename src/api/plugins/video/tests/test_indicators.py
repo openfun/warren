@@ -47,8 +47,15 @@ def test_base_daily_event_span_range_timezone():
     ]
     source_statements = StatementsTransformer.preprocess(raw_statements)
 
+    class MyIndicator(BaseDailyEvent):
+        def merge(self):
+            pass
+
+        def compute(self):
+            pass
+
     # Create an indicator with a DateTimeRange in UTC
-    indicator_utc = BaseDailyEvent(
+    indicator_utc = MyIndicator(
         span_range=DatetimeRange(since="2023-01-01", until="2023-01-03"),
         video_id="Test",
     )
@@ -69,7 +76,7 @@ def test_base_daily_event_span_range_timezone():
     assert statements["timestamp"].equals(expected_statements)
 
     # Create an indicator with a DateTimeRange in UTC+02:00
-    indicator_with_timezone = BaseDailyEvent(
+    indicator_with_timezone = MyIndicator(
         span_range=DatetimeRange(
             since="2023-01-01T00:00:00+02:00", until="2023-01-03T00:00:00+02:00"
         ),

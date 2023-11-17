@@ -69,7 +69,7 @@ class StatementsTransformer:
         """Normalize raw statements, and add utility columns."""
         if statements is None or not len(statements):
             logger.info("There are no statements to process")
-            return
+            return None
 
         return pipe(
             StatementsTransformer.normalize,

@@ -23,11 +23,11 @@ router = APIRouter(
 logger = logging.getLogger(__name__)
 
 
-@router.get("/")
+@router.get("/", response_model=List[RelationRead])
 async def read_relations(
     pagination: Annotated[Pagination, Depends()],
     session: Session = Depends(get_session),
-) -> List[RelationRead]:
+):
     """Retrieve a list of relations based on query parameters.
 
     Args:
@@ -47,10 +47,8 @@ async def read_relations(
     return relations
 
 
-@router.post("/")
-async def create_relation(
-    relation: Relation, session: Session = Depends(get_session)
-) -> UUID:
+@router.post("/", response_model=UUID)
+async def create_relation(relation: Relation, session: Session = Depends(get_session)):
     """Create a relation.
 
     Args:
@@ -75,10 +73,10 @@ async def create_relation(
     return relation.id
 
 
-@router.put("/{relation_id}")
+@router.put("/{relation_id}", response_model=RelationRead)
 async def update_relation(
     relation_id: UUID, relation: RelationUpdate, session: Session = Depends(get_session)
-) -> RelationRead:
+):
     """Update an existing relation by ID.
 
     Args:
@@ -117,10 +115,8 @@ async def update_relation(
     return db_relation
 
 
-@router.get("/{relation_id}")
-async def read_relation(
-    relation_id: UUID, session: Session = Depends(get_session)
-) -> RelationRead:
+@router.get("/{relation_id}", response_model=RelationRead)
+async def read_relation(relation_id: UUID, session: Session = Depends(get_session)):
     """Retrieve detailed information about a relation.
 
     Args:

@@ -1,5 +1,7 @@
 """"Warren video indicators."""
 
+from typing import TYPE_CHECKING, Optional
+
 import pandas as pd
 from ralph.backends.http.async_lrs import LRSQuery
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
@@ -7,11 +9,12 @@ from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
 from ralph.models.xapi.concepts.verbs.video import PlayedVerb
 from warren.filters import DatetimeRange
-from warren.indicators import BaseIndicator, IncrementalCacheMixin
+from warren.indicators import BaseIndicator, Frames, IncrementalCacheMixin
 from warren.models import DailyCount, DailyCounts, DailyUniqueCount, DailyUniqueCounts
 from warren.utils import pipe
 from warren.xapi import StatementsTransformer
-from warren_video.conf import settings as video_plugin_settings
+
+from .conf import settings as video_plugin_settings
 
 
 class BaseDailyEvent(BaseIndicator, IncrementalCacheMixin):
@@ -25,8 +28,9 @@ class BaseDailyEvent(BaseIndicator, IncrementalCacheMixin):
     class attribute with their xAPI verb ID.
     """
 
-    frame: str = "day"
-    verb_id: str = None
+    frame: Frames = "day"
+    verb_id: Optional[str] = None
+    video_id: str
 
     def __init__(
         self,
@@ -80,6 +84,20 @@ class BaseDailyEvent(BaseIndicator, IncrementalCacheMixin):
         statements.drop(["timestamp"], axis=1, inplace=True)
         return statements
 
+
+class DailyEvent(BaseDailyEvent):
+    """Daily Event indicator.
+
+    Required: Indicators inheriting from this base class must declare a 'verb_id'
+    class attribute with their xAPI verb ID.
+    """
+
+    def __init_subclass__(cls, **kwargs):
+        """Ensure subclasses have a 'verb_id' class attribute."""
+        super().__init_subclass__(**kwargs)
+        if cls.verb_id is None:
+            raise TypeError("Indicators must declare a 'verb_id' class attribute")
+
     async def compute(self) -> DailyCounts:
         """Fetch statements and computes the current indicator.
 
@@ -90,15 +108,16 @@ class BaseDailyEvent(BaseIndicator, IncrementalCacheMixin):
         # with counts equal to zero
         daily_counts = DailyCounts.from_range(self.since, self.until)
 
-        statements = await self.fetch_statements()
-        if not statements:
+        raw_statements = await self.fetch_statements()
+        if not raw_statements:
             return daily_counts
         statements = pipe(
             StatementsTransformer.preprocess,
             self.filter_statements,
             self.to_span_range_timezone,
             self.extract_date_from_timestamp,
-        )(statements)
+        )(raw_statements)
+
         # Compute daily counts from 'statements' DataFrame
         # and merge them into the 'daily_counts' object
         daily_counts.merge_counts(
@@ -114,20 +133,6 @@ class BaseDailyEvent(BaseIndicator, IncrementalCacheMixin):
         """Merging function for computed indicators."""
         a.merge_counts(b.counts)
         return a
-
-
-class DailyEvent(BaseDailyEvent):
-    """Daily Event indicator.
-
-    Required: Indicators inheriting from this base class must declare a 'verb_id'
-    class attribute with their xAPI verb ID.
-    """
-
-    def __init_subclass__(cls, **kwargs):
-        """Ensure subclasses have a 'verb_id' class attribute."""
-        super().__init_subclass__(**kwargs)
-        if cls.verb_id is None:
-            raise TypeError("Indicators must declare a 'verb_id' class attribute")
 
 
 class DailyUniqueEvent(BaseDailyEvent):
@@ -163,8 +168,8 @@ class DailyUniqueEvent(BaseDailyEvent):
         # with counts equal to zero
         daily_unique_counts = DailyUniqueCounts.from_range(self.since, self.until)
 
-        statements = await self.fetch_statements()
-        if not statements:
+        raw_statements = await self.fetch_statements()
+        if not raw_statements:
             return daily_unique_counts
 
         statements = pipe(
@@ -172,7 +177,7 @@ class DailyUniqueEvent(BaseDailyEvent):
             self.filter_statements,
             self.to_span_range_timezone,
             self.extract_date_from_timestamp,
-        )(statements)
+        )(raw_statements)
 
         counts = []
         for date, users in statements.groupby("date")["actor.uid"].unique().items():
@@ -190,7 +195,13 @@ class DailyUniqueEvent(BaseDailyEvent):
         return a
 
 
-class DailyViewsMixin:
+if TYPE_CHECKING:
+    _Base = BaseDailyEvent
+else:
+    _Base = object
+
+
+class DailyViewsMixin(_Base):
     """Daily Views mixin.
 
     Calculate the total and daily counts of views.

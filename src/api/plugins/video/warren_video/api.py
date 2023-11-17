@@ -8,7 +8,8 @@ from warren.fields import IRI
 from warren.filters import BaseQueryFilters, DatetimeRange
 from warren.models import DailyCounts, DailyUniqueCounts, LTIToken
 from warren.utils import get_lti_token
-from warren_video.indicators import (
+
+from .indicators import (
     DailyCompletedViews,
     DailyDownloads,
     DailyUniqueCompletedViews,
@@ -43,7 +44,7 @@ async def views(
     }
     indicator = klass_mapping.get((complete, unique), DailyViews)(
         video_id=video_id, span_range=DatetimeRange.parse_obj(filters)
-    )
+    )  # type: ignore[abstract]
     logger.debug("Will compute indicator %s", type(indicator).__name__)
     logger.debug(
         "From %s to %s", indicator.span_range.since, indicator.span_range.until
