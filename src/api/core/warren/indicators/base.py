@@ -2,15 +2,14 @@
 import copy
 import inspect
 from abc import ABC, abstractmethod
-from datetime import datetime
 from functools import cached_property
-from typing import List
+from typing import List, Optional
 
 from ralph.exceptions import BackendException
 
 from warren.backends import lrs_client as async_lrs_client
 from warren.exceptions import LrsClientException
-from warren.filters import DatetimeRange
+from warren.filters import Datetime, DatetimeRange
 from warren.models import XAPI_STATEMENT, LRSStatementsQuery
 
 
@@ -21,7 +20,9 @@ class BaseIndicator(ABC):
     for indicators.
     """
 
-    def __init__(self, span_range: DatetimeRange = None, **kwargs):
+    span_range: DatetimeRange
+
+    def __init__(self, span_range: Optional[DatetimeRange] = None, **kwargs):
         """Instantiate the base indicator.
 
         Args:
@@ -68,12 +69,12 @@ class BaseIndicator(ABC):
         return self.__class__(**other_args)
 
     @property
-    def since(self) -> datetime:
+    def since(self) -> Datetime:
         """Shortcut to the indicator date/time span minimal value."""
         return self.span_range.since
 
     @property
-    def until(self) -> datetime:
+    def until(self) -> Datetime:
         """Shortcut to the indicator date/time span maximal value."""
         return self.span_range.until
 
@@ -83,7 +84,7 @@ class BaseIndicator(ABC):
         return async_lrs_client
 
     @abstractmethod
-    def get_lrs_query(self) -> LRSStatementsQuery:
+    def get_lrs_query(self) -> LRSStatementsQuery:  # type: ignore[valid-type]
         """Get the LRS query for fetching statements."""
 
     async def fetch_statements(self) -> List[XAPI_STATEMENT]:

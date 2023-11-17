@@ -11,8 +11,8 @@ from .fields import Datetime
 class DatetimeRange(BaseModel):
     """A date/time range."""
 
-    since: Datetime = None
-    until: Datetime = None
+    since: Datetime
+    until: Datetime
 
     class Config:
         """Datetime range model configuration."""

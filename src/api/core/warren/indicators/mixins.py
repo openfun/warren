@@ -4,7 +4,7 @@ import inspect
 import logging
 from abc import ABC, abstractmethod
 from functools import cached_property, reduce
-from typing import Any, Iterator, List, Literal, Union
+from typing import Any, List, Literal, Protocol, Sequence, Union
 
 import arrow
 from pydantic.main import BaseModel
@@ -40,7 +40,19 @@ Frames = Literal[
 logger = logging.getLogger(__name__)
 
 
-class CacheMixin:
+class Cacheable(Protocol):
+    """A protocol defining the structure for cacheable objects."""
+
+    def get_lrs_query(self):
+        """Get the LRS query for fetching statements."""
+        ...
+
+    async def compute(self):
+        """Perform operations to get a computed value."""
+        ...
+
+
+class CacheMixin(Cacheable):
     """A cache mixin that handles indicator persistence."""
 
     @cached_property
@@ -62,7 +74,7 @@ class CacheMixin:
         ).hexdigest()
         return f"{self.__class__.__name__.lower()}-{lrs_query_hash}"
 
-    async def get_cache(self) -> CacheEntry:
+    async def get_cache(self) -> Union[CacheEntry, None]:
         """Get cached results matching the cache key from the database."""
         return self.db_session.exec(
             select(CacheEntry).where(CacheEntry.key == self.cache_key)
@@ -121,8 +133,10 @@ class CacheMixin:
         value = await self.compute()
 
         if cache is None:
-            cache = CacheEntryCreate(key=self.cache_key, value=value)
-            await self.save(CacheEntry.from_orm(cache))
+            cache = CacheEntry.from_orm(
+                CacheEntryCreate(key=self.cache_key, value=value)
+            )
+            await self.save(cache)
         elif update:
             cache.value = value
             await self.save(cache)
@@ -130,7 +144,25 @@ class CacheMixin:
         return self._raw_or_pydantic(cache.value)
 
 
-class IncrementalCacheMixin(CacheMixin, ABC):
+class CacheableIncrementally(Cacheable):
+    """Protocol for cacheable object with incremental capabilities."""
+
+    @property
+    def since(self):
+        """Shortcut to the object date/time span minimal value."""
+        ...
+
+    @property
+    def until(self):
+        """Shortcut to the object date/time span minimal value."""
+        ...
+
+    def _replace(self, deep=False, **kwargs):
+        """Return an object copy with overridden kwargs."""
+        ...
+
+
+class IncrementalCacheMixin(CacheMixin, CacheableIncrementally, ABC):
     """A cache mixin for indicators relying on date ranges.
 
     Using this mixin requires to define a "frame" for the cache of the
@@ -143,22 +175,22 @@ class IncrementalCacheMixin(CacheMixin, ABC):
 
     @staticmethod
     @abstractmethod
-    def merge(a: dict, b: dict):
+    def merge(a: Any, b: Any) -> Any:
         """Merging function for computed results."""
 
-    async def get_cache(self) -> Iterator[CacheEntry]:
+    async def get_caches(self) -> Sequence[CacheEntry]:
         """Get cached results matching the cache key and the indicator span range."""
         return self.db_session.exec(
             select(CacheEntry)
             .where(
                 CacheEntry.key == self.cache_key,
-                CacheEntry.since >= self.since,
-                CacheEntry.until <= arrow.get(self.until).ceil(self.frame).datetime,
+                CacheEntry.since >= self.since,  # type: ignore[operator]
+                CacheEntry.until <= arrow.get(self.until).ceil(self.frame).datetime,  # type: ignore[operator]
             )
-            .order_by(CacheEntry.since)
+            .order_by(CacheEntry.since)  # type: ignore[arg-type]
         ).all()
 
-    async def _get_continuous_cache_for_time_span(
+    async def _get_continuous_caches_for_time_span(
         self,
     ) -> List[Union[CacheEntry, CacheEntryCreate]]:
         """Generates a list mixing dummy cache and real DB cache."""
@@ -177,7 +209,7 @@ class IncrementalCacheMixin(CacheMixin, ABC):
 
         # Mutate dummy cache entries with DB cached ones
         sinces = [c.since for c in caches]
-        for db_cache in await self.get_cache():
+        for db_cache in await self.get_caches():
             caches[sinces.index(db_cache.since)] = db_cache
 
         return caches
@@ -188,7 +220,7 @@ class IncrementalCacheMixin(CacheMixin, ABC):
         Nota bene: if computed, the result is stored in the database.
 
         """
-        caches = await self._get_continuous_cache_for_time_span()
+        caches = await self._get_continuous_caches_for_time_span()
         to_save = []
         to_update = []
         for cache in caches:

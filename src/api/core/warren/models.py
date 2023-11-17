@@ -222,8 +222,9 @@ class DailyUniqueCounts(BaseModel):
             reduce(lambda x, y: x + y, v)
             for k, v in groupby(self.counts, lambda dc: dc.date)
         ]
+
         # Only consider the first occurrence of a user along the date range
-        users = set()
+        users: Set[str] = set()
         self.total = 0
         for count in self.counts:
             count.users = count.users - users
@@ -241,6 +242,7 @@ class DailyUniqueCounts(BaseModel):
 # FIXME: prefer using a valid generic pydantic model, this is too convoluted.
 # See: https://github.com/openfun/ralph/issues/425
 # Get a pydantic model from a stdlib dataclass to use Pydantic helpers
+# Fix mypy errors 'is not valid as type' as soon we use a valid generic pydantic model
 LRSStatementsQuery = pdt_dataclass(StatementParameters)
 
 

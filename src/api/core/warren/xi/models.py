@@ -1,12 +1,12 @@
 """Experience Index SQL and Pydantic Models."""
 from datetime import datetime
 from enum import Enum, IntEnum, unique
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 from uuid import UUID, uuid4
 
 from pydantic import Json, PositiveInt
 from pydantic.main import BaseModel
-from sqlalchemy import CheckConstraint, Column, UniqueConstraint
+from sqlalchemy import CheckConstraint, Column, Constraint, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.types import JSON, DateTime
 from sqlmodel import Field, Relationship, SQLModel
@@ -23,7 +23,7 @@ class BaseTimestamp(SQLModel):
     time whenever the record is modified.
     """
 
-    __table_args__ = (
+    __table_args__: Tuple[Constraint, ...] = (
         CheckConstraint("created_at <= updated_at", name="pre-creation-update"),
     )
     created_at: datetime = Field(

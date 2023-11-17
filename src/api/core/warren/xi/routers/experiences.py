@@ -26,13 +26,13 @@ router = APIRouter(
 logger = logging.getLogger(__name__)
 
 
-@router.get("/")
+@router.get("/", response_model=List[ExperienceReadSnapshot])
 async def read_experiences(
     pagination: Annotated[Pagination, Depends()],
     session: Session = Depends(get_session),
     structure: Optional[Structure] = None,
     aggregation_level: Optional[AggregationLevel] = None,
-) -> List[ExperienceReadSnapshot]:
+):
     """Retrieve a list of experiences based on query parameters.
 
     Args:
@@ -60,10 +60,10 @@ async def read_experiences(
     return experiences
 
 
-@router.post("/")
+@router.post("/", response_model=UUID)
 async def create_experience(
     experience: Experience, session: Session = Depends(get_session)
-) -> UUID:
+):
     """Create an experience.
 
     Args:
@@ -88,12 +88,12 @@ async def create_experience(
     return experience.id
 
 
-@router.put("/{experience_id}")
+@router.put("/{experience_id}", response_model=ExperienceRead)
 async def update_experience(
     experience_id: UUID,
     experience: ExperienceUpdate,
     session: Session = Depends(get_session),
-) -> ExperienceRead:
+):
     """Update an existing experience by ID.
 
     Args:
@@ -133,10 +133,8 @@ async def update_experience(
     return db_experience
 
 
-@router.get("/{experience_id}")
-async def read_experience(
-    experience_id: UUID, session: Session = Depends(get_session)
-) -> ExperienceRead:
+@router.get("/{experience_id}", response_model=ExperienceRead)
+async def read_experience(experience_id: UUID, session: Session = Depends(get_session)):
     """Retrieve detailed information about an experience.
 
     Args:
