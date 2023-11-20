@@ -1,6 +1,9 @@
 """Tests for the video API endpoints."""
+import asyncio
 import json
 import re
+import secrets
+import time
 import urllib
 
 import httpx
@@ -536,3 +539,66 @@ async def test_unique_downloads_backend_query(
     }
 
     assert response.json() == expected_video_downloads
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize("load", [10, 50, 100, 200])
+async def test_database_session_behavior(
+    http_client: httpx.AsyncClient,
+    httpx_mock: HTTPXMock,
+    auth_headers: dict,
+    db_session,
+    load: int,
+):
+    """Test database session behavior with various load."""
+    lrs_client.base_url = "http://fake-lrs.com"
+    video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
+    statements = [
+        json.loads(
+            VideoPlayedFactory.build(
+                [
+                    {"object": {"id": f"{video_id}"}},
+                    {"result": {"extensions": {RESULT_EXTENSION_TIME: 5}}},
+                    {"timestamp": "2020-01-02T00:00:00.000+00:00"},
+                ]
+            ).json()
+        ),
+    ]
+
+    def lrs_response(request: httpx.Request):
+        """Dynamic mock for the LRS response.
+
+        Simulates a variable response time of the LRS.
+        """
+        time.sleep(secrets.choice([x / 10.0 for x in range(1, 41, 1)]))
+
+        return httpx.Response(
+            status_code=200,
+            json={"statements": statements},
+        )
+
+    httpx_mock.add_callback(
+        callback=lrs_response,
+        url=re.compile(r"^http://fake-lrs\.com/xAPI/statements\?.*$"),
+        method="GET",
+    )
+
+    # Send _load_ async requests
+    url = f"/api/v1/video/{video_id}/views"
+    responses = await asyncio.gather(
+        *(
+            http_client.get(
+                url,
+                params={
+                    "since": "2020-01-01T00:00:00+05:00",
+                    "until": "2020-01-03T23:59:00+05:00",
+                },
+                headers=auth_headers,
+            )
+            for _ in range(0, load, 1)
+        ),
+        return_exceptions=True,
+    )
+
+    for response in responses:
+        assert response.status_code == 200
