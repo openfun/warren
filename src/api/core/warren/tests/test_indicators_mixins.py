@@ -1018,13 +1018,11 @@ async def test_incremental_get_or_compute_update(db_session):
         )
     db_session.commit()
     assert (
-        db_session.exec(
-            select([func.count()])
-            .select_from(CacheEntry)
-            .where(CacheEntry.key == indicator.cache_key)
-        ).one()
-        == 10
-    )
+        db_session.query(func.count())
+        .select_from(CacheEntry)
+        .filter(CacheEntry.key == indicator.cache_key)
+        .scalar()
+    ) == 10
 
     results = await indicator.get_or_compute()
     assert len(results) == 31
