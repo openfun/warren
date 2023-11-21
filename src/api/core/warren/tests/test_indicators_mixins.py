@@ -11,7 +11,6 @@ from arrow import Arrow
 from freezegun import freeze_time
 from pydantic import BaseModel
 from ralph.backends.http.async_lrs import LRSQuery
-from sqlalchemy import func
 from sqlalchemy.exc import MultipleResultsFound
 from sqlmodel import select
 
@@ -1017,12 +1016,10 @@ async def test_incremental_get_or_compute_update(db_session):
             )
         )
     db_session.commit()
-    assert (
-        db_session.query(func.count())
-        .select_from(CacheEntry)
-        .filter(CacheEntry.key == indicator.cache_key)
-        .scalar()
-    ) == 10
+    caches = db_session.exec(
+        select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
+    ).all()
+    assert len(caches) == 10
 
     results = await indicator.get_or_compute()
     assert len(results) == 31
