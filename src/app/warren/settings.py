@@ -8,6 +8,7 @@ from typing import List
 
 import sentry_sdk
 from configurations import Configuration, values
+from django.utils.log import DEFAULT_LOGGING
 from django.utils.translation import gettext_lazy as _
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -32,6 +33,46 @@ def get_release():
         return "NA"  # Default: not available
 
 
+DEFAULT_ENVIRON_PREFIX = "WARREN_APP"
+
+
+class Value(values.Value):
+    """Custom Value instance that overrides default Value configuration."""
+
+    def __init__(  # noqa: PLR0913
+        self,
+        default=None,
+        environ=True,
+        environ_name=None,
+        environ_prefix=DEFAULT_ENVIRON_PREFIX,
+        environ_required=False,
+        *args,
+        **kwargs,
+    ):
+        """Override the environ_prefix default to avoid repeting it."""
+        super().__init__(
+            default=default,
+            environ=environ,
+            environ_name=environ_name,
+            environ_prefix=environ_prefix,
+            environ_required=environ_required,
+            *args,  # noqa: B026
+            **kwargs,
+        )
+
+
+class DictValue(Value, values.DictValue):
+    """Custom DictValue that inherits from our custom Value class."""
+
+
+class FloatValue(Value, values.FloatValue):
+    """Custom FloatValue that inherits from our custom Value class."""
+
+
+class ListValue(Value, values.ListValue):
+    """Custom ListValue that inherits from our custom Value class."""
+
+
 class Base(Configuration):
     """Base configuration every configuration should inherit from.
 
@@ -42,15 +83,15 @@ class Base(Configuration):
 
     It depends on an environment variable that SHOULD be defined:
 
-    * DJANGO_SECRET_KEY
+    * WARREN_APP_SECRET_KEY
 
     You may also want to override default configuration by setting the
     following environment variables:
 
-    * DB_NAME
-    * DB_HOST
-    * DB_PASSWORD
-    * DB_USER
+    * WARREN_APP_DB_NAME
+    * WARREN_APP_DB_HOST
+    * WARREN_APP_DB_PASSWORD
+    * WARREN_APP_DB_USER
     """
 
     AUTHENTICATION_BACKENDS = [
@@ -61,8 +102,8 @@ class Base(Configuration):
     DEBUG = False
 
     # Security
-    ALLOWED_HOSTS: List[str] = []
-    SECRET_KEY = values.Value(None)
+    ALLOWED_HOSTS: List[str] = ListValue()
+    SECRET_KEY = Value(None)
 
     # SECURE_PROXY_SSL_HEADER allows to fix the scheme in Django's HttpRequest
     # object when you application is behind a reverse proxy.
@@ -119,20 +160,12 @@ class Base(Configuration):
 
     # Static files (CSS, JavaScript, Images)
     # https://docs.djangoproject.com/en/4.1/howto/static-files/
-    STATIC_ROOT = values.Value(
-        BASE_DIR / Path("static"),
-        environ_name="WARREN_APP_STATIC_ROOT",
-        environ_prefix=None,
-    )
+    STATIC_ROOT = Value(BASE_DIR / Path("static"))
     STATIC_URL = "static/"
     STATICFILES_DIRS = [os.path.join(BASE_DIR, "staticfiles")]
 
     # Media
-    MEDIA_ROOT = values.Value(
-        BASE_DIR / Path("media"),
-        environ_name="WARREN_APP_MEDIA_ROOT",
-        environ_prefix=None,
-    )
+    MEDIA_ROOT = Value(BASE_DIR / Path("media"))
 
     # Storages
     STORAGES = {
@@ -151,26 +184,15 @@ class Base(Configuration):
     # Database
     DATABASES = {
         "default": {
-            "ENGINE": values.Value(
+            "ENGINE": Value(
                 "django.db.backends.postgresql_psycopg2",
                 environ_name="DB_ENGINE",
-                environ_prefix=None,
             ),
-            "NAME": values.Value(
-                "warren-app", environ_name="WARREN_APP_DB_NAME", environ_prefix=None
-            ),
-            "USER": values.Value(
-                "fun", environ_name="WARREN_APP_DB_USER", environ_prefix=None
-            ),
-            "PASSWORD": values.Value(
-                "pass", environ_name="WARREN_APP_DB_PASSWORD", environ_prefix=None
-            ),
-            "HOST": values.Value(
-                "localhost", environ_name="WARREN_APP_DB_HOST", environ_prefix=None
-            ),
-            "PORT": values.Value(
-                5432, environ_name="WARREN_APP_DB_PORT", environ_prefix=None
-            ),
+            "NAME": Value("warren-app", environ_name="DB_NAME"),
+            "USER": Value("fun", environ_name="DB_USER"),
+            "PASSWORD": Value("pass", environ_name="DB_PASSWORD"),
+            "HOST": Value("localhost", environ_name="DB_HOST"),
+            "PORT": Value(5432, environ_name="DB_PORT"),
         }
     }
 
@@ -236,23 +258,16 @@ class Base(Configuration):
     }
 
     # Sentry
-    SENTRY_DSN = values.Value(None, environ_name="SENTRY_DSN")
-
-    # Warren
-    # Should be a dict with platform urls as keys and corresponding edx API
-    # keys as values.
-    EDX_PLATFORM_API_TOKENS = values.DictValue(
-        {}, environ_name="EDX_PLATFORM_API_TOKENS", environ_prefix=None
-    )
+    SENTRY_DSN = Value(None)
 
     # LTI
-    LTI_CONFIG_TITLE = values.Value("Warren")
-    LTI_CONFIG_DESCRIPTION = values.Value(
+    LTI_CONFIG_TITLE = Value("Warren")
+    LTI_CONFIG_DESCRIPTION = Value(
         "An opensource visualization platform for learning analytics."
     )
-    LTI_CONFIG_ICON = values.Value("warren_52x52.svg")
-    LTI_CONFIG_URL = values.Value()
-    LTI_CONFIG_CONTACT_EMAIL = values.Value()
+    LTI_CONFIG_ICON = Value("warren_52x52.svg")
+    LTI_CONFIG_URL = Value()
+    LTI_CONFIG_CONTACT_EMAIL = Value()
 
     REST_FRAMEWORK = {
         "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -262,50 +277,40 @@ class Base(Configuration):
     }
 
     LTI_ACCESS_TOKEN_LIFETIME = timedelta(
-        seconds=values.FloatValue(
-            default=86400,  # 24 hours
-            environ_name="WARREN_APP_LTI_ACCESS_TOKEN_LIFETIME",
-            environ_prefix=None,
-        )
+        seconds=FloatValue(default=86400, environ_name="LTI_ACCESS_TOKEN_LIFETIME")
     )
 
     SIMPLE_JWT = {
         "ACCESS_TOKEN_LIFETIME": timedelta(
-            seconds=values.FloatValue(
+            seconds=FloatValue(
                 default=300,
-                environ_name="WARREN_APP_ACCESS_TOKEN_LIFETIME",
-                environ_prefix=None,
+                environ_name="ACCESS_TOKEN_LIFETIME",
             )
         ),
         "REFRESH_TOKEN_LIFETIME": timedelta(
-            seconds=values.FloatValue(
+            seconds=FloatValue(
                 default=86400,
-                environ_name="WARREN_APP_REFRESH_TOKEN_LIFETIME",
-                environ_prefix=None,
+                environ_name="REFRESH_TOKEN_LIFETIME",
             )
         ),
-        "ALGORITHM": values.Value(
-            "HS256", environ_name="WARREN_APP_SIGNING_ALGORITHM", environ_prefix=None
-        ),
-        "SIGNING_KEY": values.Value(
-            None, environ_name="WARREN_APP_SIGNING_KEY", environ_prefix=None
-        ),
+        "ALGORITHM": Value("HS256", environ_name="SIGNING_ALGORITHM"),
+        "SIGNING_KEY": Value(None, environ_name="SIGNING_KEY"),
         "AUTH_TOKEN_CLASSES": (
             "rest_framework_simplejwt.tokens.AccessToken",
             "apps.lti.token.LTIAccessToken",
         ),
     }
 
-    CORS_ALLOWED_ORIGINS = []
+    CORS_ALLOWED_ORIGINS = ListValue()
+
+    LOGGING = DictValue(DEFAULT_LOGGING)
 
     # Frontend
     ROOT_URLS = {
-        "API_ROOT_URL": values.Value(
+        "API_ROOT_URL": Value(
             "", environ_name="WARREN_API_ROOT_URL", environ_prefix=None
         ),
-        "APP_ROOT_URL": values.Value(
-            "", environ_name="WARREN_APP_ROOT_URL", environ_prefix=None
-        ),
+        "APP_ROOT_URL": Value("", environ_name="ROOT_URL"),
     }
 
     @classmethod
@@ -335,10 +340,6 @@ class Development(Base):
 
     DEBUG = True
     ALLOWED_HOSTS = ["*"]
-
-    CORS_ALLOWED_ORIGINS = values.ListValue(
-        [], environ_name="WARREN_APP_ALLOWED_ORIGINS", environ_prefix=None
-    )
 
     LOGGING = {
         "version": 1,
@@ -383,20 +384,19 @@ class ContinuousIntegration(Test):
 class Production(Base):
     """Production environment settings.
 
-    You must define the DJANGO_ALLOWED_HOSTS environment variable in Production
+    You must define the WARREN_APP_ALLOWED_HOSTS environment variable in Production
     configuration (and derived configurations):
-    DJANGO_ALLOWED_HOSTS="foo.com,foo.fr".
+    WARREN_APP_ALLOWED_HOSTS="foo.com,foo.fr".
     """
 
     # Security
-    ALLOWED_HOSTS = values.ListValue(None)
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SESSION_COOKIE_SECURE = True
     # System check reference:
     # https://docs.djangoproject.com/en/2.2/ref/checks/#security
-    SILENCED_SYSTEM_CHECKS = values.ListValue(
+    SILENCED_SYSTEM_CHECKS = ListValue(
         [
             # Allow to disable django.middleware.clickjacking.XFrameOptionsMiddleware
             # It is necessary since the LTI tool provider application will be displayed
