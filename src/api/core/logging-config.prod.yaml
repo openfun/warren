@@ -32,13 +32,3 @@ loggers:
       - access
     level: INFO
     propagate: false
-  core.warren.api.v1:
-    handlers:
-      - default
-    level: INFO
-    propagate: false
-  warren_video.api:
-    handlers:
-      - default
-    level: INFO
-    propagate: false

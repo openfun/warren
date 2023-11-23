@@ -76,7 +76,7 @@ CMD ["uvicorn", \
      "warren.api:app", \
      "--proxy-headers", \
      "--log-config", \
-     "core/logging-config.yaml", \
+     "core/logging-config.prod.yaml", \
      "--host", \
      "0.0.0.0", \
      "--port", \
@@ -92,7 +92,7 @@ CMD ["uvicorn", \
      "warren.api:app", \
      "--proxy-headers", \
      "--log-config", \
-     "core/logging-config.yaml", \
+     "core/logging-config.prod.yaml", \
      "--host", \
      "0.0.0.0", \
      "--port", \
