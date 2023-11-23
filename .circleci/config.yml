@@ -312,7 +312,7 @@ jobs:
         environment:
           DJANGO_SETTINGS_MODULE: warren.settings
           DJANGO_CONFIGURATION: Test
-          DJANGO_SECRET_KEY: ThisIsAnExampleKeyForTestPurposeOnly
+          WARREN_APP_SECRET_KEY: ThisIsAnExampleKeyForTestPurposeOnly
           WARREN_APP_DB_HOST: localhost
           WARREN_APP_SIGNING_KEY: your-very-secret-key
           WARREN_APP_SIGNING_ALGORITHM: HS256
