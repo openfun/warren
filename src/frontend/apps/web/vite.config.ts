@@ -12,5 +12,6 @@ export default defineConfig({
         assetFileNames: `assets/[name].[ext]`,
       },
     },
+    reportCompressedSize: false,
   },
 });
