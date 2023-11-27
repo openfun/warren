@@ -66,6 +66,7 @@ export const Filters: React.FC = () => {
         defaultValue={VIDEOS[0].id}
         options={getVideoOptions()}
         multi={true}
+        monoline={true}
         onChange={(e) => handleVideoIdsChange(e.target.value)}
       />
       <DateRangePicker
