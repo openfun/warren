@@ -14,12 +14,12 @@
   },
   "devDependencies": {
     "eslint-config-custom": "*",
-    "prettier": "3.0.3",
+    "prettier": "3.1.0",
     "turbo": "1.10.16"
   },
   "engines": {
     "node": ">=16.0.0"
   },
   "dependencies": {},
-  "packageManager": "yarn@1.22.19"
+  "packageManager": "yarn@1.22.21"
 }
