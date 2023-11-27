@@ -38,7 +38,7 @@ dependencies = [
     "pydantic[dotenv]==1.10.8",
     "python-jose[cryptography]==3.3.0",
     "rfc3987==1.3.8",
-    "sentry-sdk[fastapi]==1.35.0",
+    "sentry-sdk[fastapi]==1.37.1",
     "sqlmodel==0.0.12",
     "uvicorn[standard]==0.24.0.post1",
     "ralph-malph[backend-lrs]==3.9.0"
@@ -54,7 +54,7 @@ dev = [
     "black==23.11.0",
     "build==1.0.3",
     "factory-boy==3.3.0",
-    "Faker==20.0.3",
+    "Faker==20.1.0",
     "freezegun==1.2.2",
     "httpx==0.24.1",
     "ipdb==0.13.13",
