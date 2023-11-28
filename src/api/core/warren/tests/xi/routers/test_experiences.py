@@ -415,7 +415,7 @@ async def test_experience_update_duplicated_IRI(
         {"iri": "wrong-uuid"},
         {"duration": "foo."},
         {"title": 123},
-        {"format": "hello world."},
+        {"technical_datatypes": "hello world."},
     ],
 )
 async def test_experience_update_invalid(
