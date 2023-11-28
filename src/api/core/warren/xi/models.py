@@ -152,7 +152,7 @@ class Experience(BaseTimestamp, table=True):
         sa_column=Column(SAEnum(AggregationLevel)),
         description="The functional granularity of this learning object.",
     )
-    format: Json = Field(
+    technical_datatypes: Json = Field(
         sa_column=Column(JSON),
         description=(
             "The technical requirements and characteristics of this learning object."
@@ -219,7 +219,7 @@ class ExperienceUpdate(BaseModel):
     description: Optional[JsonField]
     structure: Optional[Structure]
     aggregation_level: Optional[AggregationLevel]
-    format: Optional[JsonField]
+    technical_datatypes: Optional[JsonField]
     duration: Optional[PositiveInt]
 
 
@@ -236,7 +236,7 @@ class ExperienceRead(ExperienceReadSnapshot, TimestampRead):
     description: JsonField
     structure: Structure
     aggregation_level: AggregationLevel
-    format: JsonField
+    technical_datatypes: JsonField
     duration: Optional[PositiveInt]
     relations_source: Optional[List[RelationRead]]
     relations_target: Optional[List[RelationRead]]
