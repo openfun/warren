@@ -67,6 +67,7 @@ class Relation(BaseTimestamp, table=True):
     """Association table for relationships between two LOM (experiences)."""
 
     __table_args__ = (
+        *BaseTimestamp.__table_args__,
         UniqueConstraint("source_id", "target_id", "kind"),
         CheckConstraint("source_id != target_id", name="no-self-referential"),
     )
@@ -121,6 +122,7 @@ class Experience(BaseTimestamp, table=True):
     """
 
     __table_args__ = (
+        *BaseTimestamp.__table_args__,
         UniqueConstraint("iri"),
         CheckConstraint("duration >= 0", name="positive-duration"),
     )
