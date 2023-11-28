@@ -582,7 +582,10 @@ async def test_relation_update(http_client: AsyncClient, db_session: Session):
     ) = ExperienceFactory.create_batch_sync(3)
 
     # Create a relation between these experiences in the database
-    creation_date = RelationFactory.__faker__.date_time(timezone.utc).isoformat()
+    creation_date = RelationFactory.__faker__.date_time(timezone.utc)
+    update_date = RelationFactory.__faker__.date_time_between(
+        creation_date, tzinfo=timezone.utc
+    )
     with freeze_time(creation_date):
         relation = RelationFactory.create_sync(
             source_id=experience_one.id,
@@ -591,7 +594,6 @@ async def test_relation_update(http_client: AsyncClient, db_session: Session):
 
     # Attempt updating the created relation
     relation_type = ExperienceFactory.__random__.choice(list(RelationType))
-    update_date = RelationFactory.__faker__.date_time(timezone.utc).isoformat()
     with freeze_time(update_date):
         response = await http_client.put(
             f"/api/v1/relations/{relation.id}",
@@ -610,8 +612,8 @@ async def test_relation_update(http_client: AsyncClient, db_session: Session):
         source_id=str(experience_three.id),
         target_id=str(experience_one.id),
         kind=relation_type,
-        created_at=creation_date,
-        updated_at=update_date,
+        created_at=creation_date.isoformat(),
+        updated_at=update_date.isoformat(),
     )
 
     # Assert the database contains one relation
@@ -625,12 +627,14 @@ async def test_relation_update_empty(http_client: AsyncClient, db_session: Sessi
     RelationFactory.__session__ = db_session
 
     # Create a relation in the database
-    creation_date = RelationFactory.__faker__.date_time(timezone.utc).isoformat()
+    creation_date = RelationFactory.__faker__.date_time(timezone.utc)
+    update_date = ExperienceFactory.__faker__.date_time_between(
+        creation_date, tzinfo=timezone.utc
+    )
     with freeze_time(creation_date):
         relation = RelationFactory.create_sync()
 
     # Attempt updating the created relation with no data
-    update_date = RelationFactory.__faker__.date_time(timezone.utc).isoformat()
     with freeze_time(update_date):
         response = await http_client.put(
             f"/api/v1/relations/{relation.id}",
@@ -644,8 +648,8 @@ async def test_relation_update_empty(http_client: AsyncClient, db_session: Sessi
         source_id=str(relation.source_id),
         target_id=str(relation.target_id),
         kind=relation.kind,
-        created_at=creation_date,
-        updated_at=creation_date,
+        created_at=creation_date.isoformat(),
+        updated_at=creation_date.isoformat(),
     )
 
     # Assert the database contains one relation
