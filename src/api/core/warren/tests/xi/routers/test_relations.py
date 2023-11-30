@@ -10,15 +10,12 @@ from freezegun import freeze_time
 from httpx import AsyncClient
 from sqlmodel import Session, select
 
+from warren.xi.enums import RelationType
 from warren.xi.factories import (
     ExperienceFactory,
     RelationFactory,
 )
-from warren.xi.models import (
-    Experience,
-    Relation,
-    RelationType,
-)
+from warren.xi.schema import Experience, Relation
 
 
 @pytest.mark.anyio

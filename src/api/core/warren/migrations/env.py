@@ -8,7 +8,7 @@ from sqlmodel import SQLModel
 from warren.conf import settings
 
 # Nota bene: be sure to import all models that need to be migrated here
-from warren.xi.models import Experience, Relation  # noqa: F401
+from warren.xi.schema import Experience, Relation  # noqa: F401
 
 from warren.indicators.models import CacheEntry  # noqa: F401
 
