@@ -94,7 +94,8 @@ bootstrap: \
   migrate-api \
   create-api-test-db \
   migrate-app \
-  fixtures
+  fixtures \
+  seed-experience-index
 .PHONY: bootstrap
 
 build: ## build the app containers
@@ -209,6 +210,11 @@ fixtures: \
 	    --chunk-size 300 \
 	    --es-op-type create
 .PHONY: fixtures
+
+seed-experience-index:  ## seed the experience index with test data
+	@echo "Seeding the experience index…"
+	@$(COMPOSE) exec -T api python /opt/src/seed_experience_index.py
+.PHONY: seed-experience-index
 
 migrate-api:  ## run alembic database migrations for the api service
 	@echo "Running api service database engine…"
