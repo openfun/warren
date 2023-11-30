@@ -261,7 +261,8 @@ lint: \
 lint-api: ## lint api python sources
 lint-api: \
   lint-api-black \
-  lint-api-ruff
+  lint-api-ruff \
+  lint-api-mypy
 .PHONY: lint-api
 
 lint-api-black: ## lint api python sources with black

@@ -208,6 +208,10 @@ jobs:
           name: Lint code with ruff
           command: ~/.local/bin/ruff --config core/pyproject.toml core plugins
           working_directory: src/api
+      - run:
+          name: Lint code with mypy
+          command: ~/.local/bin/mypy --config-file core/pyproject.toml core plugins
+          working_directory: src/api
 
   test-api:
     parameters:
