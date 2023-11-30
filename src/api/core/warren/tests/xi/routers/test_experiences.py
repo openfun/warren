@@ -11,15 +11,12 @@ from freezegun import freeze_time
 from httpx import AsyncClient
 from sqlmodel import Session, select
 
+from warren.xi.enums import AggregationLevel, Structure
 from warren.xi.factories import (
     ExperienceFactory,
     RelationFactory,
 )
-from warren.xi.models import (
-    AggregationLevel,
-    Experience,
-    Structure,
-)
+from warren.xi.schema import Experience
 
 
 @pytest.mark.anyio

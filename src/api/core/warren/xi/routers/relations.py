@@ -10,13 +10,14 @@ from sqlmodel import Session, select
 from typing_extensions import Annotated  # python <3.9 compat
 
 from warren.db import get_session
-from warren.xi.filters import Pagination
-from warren.xi.models import (
-    Relation,
+
+from ..filters import Pagination
+from ..models import (
     RelationCreate,
     RelationRead,
     RelationUpdate,
 )
+from ..schema import Relation
 
 router = APIRouter(
     prefix="/relations",

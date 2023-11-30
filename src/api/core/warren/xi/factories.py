@@ -11,7 +11,8 @@ from pydantic import BaseModel
 from sqlmodel import Session
 
 from warren.fields import IRI
-from warren.xi.models import (
+
+from .schema import (
     Experience,
     Relation,
 )

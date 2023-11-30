@@ -10,16 +10,16 @@ from sqlmodel import Session, select
 from typing_extensions import Annotated  # python <3.9 compat
 
 from warren.db import get_session
-from warren.xi.filters import Pagination
-from warren.xi.models import (
-    AggregationLevel,
-    Experience,
+
+from ..enums import AggregationLevel, Structure
+from ..filters import Pagination
+from ..models import (
     ExperienceCreate,
     ExperienceRead,
     ExperienceReadSnapshot,
     ExperienceUpdate,
-    Structure,
 )
+from ..schema import Experience
 
 router = APIRouter(
     prefix="/experiences",
