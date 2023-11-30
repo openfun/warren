@@ -69,7 +69,7 @@ async def test_experience_create_multiple(
         # Generate randomized valid experience data
         experience_data = ExperienceFactory.build_dict()
 
-        # Attempt creating a first experience with valid data
+        # Attempt creating a new experience with valid data
         time = ExperienceFactory.__faker__.date_time(timezone.utc).isoformat()
         with freeze_time(time):
             response = await http_client.post(
@@ -79,7 +79,7 @@ async def test_experience_create_multiple(
 
         assert response.status_code == 200
 
-        # Verify that the first experience has been correctly saved
+        # Verify that the experience has been correctly saved
         assert db_session.get(Experience, response_data) == Experience(
             id=response_data,
             created_at=time,
@@ -89,7 +89,7 @@ async def test_experience_create_multiple(
             **experience_data,
         )
 
-        # Assert the database contains one experience
+        # Assert the database contains n experiences
         experiences = db_session.exec(select(Experience)).all()
         assert len(experiences) == n
 
@@ -177,6 +177,8 @@ async def test_experience_create_duplicated_iri(
         {"language": "a" * 200},  # too long
         {"duration": -100},  # negative duration
         {"duration": 0},  # null duration
+        {"created_at": "2023-01-01T00:00+00:00z"},  # not allowed
+        {"updated_at": "2023-01-01T00:00+00:00z"},  # not allowed
     ],
 )
 async def test_experience_create_invalid(
