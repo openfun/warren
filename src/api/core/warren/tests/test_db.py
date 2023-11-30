@@ -6,7 +6,7 @@ from warren.db import is_alive
 
 
 def test_db_is_alive(monkeypatch):
-    """Test the database is_alive status chech."""
+    """Test the database is_alive status check."""
     assert is_alive() is True
 
     def raise_operational_error(*args, **kwargs):
