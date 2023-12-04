@@ -55,10 +55,12 @@ class Cacheable(Protocol):
 class CacheMixin(Cacheable):
     """A cache mixin that handles indicator persistence."""
 
-    @cached_property
+    @property
     def db_session(self) -> Session:
         """Get the database session singleton."""
-        return next(get_db_session())
+        session = get_db_session()
+        logger.debug("Indicator session: %s", session.__dict__)
+        return session
 
     @cached_property
     def cache_key(self) -> str:
