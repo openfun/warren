@@ -5,6 +5,7 @@ import cloneDeep from "lodash.clonedeep";
 import ReactECharts from "echarts-for-react";
 import classNames from "classnames";
 import dayjs from "dayjs";
+import { Button } from "@openfun/cunningham-react";
 import { VideoViewsResponse } from "../../types";
 import { useVideosViews } from "../../api/getVideoViews";
 import useFilters from "../../hooks/useFilters";
@@ -62,6 +63,8 @@ export const DailyViews: React.FC = () => {
     videos,
   } = useFilters();
 
+  const [isStacked, setIsStacked] = useState(false);
+
   const metrics: Array<ViewsMetricProps> = useMemo(() => {
     return [
       {
@@ -105,6 +108,7 @@ export const DailyViews: React.FC = () => {
     emphasis: {
       focus: "series",
     },
+    ...(isStacked && { stack: "Total", areaStyle: {} }),
   });
 
   const parseXAxis = (item: VideoViewsResponse): Array<string> =>
@@ -123,17 +127,25 @@ export const DailyViews: React.FC = () => {
 
   return (
     <Card className="c__metrics-tabs__card">
-      <div className="c__metrics-tabs">
-        {metrics.map((metric) => (
-          <button
-            className={classNames(["c__metrics-tabs__tab"], {
-              "c__metrics-tabs__tab--selected": metric === selectedMetric,
-            })}
-            onClick={() => setSelectedMetric(metric)}
-          >
-            <ViewsMetric {...metric} condensed />
-          </button>
-        ))}
+      <div className="c__plot-header">
+        <div className="c__metrics-tabs">
+          {metrics.map((metric) => (
+            <button
+              className={classNames(["c__metrics-tabs__tab"], {
+                "c__metrics-tabs__tab--selected": metric === selectedMetric,
+              })}
+              onClick={() => setSelectedMetric(metric)}
+            >
+              <ViewsMetric {...metric} condensed />
+            </button>
+          ))}
+        </div>
+        <Button
+          className="c__plot-header__controls"
+          color={isStacked ? "primary" : "tertiary"}
+          onClick={() => setIsStacked(!isStacked)}
+          icon={<span className="material-icons">area_chart</span>}
+        />
       </div>
       <ReactECharts
         option={formattedOption}
