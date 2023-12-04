@@ -43,10 +43,12 @@ logger = logging.getLogger(__name__)
 class CacheMixin:
     """A cache mixin that handles indicator persistence."""
 
-    @cached_property
+    @property
     def db_session(self) -> Session:
         """Get the database session singleton."""
-        return next(get_db_session())
+        session = get_db_session()
+        logger.debug("Indicator session: %s", session.__dict__)
+        return session
 
     @cached_property
     def cache_key(self) -> str:
@@ -193,7 +195,7 @@ class IncrementalCacheMixin(CacheMixin, ABC):
         to_update = []
         for cache in caches:
             if isinstance(cache, CacheEntry) and not update:
-                logger.debug("Cache entry with ID %s wont be updated", str(cache.id))
+                # logger.debug("Cache entry with ID %s wont be updated", str(cache.id))
                 continue
             # Get a new indicator instance for a reduced date/time span range
             other = self._replace(

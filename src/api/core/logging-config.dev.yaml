@@ -37,6 +37,11 @@ loggers:
       - default
     level: DEBUG
     propagate: false
+  warren:
+    handlers:
+      - default
+    level: DEBUG
+    propagate: false
   warren_video.api:
     handlers:
       - default
