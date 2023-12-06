@@ -10,7 +10,7 @@ from sqlalchemy.types import DateTime
 from sqlmodel import Field, SQLModel
 
 
-class CacheEntryCreate(SQLModel):
+class CacheEntryCreate(SQLModel):  # type: ignore[misc]
     """Indicator generic persistence."""
 
     id: Optional[UUID] = Field(default_factory=lambda: uuid4().hex, primary_key=True)
@@ -24,5 +24,5 @@ class CacheEntryCreate(SQLModel):
     )
 
 
-class CacheEntry(CacheEntryCreate, table=True):
+class CacheEntry(CacheEntryCreate, table=True):  # type: ignore[call-arg, misc]
     """Indicator generic persistence (table version)."""

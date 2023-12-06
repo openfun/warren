@@ -14,7 +14,7 @@ from sqlmodel import Field, Relationship, SQLModel
 from warren.fields import IRI
 
 
-class BaseTimestamp(SQLModel):
+class BaseTimestamp(SQLModel):  # type: ignore[misc]
     """A base class for SQL models with timestamp fields.
 
     This class provides two timestamp fields, `created_at` and `updated_at`, which are
@@ -63,7 +63,7 @@ class RelationType(str, Enum):
     ISREQUIREDBY = "isrequiredby"
 
 
-class Relation(BaseTimestamp, table=True):
+class Relation(BaseTimestamp, table=True):  # type: ignore[call-arg, misc]
     """Association table for relationships between two LOM (experiences)."""
 
     __table_args__ = (
@@ -110,7 +110,10 @@ class AggregationLevel(IntEnum):
     FOUR = 4
 
 
-class Experience(BaseTimestamp, table=True):
+JsonField = Union[List[dict[str, str]], dict[str, str], List[str], Json]
+
+
+class Experience(BaseTimestamp, table=True):  # type: ignore[call-arg, misc]
     """Model representing a learning object (LOM or experience).
 
     Most JSON fields are designed to store translatable text. Each key represents
@@ -130,7 +133,7 @@ class Experience(BaseTimestamp, table=True):
     iri: IRI = Field(
         description="A globally unique label that identifies this learning object",
     )
-    title: Json = Field(
+    title: JsonField = Field(
         sa_column=Column(JSON), description="Name given to this learning object."
     )
     language: str = Field(
@@ -140,7 +143,7 @@ class Experience(BaseTimestamp, table=True):
             " object to communicate to the intended user."
         ),
     )
-    description: Json = Field(
+    description: JsonField = Field(
         sa_column=Column(JSON),
         description="A textual description of the content of this learning object.",
     )
@@ -152,7 +155,7 @@ class Experience(BaseTimestamp, table=True):
         sa_column=Column(SAEnum(AggregationLevel)),
         description="The functional granularity of this learning object.",
     )
-    technical_datatypes: Json = Field(
+    technical_datatypes: JsonField = Field(
         sa_column=Column(JSON),
         description=(
             "The technical requirements and characteristics of this learning object."
@@ -183,7 +186,12 @@ class Experience(BaseTimestamp, table=True):
     )
 
 
-JsonField = Union[List[dict], dict, List[str]]
+class RelationCreate(BaseModel):
+    """Model for creating a relation."""
+
+    source_id: UUID
+    target_id: UUID
+    kind: RelationType
 
 
 class RelationUpdate(BaseModel):
@@ -201,6 +209,19 @@ class RelationRead(TimestampRead):
     source_id: UUID
     target_id: UUID
     kind: RelationType
+
+
+class ExperienceCreate(BaseModel):
+    """Model for creating an experience."""
+
+    iri: IRI
+    title: Json
+    language: str
+    description: Json
+    structure: Structure
+    aggregation_level: AggregationLevel
+    technical_datatypes: Json
+    duration: Optional[PositiveInt]
 
 
 class ExperienceReadSnapshot(BaseModel):
