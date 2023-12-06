@@ -4,6 +4,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 from typing_extensions import Annotated  # python <3.9 compat
@@ -13,6 +14,7 @@ from warren.xi.filters import Pagination
 from warren.xi.models import (
     AggregationLevel,
     Experience,
+    ExperienceCreate,
     ExperienceRead,
     ExperienceReadSnapshot,
     ExperienceUpdate,
@@ -62,7 +64,7 @@ async def read_experiences(
 
 @router.post("/", response_model=UUID)
 async def create_experience(
-    experience: Experience, session: Session = Depends(get_session)
+    experience: ExperienceCreate, session: Session = Depends(get_session)
 ):
     """Create an experience.
 
@@ -75,17 +77,18 @@ async def create_experience(
     """
     logger.debug("Creating an experience")
     try:
-        session.add(experience)
+        db_experience = Experience.model_validate(experience)
+        session.add(db_experience)
         session.commit()
-    except IntegrityError as exception:
+    except (IntegrityError, ValidationError) as exception:
         message = "An error occurred while creating the experience"
         logger.debug("%s. Exception:", message, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=message
         ) from exception
 
-    logger.debug("Result = %s", experience.id)
-    return experience.id
+    logger.debug("Result = %s", db_experience.id)
+    return db_experience.id
 
 
 @router.put("/{experience_id}", response_model=ExperienceRead)

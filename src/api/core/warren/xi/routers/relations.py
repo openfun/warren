@@ -4,6 +4,7 @@ from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 from typing_extensions import Annotated  # python <3.9 compat
@@ -12,6 +13,7 @@ from warren.db import get_session
 from warren.xi.filters import Pagination
 from warren.xi.models import (
     Relation,
+    RelationCreate,
     RelationRead,
     RelationUpdate,
 )
@@ -48,7 +50,9 @@ async def read_relations(
 
 
 @router.post("/", response_model=UUID)
-async def create_relation(relation: Relation, session: Session = Depends(get_session)):
+async def create_relation(
+    relation: RelationCreate, session: Session = Depends(get_session)
+):
     """Create a relation.
 
     Args:
@@ -60,17 +64,18 @@ async def create_relation(relation: Relation, session: Session = Depends(get_ses
     """
     logger.debug("Creating a relation")
     try:
-        session.add(relation)
+        db_relation = Relation.model_validate(relation)
+        session.add(db_relation)
         session.commit()
-    except IntegrityError as exception:
+    except (IntegrityError, ValidationError) as exception:
         message = "An error occurred while creating the relation"
         logger.debug("%s. Exception:", message, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=message
         ) from exception
 
-    logger.debug("Result = %s", relation.id)
-    return relation.id
+    logger.debug("Result = %s", db_relation.id)
+    return db_relation.id
 
 
 @router.put("/{relation_id}", response_model=RelationRead)

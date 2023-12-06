@@ -135,7 +135,7 @@ class CacheMixin(Cacheable):
         value = await self.compute()
 
         if cache is None:
-            cache = CacheEntry.from_orm(
+            cache = CacheEntry.model_validate(
                 CacheEntryCreate(key=self.cache_key, value=value)
             )
             await self.save(cache)
@@ -243,7 +243,7 @@ class IncrementalCacheMixin(CacheMixin, CacheableIncrementally, ABC):
             if isinstance(cache, CacheEntry):
                 to_update.append(cache)
             elif isinstance(cache, CacheEntryCreate):
-                to_save.append(CacheEntry.from_orm(cache))
+                to_save.append(CacheEntry.model_validate(cache))
 
         await self.save(to_update)
         await self.save(to_save)
