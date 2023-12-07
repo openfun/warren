@@ -81,7 +81,7 @@ class Experience(BaseTimestamp, table=True):  # type: ignore[call-arg, misc]
     __table_args__ = (
         *BaseTimestamp.__table_args__,
         UniqueConstraint("iri"),
-        CheckConstraint("duration >= 0", name="positive-duration"),
+        CheckConstraint("duration > 0", name="positive-duration"),
     )
     id: Optional[UUID] = Field(default_factory=lambda: uuid4().hex, primary_key=True)
     iri: IRI = Field(
