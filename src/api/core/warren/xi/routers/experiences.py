@@ -78,9 +78,16 @@ async def create_experience(
     logger.debug("Creating an experience")
     try:
         db_experience = Experience.model_validate(experience)
+    except ValidationError as exception:
+        message = "An error occurred while validating the experience"
+        logger.debug("%s. Exception:", message, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=message
+        ) from exception
+    try:
         session.add(db_experience)
         session.commit()
-    except (IntegrityError, ValidationError) as exception:
+    except IntegrityError as exception:
         message = "An error occurred while creating the experience"
         logger.debug("%s. Exception:", message, exc_info=True)
         raise HTTPException(

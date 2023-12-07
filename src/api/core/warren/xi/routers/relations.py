@@ -65,9 +65,16 @@ async def create_relation(
     logger.debug("Creating a relation")
     try:
         db_relation = Relation.model_validate(relation)
+    except ValidationError as exception:
+        message = "An error occurred while validating the relation"
+        logger.debug("%s. Exception:", message, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=message
+        ) from exception
+    try:
         session.add(db_relation)
         session.commit()
-    except (IntegrityError, ValidationError) as exception:
+    except IntegrityError as exception:
         message = "An error occurred while creating the relation"
         logger.debug("%s. Exception:", message, exc_info=True)
         raise HTTPException(
