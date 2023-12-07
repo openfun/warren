@@ -1,5 +1,5 @@
 """Experience Index SQL Models."""
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Tuple, Union
 from uuid import UUID, uuid4
 
@@ -28,12 +28,14 @@ class BaseTimestamp(SQLModel):  # type: ignore[misc]
     )
     created_at: datetime = Field(
         sa_column=Column(DateTime(timezone=True)),
-        default_factory=lambda: datetime.utcnow(),
+        default_factory=lambda: datetime.now(timezone.utc),
         description="The timestamp indicating when the record was created.",
     )
     updated_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), onupdate=lambda: datetime.utcnow()),
-        default_factory=lambda: datetime.utcnow(),
+        sa_column=Column(
+            DateTime(timezone=True), onupdate=lambda: datetime.now(timezone.utc)
+        ),
+        default_factory=lambda: datetime.now(timezone.utc),
         description="The timestamp indicating when the record was last updated.",
     )
 
