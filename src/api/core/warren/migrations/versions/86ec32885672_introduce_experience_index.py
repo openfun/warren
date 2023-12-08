@@ -1,6 +1,6 @@
 """introduce experience index
 
-Revision ID: a113f2ab4dc9
+Revision ID: 86ec32885672
 Revises: 05e3da68582b
 Create Date: 2023-11-09 10:33:53.610165
 
@@ -13,7 +13,7 @@ import sqlmodel
 
 
 # revision identifiers, used by Alembic.
-revision: str = "a113f2ab4dc9"
+revision: str = "86ec32885672"
 down_revision: Union[str, None] = "05e3da68582b"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
