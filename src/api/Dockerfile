@@ -38,8 +38,8 @@ FROM base as core
 
 COPY --from=core-builder /usr/local /usr/local
 
-# Copy all sources, not only runtime-required files
-COPY . /app/
+# Copy only run-time required default configurations
+COPY ./core/logging-config.prod.yaml /app/core/
 
 WORKDIR /app
 
