@@ -70,6 +70,9 @@ ci = [
     "twine==4.0.2",
 ]
 
+[project.scripts]
+warren = "warren.commands:main"
+
 [tool.setuptools.dynamic]
 version = { attr = "warren.__version__" }
 
