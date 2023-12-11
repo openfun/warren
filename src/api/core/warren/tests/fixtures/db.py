@@ -19,7 +19,7 @@ def db_engine():
     SQLModel.metadata.create_all(engine)
 
     # Pretend to have all migrations applied
-    alembic_cfg = Config("core/alembic.ini")
+    alembic_cfg = Config("core/warren/alembic.ini")
     command.stamp(alembic_cfg, "head")
 
     yield engine
