@@ -5,3 +5,5 @@ RUN pip install --upgrade pip
 RUN pip install jupytext --upgrade
 
 RUN pip install plotly --upgrade
+
+RUN pip install black[jupyter]

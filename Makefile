@@ -359,3 +359,11 @@ jupytext--to-ipynb: ## convert remote md files into ipynb
 	bin/jupytext --to ipynb work/*.md
 .PHONY: jupytext--to-ipynb
 
+run-notebook: ## run notebook server
+	@$(COMPOSE) up -d notebook
+.PHONY: run-notebook
+
+lint-notebook-black:
+	@echo 'lint-notebook:black started…'
+	@$(COMPOSE) exec notebook black .
+.PHONY: lint-notebook-black
