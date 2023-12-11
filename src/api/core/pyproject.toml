@@ -73,6 +73,9 @@ ci = [
 [tool.setuptools.dynamic]
 version = { attr = "warren.__version__" }
 
+[tool.setuptools.package-data]
+warren = ["alembic.ini"]
+
 [tool.coverage.run]
 omit = [
     "*/tests/*",
