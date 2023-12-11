@@ -312,7 +312,7 @@ def test_experience_update(db_session: Session, update_data: dict):
         assert getattr(experience, key) == value
 
     # Check untouched fields in the experience match the initial values
-    for key, value in experience.dict(
+    for key, value in experience.model_dump(
         exclude={"created_at", "updated_at", *update_data.keys()}
     ).items():
         assert getattr(experience, key) == value
