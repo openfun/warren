@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     APP_SIGNING_ALGORITHM: str
     APP_SIGNING_KEY: str
 
+    # Sentry
+    SENTRY_DSN: Optional[str] = None
+    EXECUTION_ENVIRONMENT: str = "development"
+    SENTRY_API_TRACES_SAMPLE_RATE: float = 1.0
+
     @property
     def DATABASE_URL(self) -> str:
         """Get the database URL as required by SQLAlchemy."""
