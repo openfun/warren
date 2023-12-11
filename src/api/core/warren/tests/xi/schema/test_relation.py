@@ -29,7 +29,7 @@ def test_relation_create(db_session: Session):
     assert len(experiences) == 0
 
     # Generate randomized valid relation data
-    relation_data = RelationFactory.build().dict(
+    relation_data = RelationFactory.build().model_dump(
         exclude={"id", "created_at", "updated_at"}
     )
 

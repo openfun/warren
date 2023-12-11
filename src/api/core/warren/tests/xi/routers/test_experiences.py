@@ -226,7 +226,7 @@ async def test_experience_read(
 
     # Verify the retrieved data matches the expected format
     assert response.json() == {
-        **experience.dict(),
+        **experience.model_dump(),
         "id": str(experience.id),
         "created_at": creation_date.isoformat(),
         "updated_at": creation_date.isoformat(),
@@ -368,7 +368,7 @@ async def test_experience_update(
         assert response_data[key] == value
 
     # Check untouched fields in the response match the initial values
-    for key, value in experience.dict(
+    for key, value in experience.model_dump(
         exclude={"created_at", "updated_at", *update_data.keys()}
     ):
         assert response_data[key] == value
@@ -463,7 +463,7 @@ async def test_experience_update_same(http_client: AsyncClient, db_session: Sess
 
     # Get experience's data
     db_session.refresh(experience)
-    experience_data = experience.dict(exclude={"id", "created_at", "updated_at"})
+    experience_data = experience.model_dump(exclude={"id", "created_at", "updated_at"})
 
     # Update the experience with the same data
     with freeze_time(update_date):
@@ -510,7 +510,7 @@ async def test_experience_update_empty(http_client: AsyncClient, db_session: Ses
 
     # Get experience's data
     db_session.refresh(experience)
-    experience_data = experience.dict(exclude={"id", "created_at", "updated_at"})
+    experience_data = experience.model_dump(exclude={"id", "created_at", "updated_at"})
 
     # Update the experience with the same data
     with freeze_time(update_date):
