@@ -24,7 +24,7 @@ def seed_experience_index():
     """
 
     # Get a database session
-    session = next(get_session())
+    session = get_session()
 
     # Pass the database session to the factory
     ExperienceFactory.__session__ = session
