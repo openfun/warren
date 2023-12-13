@@ -2,8 +2,7 @@
 
 import argparse
 import copy
-import sys
-from typing import List
+from typing import List, Optional
 
 from warren import migrations
 
@@ -53,9 +52,10 @@ def get_command_line_parser():
     return parser
 
 
-def main(cmd: List[str]):
+def main(cmd: Optional[List[str]] = None):
     """Warren command line."""
     parser = get_command_line_parser()
+
     args = parser.parse_args(cmd)
     params = vars(copy.copy(args))
 
@@ -65,7 +65,3 @@ def main(cmd: List[str]):
     if hasattr(args, "func"):
         del params["func"]
         args.func(**params)
-
-
-if __name__ == "__main__":
-    main(sys.argv)

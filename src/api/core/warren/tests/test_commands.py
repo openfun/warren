@@ -1,5 +1,6 @@
 """Test Warren commands functions."""
 
+import sys
 from unittest.mock import MagicMock
 
 import pytest
@@ -74,13 +75,44 @@ def test_get_command_line_parser(capsys):
     assert parsed.func == migrations.upgrade
 
 
-def test_warren_command(capsys):
+@pytest.mark.parametrize(
+    "cmd",
+    [
+        [],
+        None,
+    ],
+)
+def test_warren_command(capsys, monkeypatch, cmd):
     """Test warren command call without subcommands."""
-    commands.main([])
+    monkeypatch.setattr(sys, "argv", [])
+    commands.main(cmd)
     captured = capsys.readouterr()
     assert captured.out.startswith(
         "usage: warren [-h] {current,downgrade,history,upgrade}"
     )
+
+
+@pytest.mark.parametrize(
+    "argv,expected",
+    [
+        (["warren"], "usage: warren [-h] {current,downgrade,history,upgrade}"),
+        (["warren", "-h"], "usage: warren [-h] {current,downgrade,history,upgrade}"),
+        (["warren", "current", "-h"], "usage: warren current [-h] [-v]"),
+        (["warren", "downgrade", "-h"], "usage: warren downgrade [-h] revision"),
+        (["warren", "history", "-h"], "usage: warren history [-h] [-v]"),
+        (["warren", "upgrade", "-h"], "usage: warren upgrade [-h] [revision]"),
+    ],
+)
+def test_warren_command_defaults_to_sys_argv(capsys, monkeypatch, argv, expected):
+    """Test the warren command defaults to sys.argv while parsing args."""
+    monkeypatch.setattr(sys, "argv", argv)
+    try:
+        commands.main()
+    except SystemExit as exc:
+        if exc.code != 0:
+            raise exc
+    captured = capsys.readouterr()
+    assert captured.out.startswith(expected)
 
 
 def test_current_command(monkeypatch):
