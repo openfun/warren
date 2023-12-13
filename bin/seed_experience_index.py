@@ -2,16 +2,13 @@
 
 import logging
 
-from sqlmodel import Session, select
+from sqlmodel import select
 
 from sqlalchemy.exc import SQLAlchemyError
 
 from warren.db import get_session
 from warren.xi.factories import ExperienceFactory
-from warren.xi.models import (
-    Experience,
-    Relation,
-)
+from warren.xi.schema import Experience
 
 logger = logging.getLogger(__name__)
 
