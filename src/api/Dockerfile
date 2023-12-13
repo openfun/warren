@@ -52,6 +52,9 @@ COPY --from=full-builder /usr/local /usr/local
 # -- Development --
 FROM full as development
 
+# Copy all sources, not only runtime-required files
+COPY . /app/
+
 # Uninstall warren and re-install it in editable mode along with development
 # dependencies
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
