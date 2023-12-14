@@ -76,6 +76,7 @@ services:
       - dev
     volumes:
       - ./src/frontend:/app
+      - .git:/app/.git
       - ./src/app/staticfiles:/app/staticfiles
     depends_on:
       - api

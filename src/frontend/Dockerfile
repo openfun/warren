@@ -34,6 +34,11 @@ WORKDIR /app
 # -- Development --
 FROM core as development
 
+# Install Git (required for changeset)
+RUN apt-get update && \
+    apt-get install -y git && \
+    rm -rf /var/lib/apt/lists/*
+
 # Un-privileged user running the application
 USER ${DOCKER_USER:-1000}
 
