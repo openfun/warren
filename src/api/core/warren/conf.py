@@ -4,6 +4,7 @@ import io
 from datetime import timedelta
 from pathlib import Path
 from typing import List, Optional, Union
+from urllib.parse import urljoin
 
 from pydantic import AnyHttpUrl, BaseModel, BaseSettings
 
@@ -89,6 +90,12 @@ class Settings(BaseSettings):
     def SERVER_URL(self) -> str:
         """Get the full server URL."""
         return f"{self.SERVER_PROTOCOL}://{self.SERVER_HOST}:{self.SERVER_PORT}"
+
+    # pylint: disable=invalid-name
+    @property
+    def XI_BASE_URL(self) -> str:
+        """Get the Experience Index (XI) base URL."""
+        return urljoin(self.SERVER_URL, "/api/v1")
 
     class Config:
         """Pydantic Configuration."""
