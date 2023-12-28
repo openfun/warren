@@ -10,6 +10,7 @@ from sqlmodel import Session, select
 from typing_extensions import Annotated  # python <3.9 compat
 
 from warren.db import get_session
+from warren.fields import IRI
 
 from ..enums import AggregationLevel, Structure
 from ..filters import Pagination
@@ -34,6 +35,7 @@ async def read_experiences(
     session: Session = Depends(get_session),
     structure: Optional[Structure] = None,
     aggregation_level: Optional[AggregationLevel] = None,
+    iri: Optional[IRI] = None,
 ):
     """Retrieve a list of experiences based on query parameters.
 
@@ -42,6 +44,7 @@ async def read_experiences(
         session (Session, optional): The database session.
         structure (Structure, optional): Filter by experience structure.
         aggregation_level (AggregationLevel, optional): Filter by aggregation level.
+        iri (IRI, optional): Filter by iri.
 
     Returns:
         List[ExperienceReadSnapshot]: List of experiences matching the query.
@@ -54,6 +57,9 @@ async def read_experiences(
         statement = statement.where(Experience.structure == structure)
     if aggregation_level:
         statement = statement.where(Experience.aggregation_level == aggregation_level)
+    if iri:
+        statement = statement.where(Experience.iri == iri)
+
     experiences = session.exec(
         statement.offset(pagination.offset).limit(pagination.limit)
     ).all()
