@@ -641,6 +641,7 @@ async def test_experiences_read_pagination(
         {"structure": "Atomic"},
         {"limit": 101},
         {"offset": -1},
+        {"iri": -1},
     ],
 )
 async def test_experiences_read_invalid_params(
@@ -714,3 +715,37 @@ async def test_experiences_read_filter(
     # Assert the database still contains the same number of experiences
     experiences = db_session.exec(select(Experience)).all()
     assert len(experiences) == 39
+
+
+@pytest.mark.anyio
+async def test_experiences_read_filter_on_iri(
+    http_client: AsyncClient, db_session: Session
+):
+    """Test reading an experience from its IRI."""
+    ExperienceFactory.__session__ = db_session
+
+    number_experiences = 10
+    ExperienceFactory.create_batch_sync(number_experiences)
+
+    # Create an experience
+    creation_date = ExperienceFactory.__faker__.date_time(timezone.utc)
+    with freeze_time(creation_date):
+        experience = ExperienceFactory.create_sync()
+
+    # Attempt to read the last created experience from its IRI
+    response = await http_client.get(
+        "/api/v1/experiences/", params={"iri": experience.iri}
+    )
+    assert response.status_code == 200
+
+    # Verify the retrieved data matches the expected format
+    assert response.json() == [
+        {
+            "id": str(experience.id),
+            "title": experience.title,
+        }
+    ]
+
+    # Assert the database still contains the right number of experiences
+    experiences = db_session.exec(select(Experience)).all()
+    assert len(experiences) == number_experiences + 1
