@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
-from pydantic import Json, PositiveInt
+from pydantic import PositiveInt
 from pydantic.main import BaseModel
 
 from warren.fields import IRI
@@ -48,12 +48,12 @@ class ExperienceCreate(BaseModel):
     """Model for creating an experience."""
 
     iri: IRI
-    title: Json
+    title: JsonField
     language: str
-    description: Json
+    description: JsonField
     structure: Structure
     aggregation_level: AggregationLevel
-    technical_datatypes: Json
+    technical_datatypes: JsonField
     duration: Optional[PositiveInt]
 
 
