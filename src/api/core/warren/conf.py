@@ -67,6 +67,10 @@ class Settings(BaseSettings):
     SENTRY_API_TRACES_SAMPLE_RATE: float = 1.0
     SENTRY_CLI_TRACES_SAMPLE_RATE: float = 1.0
 
+    # Experience Index
+    MOODLE_BASE_URL: str = "https://moodle.preprod-fun.apps.openfun.fr"
+    MOODLE_WS_TOKEN: str = "yourWebServicesToken"
+
     @property
     def DATABASE_URL(self) -> str:
         """Get the database URL as required by SQLAlchemy."""
