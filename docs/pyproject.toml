@@ -1,0 +1,42 @@
+#
+# Warren's documentation package
+#
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "warren-docs"
+description = "Documentation for the Warren project"
+authors = [
+  { name="Open FUN (France Universite Numerique)", email="fun.dev@fun-mooc.fr" },
+]
+version = "0.0.0"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.9"
+license = {file = "LICENSE.md"}
+keywords = ["Analytics", "xAPI", "LRS", "LTI"]
+dependencies = [
+    "mike==2.0.0",
+    "mkdocs-material==9.5.2",
+    "mkdocs==1.5.3",
+    "neoteroi-mkdocs==1.0.4",
+    "pymdown-extensions==10.5",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/openfun/warren"
+"Bug Tracker" = "https://github.com/openfun/warren/issues"
+
+[tool.setuptools]
+packages = []

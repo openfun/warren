@@ -47,6 +47,19 @@ WARREN_FRONTEND_IMAGE_TAG          ?= frontend-development
 WARREN_FRONTEND_IMAGE_BUILD_TARGET ?= development
 WARREN_FRONTEND_IMAGE_BUILD_PATH   ?= app/staticfiles/warren/assets/index.js
 
+# -- Documentation
+DOCS_COMMITTER_NAME     = "FUN MOOC Bot"
+DOCS_COMMITTER_EMAIL    = funmoocbot@users.noreply.github.com
+WARREN_DOCS_SERVER_PORT = 8000
+WARREN_DOCS_MIKE_PORT   = 8001
+WARREN_DOCS_ENV         = \
+													DOCS_COMMITTER_NAME=$(DOCS_COMMITTER_NAME) \
+													DOCS_COMMITTER_EMAIL=$(DOCS_COMMITTER_EMAIL) \
+													WARREN_DOCS_SERVER_PORT=$(WARREN_DOCS_SERVER_PORT) \
+													WARREN_DOCS_MIKE_PORT=$(WARREN_DOCS_MIKE_PORT)
+MKDOCS                  = $(WARREN_DOCS_ENV) $(COMPOSE_RUN) docs mkdocs
+MIKE                    = $(WARREN_DOCS_ENV) $(COMPOSE_RUN) docs mike
+
 
 # ==============================================================================
 # RULES
@@ -102,6 +115,7 @@ build: ## build the app containers
 build: \
   build-docker-app \
   build-docker-api \
+  build-docker-docs \
   build-docker-frontend
 .PHONY: build
 
@@ -123,6 +137,10 @@ build-docker-api: .env
 	WARREN_API_IMAGE_TAG=$(WARREN_API_IMAGE_TAG) \
 	  $(COMPOSE) build api
 .PHONY: build-docker-api
+
+build-docker-docs: ## build the docs container
+	$(COMPOSE) build docs
+.PHONY: build-docker-docs
 
 build-docker-frontend: ## build the frontend container
 build-docker-frontend: .env
@@ -345,6 +363,25 @@ test-app: ## run app tests
 test-app: run-app
 	PYTEST_SERVICE=app bin/pytest
 .PHONY: test-app
+
+## -- Docs
+docs-build: ## build documentation site
+	@$(MKDOCS) build
+.PHONY: docs-build
+
+docs-deploy: ## deploy documentation site
+	@echo "Deploying docs with version main to gh-pages"
+	@${MIKE} deploy main
+.PHONY: docs-deploy
+
+docs-serve: ## run mkdocs live server for dev docs
+	$(WARREN_DOCS_ENV) $(COMPOSE) up docs
+.PHONY: docs-serve
+
+docs-serve-pages: ## run mike live server for versioned docs
+	@$(MIKE) serve --dev-addr 0.0.0.0:8001
+.PHONY: docs-serve-pages
+
 
 # -- Misc
 help:
