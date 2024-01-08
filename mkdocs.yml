@@ -1,0 +1,87 @@
+site_name: Warren
+site_url: https://openfun.github.io/warren/
+site_description: A visualization toolkit for your learning analytics
+site_author: Open FUN (France Universite Numerique)
+
+repo_name: openfun/warren
+repo_url: https://github.com/openfun/warren/
+
+copyright: 2023-present France Université Numérique
+
+extra_css:
+  - css/extra.css
+
+exclude_docs: |
+  Dockerfile
+  pyproject.toml
+
+theme:
+  name: material
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      primary: "amber"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      primary: "amber"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      primary: "amber"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
+  favicon: img/favicon.ico
+  logo: img/warren-black.png
+  features:
+    - content.tabs.link
+    - content.code.annotate
+    - content.code.copy
+    - navigation.tabs
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - smarty
+  - toc:
+      permalink: True
+      separator: "_"
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.extra
+  - pymdownx.emoji
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      disable_indented_code_blocks: true
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - "Warren": index.md
+  - "Contributing": contribute.md
+  - "About the project":
+      - "Changelog": CHANGELOG.md
+      - "License": LICENSE.md
+
+plugins:
+  - neoteroi.mkdocsoad:
+      use_pymdownx: true
+  - search
+  - mike:
+      canonical_version: latest
+      version_selector: true
+
+extra:
+  version:
+    provider: mike

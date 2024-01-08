@@ -84,3 +84,7 @@ data
 
 # Helm
 src/helm/warren/charts/*.tgz
+src/helm/manifest/warren-secrets-*.yaml
+
+# Documentation site
+site/

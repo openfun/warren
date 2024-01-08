@@ -384,6 +384,64 @@ jobs:
           command: yarn build
           working_directory: src/frontend
 
+  # ---- Documentation jobs ----
+  build-docs:
+    docker:
+      - image: cimg/python:3.12
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-docs-dependencies-python:3.12-{{ .Revision }}
+      - run:
+          name: Install development dependencies
+          command: pip install --user .
+          working_directory: docs
+      - save_cache:
+            paths:
+              - ~/.local
+            key: v1-docs-dependencies-python:3.12-{{ .Revision }}
+      - run:
+          name: Build documentation
+          command: ~/.local/bin/mkdocs build
+
+  # Deploy the docs website to GitHub pages.
+  deploy-docs:
+    docker:
+      - image: cimg/python:3.12
+        auth:
+          username: $DOCKER_USER
+          password: $DOCKER_PASS
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-docs-dependencies-python:3.12-{{ .Revision }}
+      - add_ssh_keys:
+          fingerprints:
+            - "7f:67:75:7f:9c:a6:55:79:1f:19:35:fd:46:75:7e:08"
+      - run:
+          name: Deploying to GitHub Pages
+          command: |
+            git config --global user.email "funmoocbot@users.noreply.github.com"
+            git config --global user.name "FUN MOOC Bot"
+            # Deploy docs with either:
+            # - DOCS_VERSION: 1.1 (for git tag v1.1.2)
+            # - DOCS_ALIAS: latest
+            # or
+            # - DOCS_VERSION: master (for master branch)
+            # - No DOCS_ALIAS
+            DOCS_VERSION=$([[ -z "$CIRCLE_TAG" ]] && echo $CIRCLE_BRANCH || echo ${CIRCLE_TAG} | sed 's/^v\([0-9]\.[0-9]*\)\..*/\1/')
+            DOCS_ALIAS=$([[ -z "$CIRCLE_TAG" ]] && echo "" || echo "latest")
+            echo "DOCS_VERSION: ${DOCS_VERSION}"
+            echo "DOCS_ALIAS: ${DOCS_ALIAS}"
+            ~/.local/bin/mike deploy --push --update-aliases ${DOCS_VERSION} ${DOCS_ALIAS}
+
   # ---- Packaging jobs ----
   package-api:
     docker:
@@ -646,6 +704,14 @@ workflows:
             tags:
               only: /.*/
 
+      # Docs
+      #
+      # Test documentation build
+      - build-docs:
+          filters:
+            tags:
+              only: /.*/
+
       # Packaging: python
       #
       # Build the python package
@@ -679,6 +745,21 @@ workflows:
           requires:
             - build-docker-api
             - build-docker-app
+          filters:
+            branches:
+              only: main
+            tags:
+              only: /^v.*/
+
+      # Publish the documentation website to GitHub Pages.
+      # Only do it for master and for tagged stable releases with a tag in the format vX.Y.Z
+      - deploy-docs:
+          requires:
+            - build-docs
+            - package-api
+            # FIXME
+            # - package-app
+            # - package-frontend
           filters:
             branches:
               only: main
