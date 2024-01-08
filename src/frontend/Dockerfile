@@ -1,5 +1,5 @@
 # -- Base image --
-FROM node:19-slim as base
+FROM node:21.5.0-slim as base
 
 # Upgrade npm to its latest release to speed up dependencies installation
 RUN npm update -g npm
