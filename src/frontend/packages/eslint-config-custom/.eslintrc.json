@@ -85,5 +85,6 @@
     "import/resolver": {
       "typescript": true
     }
-  }
+  },
+  "ignorePatterns": ["dist/**"]
 }
