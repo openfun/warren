@@ -434,12 +434,17 @@ jobs:
             # - DOCS_VERSION: 1.1 (for git tag v1.1.2)
             # - DOCS_ALIAS: latest
             # or
-            # - DOCS_VERSION: master (for master branch)
+            # - DOCS_VERSION: dev (for main branch)
             # - No DOCS_ALIAS
-            DOCS_VERSION=$([[ -z "$CIRCLE_TAG" ]] && echo $CIRCLE_BRANCH || echo ${CIRCLE_TAG} | sed 's/^v\([0-9]\.[0-9]*\)\..*/\1/')
+            DOCS_VERSION=$([[ -z "$CIRCLE_TAG" ]] && echo "dev" || echo ${CIRCLE_TAG} | sed 's/^v\([0-9]\.[0-9]*\)\..*/\1/')
             DOCS_ALIAS=$([[ -z "$CIRCLE_TAG" ]] && echo "" || echo "latest")
             echo "DOCS_VERSION: ${DOCS_VERSION}"
             echo "DOCS_ALIAS: ${DOCS_ALIAS}"
+            # Build docs
+            ~/.local/bin/mike deploy ${DOCS_VERSION} ${DOCS_ALIAS}
+            # Set default doc to point to
+            ~/.local/bin/mike set-default dev
+            # Push build docs
             ~/.local/bin/mike deploy --push --update-aliases ${DOCS_VERSION} ${DOCS_ALIAS}
 
   # ---- Packaging jobs ----

@@ -366,12 +366,12 @@ test-app: run-app
 
 ## -- Docs
 docs-build: ## build documentation site
-	@$(MKDOCS) build
+	$(MKDOCS) build
 .PHONY: docs-build
 
-docs-deploy: ## deploy documentation site
+docs-deploy: ## build and deploy documentation site for all versions
 	@echo "Deploying docs with version main to gh-pages"
-	@${MIKE} deploy main
+	@$(MIKE) deploy main
 .PHONY: docs-deploy
 
 docs-serve: ## run mkdocs live server for dev docs
@@ -379,7 +379,7 @@ docs-serve: ## run mkdocs live server for dev docs
 .PHONY: docs-serve
 
 docs-serve-pages: ## run mike live server for versioned docs
-	@$(MIKE) serve --dev-addr 0.0.0.0:8001
+	$(WARREN_DOCS_ENV) $(COMPOSE) up mike
 .PHONY: docs-serve-pages
 
 

@@ -148,6 +148,21 @@ services:
       - "0.0.0.0:8000"
     ports:
       - "${WARREN_DOCS_SERVER_PORT:-8000}:${WARREN_DOCS_SERVER_PORT:-8000}"
+    volumes:
+      - .:/app
+
+  mike:
+    image: warren-docs
+    user: ${DOCKER_USER:-1000}
+    environment:
+      GIT_COMMITTER_NAME: ${DOCS_COMMITTER_NAME:-fun}
+      GIT_COMMITTER_EMAIL: ${DOCS_COMMITTER_EMAIL:-funmoocbot@users.noreply.github.com}
+    command:
+      - mike
+      - serve
+      - "--dev-addr"
+      - "0.0.0.0:8001"
+    ports:
       - "${WARREN_DOCS_MIKE_PORT:-8001}:${WARREN_DOCS_MIKE_PORT:-8001}"
     volumes:
       - .:/app
