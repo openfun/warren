@@ -380,7 +380,7 @@ jobs:
           command: yarn install
           working_directory: src/frontend
       - run:
-          name: Build project using turbo utilitity
+          name: Build project using turbo utility
           command: yarn build
           working_directory: src/frontend
 
@@ -487,7 +487,7 @@ jobs:
 
   # Publishing to PyPI requires that:
   #   * you already registered to pypi.org
-  #   * you have define both the TWINE_USERNAME & TWINE_PASSWORD secret
+  #   * you have defined both the TWINE_USERNAME & TWINE_PASSWORD secret
   #     environment variables in CircleCI UI (with your PyPI credentials)
   pypi:
     docker:
