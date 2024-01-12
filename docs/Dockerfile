@@ -7,6 +7,8 @@ RUN pip install --upgrade pip
 # Upgrade system packages to install security updates
 RUN apt-get update && \
     apt-get -y upgrade && \
+    apt-get install -y \
+        git && \
     rm -rf /var/lib/apt/lists/*
 
 
@@ -16,14 +18,6 @@ FROM base as builder
 WORKDIR /build
 
 COPY pyproject.toml /build/
-
-# RUN apt-get update && \
-#     apt-get install -y \
-#         build-essential \
-#         gcc \
-#         libc6-dev \
-#         libffi-dev && \
-#     rm -rf /var/lib/apt/lists/*
 
 RUN pip install .
 
