@@ -383,6 +383,10 @@ jobs:
           name: Build project using turbo utility
           command: yarn build
           working_directory: src/frontend
+      - persist_to_workspace:
+          root: ~/fun
+          paths:
+            - src/frontend/packages/*/dist
 
   # ---- Documentation jobs ----
   build-docs:
@@ -516,6 +520,34 @@ jobs:
             ~/.local/bin/twine upload --skip-existing core/dist/* ;
             ~/.local/bin/twine upload --skip-existing plugins/*/dist/* ;
           working_directory: src/api
+
+  npm:
+    docker:
+      - image: cimg/node:21.5.0
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      # Restore built frontend packages
+      - attach_workspace:
+          at: ~/fun
+      - run:
+          name: Authenticate with registry
+          command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/fun/.npmrc
+      - run:
+          name: Init Git identity in order to allow changeset to create tags
+          command: |
+            git config user.email "funmoocbot@users.noreply.github.com"
+            git config user.name "FUN MOOC bot"
+      - run:
+          name: Publish package as public if package version are bumped
+          command: yarn changeset publish
+      - run:
+          name: Push release tags if some were created
+          command: git push --follow-tags origin HEAD
+
 
   # ---- DockerHub publication job ----
   hub:
@@ -740,6 +772,21 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v.*/
+
+      # NPM publication.
+      #
+      # Publish frontend packages to NPM only if all build, lint jobs succeed,
+      # and it has been tagged with a tag starting with the letter v
+      - npm:
+          requires:
+            - build-frontend
+            - lint-frontend
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
+
 
       # DockerHub publication.
       #
