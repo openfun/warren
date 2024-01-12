@@ -9,12 +9,13 @@
     "build-theme": "cunningham -g css -o pages"
   },
   "dependencies": {
+    "@openfun/warren-core": "*",
+    "@openfun/warren-video": "*",
     "@openfun/cunningham-react": "2.4.0",
     "@vitejs/plugin-react": "4.2.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "sass": "1.69.7",
-    "ui": "*",
     "vite": "5.0.11"
   },
   "devDependencies": {

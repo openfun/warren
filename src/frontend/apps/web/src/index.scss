@@ -1,5 +1,5 @@
-@use "./components/SelectContent";
-@use "ui/index";
+@use "@openfun/warren-core/src/index" as core;
+@use "@openfun/warren-video/src/index" as video;
 
 @import "@openfun/cunningham-react/fonts";
 @import "@openfun/cunningham-react/icons";

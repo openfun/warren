@@ -1,0 +1,33 @@
+{
+  "name": "@openfun/warren-video",
+  "version": "0.0.0",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "lint": "eslint . '**/*.{ts,tsx}'"
+  },
+  "devDependencies": {
+    "@types/lodash.clonedeep": "4.5.9",
+    "@types/react": "18.2.47",
+    "eslint": "8.56.0",
+    "eslint-config-custom": "*",
+    "tsconfig": "*",
+    "typescript": "5.3.3"
+  },
+  "dependencies": {
+    "@openfun/warren-core": "*",
+    "@openfun/cunningham-react": "2.4.0",
+    "@tanstack/react-query": "5.17.12",
+    "@tanstack/react-query-devtools": "5.17.12",
+    "axios": "1.6.5",
+    "classnames": "2.5.1",
+    "dayjs": "1.11.10",
+    "echarts": "5.4.3",
+    "echarts-for-react": "3.0.2",
+    "lodash.clonedeep": "4.5.0",
+    "react": "18.2.0",
+    "react-top-loading-bar": "2.3.1"
+  }
+}
