@@ -1,11 +1,11 @@
 import React, { useMemo } from "react";
 import classNames from "classnames";
-import { MetricProps } from "../Metrics";
+import { MetricProps, ValueWithFetchState } from "../Metrics";
 
 const formatPercent = (percent: number) => `${(percent * 100).toFixed(0)}%`;
 
-export interface ComparisonProps
-  extends Pick<MetricProps, ["metric", "comparison"]> {
+export interface ComparisonProps extends Pick<MetricProps, "metric"> {
+  comparison: ValueWithFetchState;
   size?: "medium" | "small";
 }
 
@@ -30,7 +30,9 @@ export const Comparison: React.FC<ComparisonProps> = ({
 
   const percent = useMemo(
     () =>
-      !comparisonToNull && (metric.value - comparison.value) / comparison.value,
+      !comparisonToNull
+        ? (metric.value - comparison.value) / comparison.value
+        : 0,
     [metric, comparison],
   );
 

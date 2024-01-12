@@ -24,9 +24,10 @@ import { sumViews } from "../../utils";
  */
 const previousPeriod = (since: string, until: string) => {
   const periodDuration = dayjs(until).diff(since, "day") + 1;
-  return formatDates(
-    [periodDuration, 1].map((offset) => dayjs(since).subtract(offset, "day")),
-  );
+  return formatDates([
+    dayjs(since).subtract(periodDuration, "day"),
+    dayjs(since).subtract(1, "day"),
+  ]);
 };
 
 export interface ViewsMetricProps extends Omit<MetricProps, "metric"> {

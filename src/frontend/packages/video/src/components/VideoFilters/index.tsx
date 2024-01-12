@@ -40,7 +40,13 @@ export const VideoFilters: React.FC = () => {
     }));
   };
 
-  const handleVideoIdsChange = (value: string[] | undefined): void => {
+  const handleVideoIdsChange = (
+    value: string | string[] | number | undefined,
+  ): void => {
+    if (typeof value === "number") {
+      return;
+    }
+
     setVideos(VIDEOS.filter((video) => value?.includes(video.id)));
   };
 
@@ -52,7 +58,9 @@ export const VideoFilters: React.FC = () => {
         options={getVideoOptions()}
         multi={true}
         monoline={true}
-        onChange={(e) => handleVideoIdsChange(e.target.value)}
+        onChange={(selectedValues) =>
+          handleVideoIdsChange(selectedValues.target.value)
+        }
       />
     </Filters>
   );

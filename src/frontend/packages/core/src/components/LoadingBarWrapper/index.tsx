@@ -1,4 +1,4 @@
-import LoadingBar from "react-top-loading-bar";
+import LoadingBar, { LoadingBarRef } from "react-top-loading-bar";
 import React, { useEffect, useRef, useState } from "react";
 import { useIsFetching } from "@tanstack/react-query";
 import { WARREN_COLOR } from "../../utils";
@@ -14,7 +14,7 @@ import { WARREN_COLOR } from "../../utils";
  * @return {JSX.Element} The rendered LoadingBarWrapper component.
  */
 export const LoadingBarWrapper: React.FC = () => {
-  const ref = useRef(null);
+  const ref = useRef<LoadingBarRef>(null);
 
   const currentFetchCount = useIsFetching();
   const [isStarted, setIsStarted] = useState(false);
@@ -24,10 +24,10 @@ export const LoadingBarWrapper: React.FC = () => {
   useEffect(() => {
     if (currentFetchCount > 0 && !isStarted) {
       setIsStarted(true);
-      ref.current.continuousStart();
+      ref.current?.continuousStart();
     } else if (currentFetchCount === 0 && isStarted) {
       setIsStarted(false);
-      ref.current.complete();
+      ref.current?.complete();
     }
   }, [currentFetchCount]);
 

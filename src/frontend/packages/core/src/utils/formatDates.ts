@@ -11,7 +11,9 @@ dayjs.extend(utc);
  * @param {Array} dates - An array of two date values, where the first date represents the start date and the second date represents the end date.
  * @returns {Array} An array of two formatted ISO date strings representing the start and end of the day for the provided dates.
  */
-export const formatDates = (dates: [string | Dayjs, string | Dayjs]) => {
+export const formatDates = (
+  dates: [string | Dayjs, string | Dayjs],
+): [string, string] => {
   const formatDay = (d: string | Dayjs, isStart: boolean) =>
     dayjs(d)[isStart ? "startOf" : "endOf"]("day");
 
@@ -20,7 +22,8 @@ export const formatDates = (dates: [string | Dayjs, string | Dayjs]) => {
   );
 
   // FIXME - Handle daylight saving time (DST) and standard time (STD) disparities within the API.
-  return [startDate.utcOffset(endDate.utcOffset(), true), endDate].map((v) =>
-    v.format(),
-  );
+  return [
+    startDate.utcOffset(endDate.utcOffset(), true).format(),
+    endDate.format(),
+  ];
 };
