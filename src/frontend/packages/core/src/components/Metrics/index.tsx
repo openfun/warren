@@ -35,7 +35,9 @@ export const Metric: React.FC<MetricProps> = (props) => (
     >
       {props.metric.value}
     </h4>
-    {props.comparison !== undefined && <Comparison {...props} />}
+    {props.comparison !== undefined && (
+      <Comparison {...props} comparison={props.comparison || {}} />
+    )}
   </Card>
 );
 
@@ -57,6 +59,8 @@ export const MetricCondensed: React.FC<MetricProps> = (props) => (
       {props.tooltip && <Tooltip text={props.tooltip} />}
     </div>
     <span className="c__metric-condensed__value">{props.metric.value}</span>
-    {props.comparison !== undefined && <Comparison {...props} size="small" />}
+    {props.comparison !== undefined && (
+      <Comparison {...props} comparison={props.comparison || {}} size="small" />
+    )}
   </div>
 );
