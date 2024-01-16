@@ -108,3 +108,34 @@ Patience during this process is appreciated.
 
 Once your PR is approved, Warren maintainers will merge your changes into the main project.
 Congratulations, you've successfully contributed to Warren! 🎉
+
+## Releases
+
+The Warren project has multiple services maintained in a single Git repository (_aka_ a monorepo): each service has its own life cycle with its own releases.
+
+We use Git tags to trigger CI builds of the Warren's artifacts (PyPI/NPM packages and Docker images). To make a new release, depending on the service you are releasing, you need to apply the following Git tag pattern conventions:
+
+| Type         | Service      | Git tag pattern                      | Example             |
+| ------------ | ------------ | ------------------------------------ | ------------------- |
+| Back-end     | API (core)   | `v[0-9]+.[0-9]+.[0-9]+-api`          | `v2.0.1-api`        |
+|              | API (plugin) | `v[0-9]+.[0-9]+.[0-9]+-api-<plugin>` | `v0.6.22-api-video` |
+|              | APP          | `v[0-9]+.[0-9]+.[0-9]+-app`          | `v1.3.6-app`        |
+| Front-end    | core         | `v[0-9]+.[0-9]+.[0-9]+-ui`           | `v5.1.0-ui`         |
+|              | plugin       | `v[0-9]+.[0-9]+.[0-9]+-ui-<plugin>`  | `v3.22.5-ui-video`  |
+| Distribution | \*           | `v[0-9]+.[0-9]+.[0-9]+`               | `v2.0.0`            |
+
+!!! Note "About Warren distributions"
+
+    A Warren **distribution** is considered as a "meta" package corresponding to a consistent combination of services releases that are known to work well together. This pattern will be used to tag Docker images and the documentation.
+
+### Working on a new release
+
+This project follows FUN's standard process to release a new version. We invite you to read our [handbook](https://handbook.openfun.fr/git#releasing-new-software-version) that describes it into details.
+
+To release back-end python packages or the related Docker images, this process can be applied by-the-book. However, front-end packages use [changeset](https://github.com/changesets/changesets) to manage their `CHANGELOG`, version and publication. We will describe how to use it below.
+
+#### Using `changeset` for front-end packages
+
+When working a front-end package, if your changes are worth to be mentioned in the package `CHANGELOG`, we invite you to log them using the `bin/changeset add` command.
+
+When you are ready to release a package, use the `bin/changeset version` command to bump the package version and update the `CHANGELOG` accordingly. The CI will be in charge to publish them afterwards upon `main` branch tagging.
