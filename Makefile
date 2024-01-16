@@ -48,13 +48,9 @@ WARREN_FRONTEND_IMAGE_BUILD_TARGET ?= development
 WARREN_FRONTEND_IMAGE_BUILD_PATH   ?= app/staticfiles/warren/assets/index.js
 
 # -- Documentation
-DOCS_COMMITTER_NAME     = "FUN MOOC Bot"
-DOCS_COMMITTER_EMAIL    = funmoocbot@users.noreply.github.com
 WARREN_DOCS_SERVER_PORT = 8000
 WARREN_DOCS_MIKE_PORT   = 8001
 WARREN_DOCS_ENV         = \
-													DOCS_COMMITTER_NAME=$(DOCS_COMMITTER_NAME) \
-													DOCS_COMMITTER_EMAIL=$(DOCS_COMMITTER_EMAIL) \
 													WARREN_DOCS_SERVER_PORT=$(WARREN_DOCS_SERVER_PORT) \
 													WARREN_DOCS_MIKE_PORT=$(WARREN_DOCS_MIKE_PORT)
 MKDOCS                  = $(WARREN_DOCS_ENV) $(COMPOSE_RUN) docs mkdocs

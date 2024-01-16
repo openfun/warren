@@ -137,10 +137,12 @@ services:
   docs:
     build:
       context: ./docs
+      args:
+        DOCKER_GID: ${DOCKER_GID:-1000}
+        DOCKER_UID: ${DOCKER_UID:-1000}
     user: ${DOCKER_USER:-1000}
     environment:
-      GIT_COMMITTER_NAME: ${DOCS_COMMITTER_NAME:-fun}
-      GIT_COMMITTER_EMAIL: ${DOCS_COMMITTER_EMAIL:-funmoocbot@users.noreply.github.com}
+      HOME: /home/docs
     command:
       - mkdocs
       - serve
@@ -150,13 +152,14 @@ services:
       - "${WARREN_DOCS_SERVER_PORT:-8000}:${WARREN_DOCS_SERVER_PORT:-8000}"
     volumes:
       - .:/app
+      - ~/.gitconfig:/home/docs/.gitconfig
+      - ~/.ssh:/home/docs/.ssh
 
   mike:
     image: warren-docs
     user: ${DOCKER_USER:-1000}
     environment:
-      GIT_COMMITTER_NAME: ${DOCS_COMMITTER_NAME:-fun}
-      GIT_COMMITTER_EMAIL: ${DOCS_COMMITTER_EMAIL:-funmoocbot@users.noreply.github.com}
+      HOME: /home/docs
     command:
       - mike
       - serve
@@ -166,3 +169,5 @@ services:
       - "${WARREN_DOCS_MIKE_PORT:-8001}:${WARREN_DOCS_MIKE_PORT:-8001}"
     volumes:
       - .:/app
+      - ~/.gitconfig:/home/docs/.gitconfig
+      - ~/.ssh:/home/docs/.ssh
