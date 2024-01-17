@@ -28,8 +28,8 @@ FROM base as core
 
 COPY --from=builder /usr/local /usr/local
 
-# Create group and user
-RUN addgroup --gid ${DOCKER_GID} docs && \
+# Create group (if not already present) and user
+RUN getent group ${DOCKER_GID} || addgroup --gid ${DOCKER_GID} docs && \
       adduser --uid ${DOCKER_UID} --gid ${DOCKER_GID} --disabled-login docs
 
 USER docs
