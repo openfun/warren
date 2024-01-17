@@ -344,6 +344,10 @@ format-frontend: ## use prettier to format frontend sources
 	@$(COMPOSE_RUN_FRONTEND) yarn format
 .PHONY: format-frontend
 
+clean-frontend: ## clean node_modules and old build
+	cd src/frontend && find . -name node_modules | xargs rm -fr
+.PHONY: clean-frontend
+
 ## -- Tests
 
 test: ## run tests
