@@ -543,11 +543,7 @@ jobs:
             git config user.name "FUN MOOC bot"
       - run:
           name: Publish package as public if package version are bumped
-          command: yarn changeset publish
-      - run:
-          name: Push release tags if some were created
-          command: git push --follow-tags origin HEAD
-
+          command: yarn changeset publish --no-git-tag
 
   # ---- DockerHub publication job ----
   hub:
@@ -771,7 +767,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^v.*/
+              only: /^v.*-api.*/
 
       # NPM publication.
       #
@@ -785,8 +781,7 @@ workflows:
             branches:
               ignore: /.*/
             tags:
-              only: /^v.*/
-
+              only: /^v.*-ui.*/
 
       # DockerHub publication.
       #
@@ -801,7 +796,7 @@ workflows:
             branches:
               only: main
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.[0-9]+.[0-9]+$/
 
       # Publish the documentation website to GitHub Pages.
       # Only do it for master and for tagged stable releases with a tag in the format vX.Y.Z
@@ -809,11 +804,9 @@ workflows:
           requires:
             - build-docs
             - package-api
-            # FIXME
-            # - package-app
-            # - package-frontend
+            - build-frontend
           filters:
             branches:
               only: main
             tags:
-              only: /^v.*/
+              only: /^v[0-9]+.[0-9]+.[0-9]+$/
