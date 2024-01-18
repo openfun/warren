@@ -1,13 +1,11 @@
 """Tests for XI experiences client."""
 
-import re
 import uuid
 from unittest.mock import AsyncMock
 
 import pytest
 from httpx import AsyncClient, HTTPError
 from pydantic.main import BaseModel
-from pytest_httpx import HTTPXMock
 from sqlmodel import Session
 
 from warren.xi.client import CRUDExperience
@@ -16,46 +14,32 @@ from warren.xi.models import ExperienceCreate, ExperienceRead
 
 
 @pytest.mark.anyio
-async def test_crud_experience_raise_status(
-    httpx_mock: HTTPXMock, http_client: AsyncClient
-):
+async def test_crud_experience_raise_status(http_client: AsyncClient, monkeypatch):
     """Test that each operation raises an HTTP error in case of failure."""
+    monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
     crud_instance = CRUDExperience(client=http_client)
-
-    # Mock each request to the XI by returning a 422 status
-    httpx_mock.add_response(url=re.compile(r".*experiences.*"), status_code=422)
 
     class WrongData(BaseModel):
         name: str
 
     # Assert 'create' raises an HTTP error
-    with pytest.raises(HTTPError):
+    with pytest.raises(HTTPError, match="422"):
         await crud_instance.create(data=WrongData(name="foo"))
 
     # Assert 'update' raises an HTTP error
-    with pytest.raises(HTTPError):
+    with pytest.raises(HTTPError, match="404"):
         await crud_instance.update(object_id=uuid.uuid4(), data=WrongData(name="foo"))
 
-    # Assert 'read' raises an HTTP error
-    with pytest.raises(HTTPError):
-        await crud_instance.read()
-
     # Assert 'get' raises an HTTP error
-    with pytest.raises(HTTPError):
+    with pytest.raises(HTTPError, match="422"):
         await crud_instance.get(object_id="foo.")
 
 
 @pytest.mark.anyio
-async def test_crud_experience_get_not_found(
-    httpx_mock: HTTPXMock, http_client: AsyncClient
-):
+async def test_crud_experience_get_not_found(http_client: AsyncClient, monkeypatch):
     """Test getting an unknown experience."""
+    monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
     crud_instance = CRUDExperience(client=http_client)
-
-    # Mock GET request to the XI by returning a 404 status
-    httpx_mock.add_response(
-        method="GET", url=re.compile(r".*experiences.*"), status_code=404
-    )
 
     # Assert 'get' return 'None' without raising any HTTP errors
     response = await crud_instance.get(object_id=uuid.uuid4())
@@ -63,10 +47,22 @@ async def test_crud_experience_get_not_found(
 
 
 @pytest.mark.anyio
+async def test_crud_experience_read_empty(http_client: AsyncClient, monkeypatch):
+    """Test reading experiences when no experience has been saved."""
+    monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
+    crud_instance = CRUDExperience(client=http_client)
+
+    # Assert 'get' return 'None' without raising any HTTP errors
+    experiences = await crud_instance.read()
+    assert experiences == []
+
+
+@pytest.mark.anyio
 async def test_crud_experience_create_or_update_new(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, db_session: Session, monkeypatch
 ):
     """Test creating an experience using 'create_or_update'."""
+    monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
     crud_instance = CRUDExperience(client=http_client)
 
     # Get random experience data
@@ -87,9 +83,10 @@ async def test_crud_experience_create_or_update_new(
 
 @pytest.mark.anyio
 async def test_crud_experience_create_or_update_existing(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, db_session: Session, monkeypatch
 ):
     """Test updating an experience using 'create_or_update'."""
+    monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
     crud_instance = CRUDExperience(client=http_client)
 
     # Get random experience data

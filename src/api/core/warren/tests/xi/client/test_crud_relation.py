@@ -1,13 +1,11 @@
 """Tests for XI relations client."""
 
-import re
 from unittest.mock import AsyncMock, call
 from uuid import uuid4
 
 import pytest
 from httpx import AsyncClient, HTTPError
 from pydantic.main import BaseModel
-from pytest_httpx import HTTPXMock
 from sqlmodel import Session
 
 from warren.xi.client import CRUDRelation
@@ -16,46 +14,32 @@ from warren.xi.models import RelationCreate
 
 
 @pytest.mark.anyio
-async def test_crud_relation_raise_status(
-    httpx_mock: HTTPXMock, http_client: AsyncClient
-):
+async def test_crud_relation_raise_status(http_client: AsyncClient, monkeypatch):
     """Test that each operation raises an HTTP error in case of failure."""
+    monkeypatch.setattr(CRUDRelation, "_base_url", "/api/v1/relations")
     crud_instance = CRUDRelation(client=http_client)
-
-    # Mock each request to the XI by returning a 422 status
-    httpx_mock.add_response(url=re.compile(r".*relations.*"), status_code=422)
 
     class WrongData(BaseModel):
         name: str
 
     # Assert 'create' raises an HTTP error
-    with pytest.raises(HTTPError):
+    with pytest.raises(HTTPError, match="422"):
         await crud_instance.create(data=WrongData(name="foo"))
 
     # Assert 'update' raises an HTTP error
-    with pytest.raises(HTTPError):
+    with pytest.raises(HTTPError, match="404"):
         await crud_instance.update(object_id=uuid4(), data=WrongData(name="foo"))
 
-    # Assert 'read' raises an HTTP error
-    with pytest.raises(HTTPError):
-        await crud_instance.read()
-
     # Assert 'get' raises an HTTP error
-    with pytest.raises(HTTPError):
+    with pytest.raises(HTTPError, match="422"):
         await crud_instance.get(object_id="foo.")
 
 
 @pytest.mark.anyio
-async def test_crud_relation_get_not_found(
-    httpx_mock: HTTPXMock, http_client: AsyncClient
-):
+async def test_crud_relation_get_not_found(http_client: AsyncClient, monkeypatch):
     """Test getting an unknown relation."""
+    monkeypatch.setattr(CRUDRelation, "_base_url", "/api/v1/relations")
     crud_instance = CRUDRelation(client=http_client)
-
-    # Mock GET request to the XI by returning a 404 status
-    httpx_mock.add_response(
-        method="GET", url=re.compile(r".*relations.*"), status_code=404
-    )
 
     # Assert 'get' return 'None' without raising any HTTP errors
     response = await crud_instance.get(object_id=uuid4())
@@ -63,10 +47,22 @@ async def test_crud_relation_get_not_found(
 
 
 @pytest.mark.anyio
+async def test_crud_relation_read_empty(http_client: AsyncClient, monkeypatch):
+    """Test reading relations when no relation has been saved."""
+    monkeypatch.setattr(CRUDRelation, "_base_url", "/api/v1/relations")
+    crud_instance = CRUDRelation(client=http_client)
+
+    # Assert 'get' return 'None' without raising any HTTP errors
+    relations = await crud_instance.read()
+    assert relations == []
+
+
+@pytest.mark.anyio
 async def test_crud_relation_create_bidirectional(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, db_session: Session, monkeypatch
 ):
     """Test creating bidirectional relations."""
+    monkeypatch.setattr(CRUDRelation, "_base_url", "/api/v1/relations")
     crud_instance = CRUDRelation(client=http_client)
 
     # Get two inverse relation types

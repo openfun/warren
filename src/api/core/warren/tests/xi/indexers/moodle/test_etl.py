@@ -32,8 +32,14 @@ async def test_courses_factory(http_client: AsyncClient):
 
 
 @pytest.mark.anyio
-async def test_course_content_factory(httpx_mock: HTTPXMock, db_session: Session):
+async def test_course_content_factory(
+    httpx_mock: HTTPXMock, db_session: Session, monkeypatch
+):
     """Test 'CourseContent' factory class method in multiple scenario."""
+    # Mock the experience index as localhost cannot be mocked due
+    # to the non_mock_hosts fixture defined in the video plugin
+    monkeypatch.setattr(settings, "SERVER_HOST", "mocked-xi")
+
     # Simulate experience not found by mocking the XI response
     wrong_iri = f"uuid://{uuid4().hex}"
     httpx_mock.add_response(
@@ -255,8 +261,14 @@ def test_course_content_transform(http_client: AsyncClient):
 
 
 @pytest.mark.anyio
-async def test_courses_load_errors(httpx_mock: HTTPXMock, http_client: AsyncClient):
+async def test_courses_load_errors(
+    httpx_mock: HTTPXMock, http_client: AsyncClient, monkeypatch
+):
     """Test '_load' method from 'Courses' when encountering errors."""
+    # Mock the experience index as localhost cannot be mocked due
+    # to the non_mock_hosts fixture defined in the video plugin
+    monkeypatch.setattr(settings, "SERVER_HOST", "mocked-xi")
+
     # Instantiate the 'Courses' indexer
     indexer = Courses(
         lms=Moodle(),
@@ -286,9 +298,13 @@ async def test_courses_load_errors(httpx_mock: HTTPXMock, http_client: AsyncClie
 
 @pytest.mark.anyio
 async def test_course_content_load_errors(
-    httpx_mock: HTTPXMock, http_client: AsyncClient
+    httpx_mock: HTTPXMock, http_client: AsyncClient, monkeypatch
 ):
     """Test '_load' method from 'CourseContent' when encountering errors."""
+    # Mock the experience index as localhost cannot be mocked due
+    # to the non_mock_hosts fixture defined in the video plugin
+    monkeypatch.setattr(settings, "SERVER_HOST", "mocked-xi")
+
     # Generate a random experience
     experience = ExperienceRead(
         **ExperienceFactory.build_dict(
