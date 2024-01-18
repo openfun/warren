@@ -13,7 +13,7 @@ from warren.indicators.mixins import CacheMixin
 @pytest.fixture(scope="session")
 def db_engine():
     """Test database engine fixture."""
-    engine = create_engine(settings.TEST_DATABASE_URL, echo=True)
+    engine = create_engine(settings.TEST_DATABASE_URL, echo=False)
 
     # Create database and tables
     SQLModel.metadata.create_all(engine)
