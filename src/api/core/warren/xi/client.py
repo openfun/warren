@@ -49,6 +49,7 @@ class BaseCRUD(ABC):
     """
 
     _client: AsyncClient
+    _base_url: str
 
     def __init__(self, client: AsyncClient):
         """Initialize the base class with an AsyncClient instance."""
@@ -65,11 +66,6 @@ class BaseCRUD(ABC):
             str: The constructed URL.
         """
         return join(self._base_url, quote_plus(str(path)))
-
-    @property
-    @abstractmethod
-    def _base_url(self):
-        """Abstract method to get the URL for specific entity."""
 
     @abstractmethod
     async def create(self, data):
@@ -95,10 +91,7 @@ class BaseCRUD(ABC):
 class CRUDExperience(BaseCRUD):
     """Handle asynchronous CRUD operations on experiences."""
 
-    @property
-    def _base_url(self) -> str:
-        """Provide the base URL for experiences' endpoints."""
-        return "experiences"
+    _base_url: str = "experiences"
 
     async def create(self, data: ExperienceCreate) -> UUID:
         """Create an experience."""
@@ -151,10 +144,7 @@ class CRUDExperience(BaseCRUD):
 class CRUDRelation(BaseCRUD):
     """Handle asynchronous CRUD operations on relations."""
 
-    @property
-    def _base_url(self) -> str:
-        """Provide the base URL for relations' endpoints."""
-        return "relations"
+    _base_url: str = "relations"
 
     async def create(self, data: RelationCreate) -> UUID:
         """Create a relation."""
