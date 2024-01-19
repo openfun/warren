@@ -64,6 +64,7 @@ class Settings(BaseSettings):
     SENTRY_DSN: Optional[str] = None
     EXECUTION_ENVIRONMENT: str = "development"
     SENTRY_API_TRACES_SAMPLE_RATE: float = 1.0
+    SENTRY_CLI_TRACES_SAMPLE_RATE: float = 1.0
 
     @property
     def DATABASE_URL(self) -> str:

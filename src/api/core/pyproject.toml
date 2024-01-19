@@ -29,6 +29,7 @@ keywords = ["Analytics", "xAPI", "LRS", "LTI"]
 dependencies = [
     "alembic==1.13.1",
     "arrow==1.3.0",
+    "click==8.1.7",
     "django-lti-toolbox==1.2.0",
     "elasticsearch[async]==8.12.0",
     "fastapi==0.109.0",
@@ -71,7 +72,7 @@ ci = [
 ]
 
 [project.scripts]
-warren = "warren.commands:main"
+warren = "warren.__main__:cli.cli"
 
 [tool.setuptools.dynamic]
 version = { attr = "warren.__version__" }
