@@ -350,21 +350,20 @@ jobs:
         auth:
           username: $DOCKER_HUB_USER
           password: $DOCKER_HUB_PASSWORD
-    working_directory: ~/fun
+    working_directory: ~/fun/src/frontend
     steps:
-      - checkout
-      - run:
-          name: Install development dependencies
-          command: yarn install
-          working_directory: src/frontend
+      - checkout:
+          path: ../..
+      - restore_cache:
+          name: Restore node_modules cache
+          keys:
+            - v1-front-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Lint code using turbo utility
           command: yarn lint
-          working_directory: src/frontend
       - run:
           name: Check formatting using prettier
           command: yarn run prettier -c "**/*.{ts,tsx,md}"
-          working_directory: src/frontend
 
   build-frontend:
     docker:
@@ -372,21 +371,32 @@ jobs:
         auth:
           username: $DOCKER_HUB_USER
           password: $DOCKER_HUB_PASSWORD
-    working_directory: ~/fun
+    working_directory: ~/fun/src/frontend
     steps:
-      - checkout
+      - checkout:
+          path: ../..
+      - restore_cache:
+          name: Restore node_modules cache
+          keys:
+            - v1-front-dependencies-{{ checksum "yarn.lock" }}
       - run:
           name: Install development dependencies
           command: yarn install
-          working_directory: src/frontend
       - run:
           name: Build project using turbo utility
           command: yarn build
-          working_directory: src/frontend
       - persist_to_workspace:
           root: ~/fun
           paths:
             - src/frontend/packages/*/dist
+      - save_cache:
+          paths:
+            - ./apps/web/node_modules
+            - ./node_modules
+            - ./packages/core/node_modules
+            - ./packages/eslint-config-custom/node_modules
+            - ./packages/video/node_modules
+          key: v1-front-dependencies-{{ checksum "yarn.lock" }}
 
   # ---- Documentation jobs ----
   build-docs:
@@ -527,15 +537,20 @@ jobs:
         auth:
           username: $DOCKER_HUB_USER
           password: $DOCKER_HUB_PASSWORD
-    working_directory: ~/fun
+    working_directory: ~/fun/src/frontend
     steps:
-      - checkout
+      - checkout:
+          path: ../..
+      - restore_cache:
+          name: Restore node_modules cache
+          keys:
+            - v1-front-dependencies-{{ checksum "yarn.lock" }}
       # Restore built frontend packages
       - attach_workspace:
           at: ~/fun
       - run:
           name: Authenticate with registry
-          command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/fun/.npmrc
+          command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/fun/src/frontend/.npmrc
       - run:
           name: Init Git identity in order to allow changeset to create tags
           command: |
@@ -728,11 +743,13 @@ workflows:
       # Frontend jobs
       #
       # Build, lint and test frontend sources
-      - lint-frontend:
+      - build-frontend:
           filters:
             tags:
               only: /.*/
-      - build-frontend:
+      - lint-frontend:
+          requires:
+            - build-frontend
           filters:
             tags:
               only: /.*/
@@ -775,7 +792,6 @@ workflows:
       # and it has been tagged with a tag starting with the letter v
       - npm:
           requires:
-            - build-frontend
             - lint-frontend
           filters:
             branches:
