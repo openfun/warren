@@ -52,13 +52,13 @@ dev = [
     "black==23.12.1",
     "build==1.0.3",
     "factory-boy==3.3.0",
-    "Faker==22.2.0",
+    "Faker==22.4.0",
     "ipdb==0.13.13",
     "ipython==8.18.1",
     "pytest==7.4.4",
     "pytest-cov==4.1.0",
     "pytest-django==4.7.0",
-    "ruff==0.1.13",
+    "ruff==0.1.14",
     "xmltodict==0.13.0",
 ]
 ci = [
