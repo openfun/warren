@@ -38,5 +38,13 @@ dynamic = ["version"]
 [project.entry-points."warren.routers"]
 video = "warren_video.api:router"
 
+[project.entry-points."warren.indicators"]
+daily_views = "warren_video.indicators:DailyViews"
+daily_unique_views = "warren_video.indicators:DailyUniqueViews"
+daily_completed_views = "warren_video.indicators:DailyCompletedViews"
+daily_unique_completed_views = "warren_video.indicators:DailyUniqueCompletedViews"
+daily_downloads = "warren_video.indicators:DailyDownloads"
+daily_unique_downloads = "warren_video.indicators:DailyUniqueDownloads"
+
 [tool.setuptools.dynamic]
 version = { attr = "warren_video.__version__" }
