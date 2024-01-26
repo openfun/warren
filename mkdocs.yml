@@ -59,7 +59,9 @@ markdown_extensions:
       pygments_lang_class: true
   - pymdownx.inlinehilite
   - pymdownx.extra
-  - pymdownx.emoji
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.snippets
   - pymdownx.superfences:
       disable_indented_code_blocks: true
@@ -69,6 +71,7 @@ markdown_extensions:
 
 nav:
   - "Warren": index.md
+  - "Plugins": plugins.md
   - "Contributing": contribute.md
   - "About the project":
       - "Changelog": CHANGELOG.md
