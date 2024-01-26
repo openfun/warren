@@ -84,6 +84,23 @@ jobs:
             # Get the longuest line width (ignoring release links)
             test $(cat CHANGELOG.md | grep -Ev "^\[.*\]: https://github.com/openfun" | wc -L) -le 80
 
+  # Check that documentation sources are well formatted
+  lint-docs:
+    docker:
+      - image: node:latest
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      - checkout
+      - run:
+          name: Install prettier
+          command: yarn add prettier
+      - run:
+          name: Run prettier over markdown sources
+          command: yarn run prettier -c docs/**/*.md
+
   # Check that renovate configuration file is valid
   check-renovate-configuration:
     docker:
@@ -663,6 +680,12 @@ workflows:
             tags:
               only: /(?!^v).*/
       - lint-changelog:
+          filters:
+            branches:
+              ignore: main
+            tags:
+              only: /.*/
+      - lint-docs:
           filters:
             branches:
               ignore: main
