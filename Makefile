@@ -273,7 +273,8 @@ lint: ## lint api, app and frontend sources
 lint: \
   lint-api \
   lint-app \
-  lint-frontend
+  lint-frontend \
+  lint-docs
 .PHONY: lint
 
 ### API ###
@@ -373,6 +374,14 @@ docs-deploy: ## build and deploy documentation site for all versions
 	@echo "Deploying docs with version main to gh-pages"
 	@$(MIKE) deploy main
 .PHONY: docs-deploy
+
+lint-docs: ## lint the documentation sources
+	$(COMPOSE_RUN) prettier -c docs/**/*.md
+.PHONY: docs-lint
+
+lint-docs-fix: ## fix linter issues for documentation sources
+	$(COMPOSE_RUN) prettier -w docs/**/*.md
+.PHONY: docs-lint
 
 docs-serve: ## run mkdocs live server for dev docs
 	$(WARREN_DOCS_ENV) $(COMPOSE) up docs

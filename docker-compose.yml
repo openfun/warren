@@ -171,3 +171,8 @@ services:
       - .:/app
       - ~/.gitconfig:/home/docs/.gitconfig
       - ~/.ssh:/home/docs/.ssh
+
+  prettier:
+    image: tmknom/prettier
+    volumes:
+      - .:/work
