@@ -1,4 +1,5 @@
 """Abstract class defining the interface for an indicator."""
+
 import copy
 import inspect
 from abc import ABC, abstractmethod

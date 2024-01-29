@@ -1,4 +1,5 @@
 """Test Warren commands functions."""
+
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest

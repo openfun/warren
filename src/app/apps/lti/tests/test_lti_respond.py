@@ -1,6 +1,5 @@
 """Tests for the LTI respond view."""
 
-
 import json
 from logging import Logger
 from unittest import mock

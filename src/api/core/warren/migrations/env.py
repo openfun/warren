@@ -1,4 +1,5 @@
 """Alembic configuration."""
+
 # ruff: noqa: I001
 from logging.config import fileConfig
 

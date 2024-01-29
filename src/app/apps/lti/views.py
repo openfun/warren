@@ -160,9 +160,9 @@ class LTIConfigView(TemplateView):
             else ""
         )
         return {
-            "code": settings.LTI_CONFIG_TITLE.lower()
-            if settings.LTI_CONFIG_TITLE
-            else None,
+            "code": (
+                settings.LTI_CONFIG_TITLE.lower() if settings.LTI_CONFIG_TITLE else None
+            ),
             "contact_email": settings.LTI_CONFIG_CONTACT_EMAIL,
             "description": settings.LTI_CONFIG_DESCRIPTION,
             "host": host,

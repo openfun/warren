@@ -1,4 +1,5 @@
 """Tests for video indicators."""
+
 import json
 import re
 import urllib

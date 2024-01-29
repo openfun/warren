@@ -1,4 +1,5 @@
 """Factories for video xAPI events."""
+
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.lms.statements import LMSDownloadedVideo
 from ralph.models.xapi.video.statements import VideoPlayed

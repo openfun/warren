@@ -1,4 +1,5 @@
 """Experience Index SQL Models."""
+
 from datetime import datetime, timezone
 from typing import List, Optional, Tuple, Union
 from uuid import UUID, uuid4

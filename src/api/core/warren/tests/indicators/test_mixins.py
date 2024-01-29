@@ -1,4 +1,5 @@
 """Test indicators mixins."""
+
 import hashlib
 from datetime import datetime, timezone
 from functools import cached_property

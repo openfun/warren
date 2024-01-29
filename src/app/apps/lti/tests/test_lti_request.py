@@ -1,6 +1,5 @@
 """Tests for the LTI request view."""
 
-
 import json
 import re
 from html import unescape

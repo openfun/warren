@@ -1,4 +1,5 @@
 """Warren persistence database connection."""
+
 import logging
 from typing import Optional
 

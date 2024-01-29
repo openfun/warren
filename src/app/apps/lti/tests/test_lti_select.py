@@ -1,6 +1,5 @@
 """Tests for the LTI select view."""
 
-
 import json
 import re
 from html import unescape

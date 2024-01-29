@@ -1,6 +1,5 @@
 """Experience Index indexers Mixins."""
 
-
 from typing import Optional, Union
 
 

@@ -1,4 +1,5 @@
 """Experience Index API Experiences router."""
+
 import logging
 from typing import List, Optional
 from uuid import UUID

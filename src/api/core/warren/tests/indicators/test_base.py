@@ -1,4 +1,5 @@
 """Test the functions from the BaseIndicator class."""
+
 import pytest
 from pytest_httpx import HTTPXMock
 from ralph.backends.lrs.base import LRSStatementsQuery

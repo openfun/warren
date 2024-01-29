@@ -129,9 +129,9 @@ class CourseContent(ETL[Section, ExperienceCreate], ETLRunnerMixin):
         for experience in data:
             try:
                 # If a new experience is created, it will return a UUID
-                response: Union[
-                    UUID, Experience
-                ] = await self._xi.experience.create_or_update(experience)
+                response: Union[UUID, Experience] = (
+                    await self._xi.experience.create_or_update(experience)
+                )
 
                 # If it's a new experience, create relations to its course
                 if isinstance(response, UUID):

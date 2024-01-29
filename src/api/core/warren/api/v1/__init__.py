@@ -1,4 +1,5 @@
 """Warren API v1."""
+
 import logging
 import sys
 

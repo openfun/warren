@@ -1,4 +1,5 @@
 """Warren CLI entrypoint."""
+
 import asyncio
 import json
 import logging
