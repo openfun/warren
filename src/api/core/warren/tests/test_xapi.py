@@ -1,4 +1,5 @@
 """Test xAPI transformers."""
+
 import pandas as pd
 
 from warren.factories.base import BaseXapiStatementFactory

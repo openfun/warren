@@ -1,4 +1,5 @@
 """Tests for the health check endpoints."""
+
 import pytest
 from ralph.backends.data.base import DataBackendStatus
 

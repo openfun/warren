@@ -1,6 +1,5 @@
 """Experience Index ETL Protocol and Mixin for indexers."""
 
-
 from typing import Iterator, List, Protocol, TypeVar
 
 

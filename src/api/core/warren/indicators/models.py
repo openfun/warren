@@ -1,4 +1,5 @@
 """Indicators SQL Models."""
+
 from datetime import datetime, timezone
 from typing import Optional, Union
 from uuid import UUID, uuid4

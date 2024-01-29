@@ -1,4 +1,5 @@
 """Test indicators models."""
+
 import json
 from datetime import datetime, timezone
 from uuid import UUID

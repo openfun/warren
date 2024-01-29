@@ -1,6 +1,5 @@
 """Tests for indexers' Mixins."""
 
-
 import pytest
 
 from warren.xi.indexers.mixins import LangStringMixin

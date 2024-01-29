@@ -1,4 +1,5 @@
 """Mixins for indicators."""
+
 import hashlib
 import inspect
 import logging

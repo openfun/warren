@@ -1,4 +1,5 @@
 """Fixtures for Warren api database."""
+
 import pytest
 from alembic import command
 from alembic.config import Config

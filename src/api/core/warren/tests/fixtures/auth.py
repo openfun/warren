@@ -1,4 +1,5 @@
 """Fixtures for the authorization headers of warren api."""
+
 import datetime
 import uuid
 

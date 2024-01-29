@@ -1,4 +1,5 @@
 """Warren's core models."""
+
 from datetime import datetime
 from functools import reduce
 from itertools import groupby
@@ -235,6 +236,7 @@ class DailyUniqueCounts(BaseModel):
         counts = [c.to_daily_count() for c in self.counts]
         total = sum(c.count for c in counts)
         return DailyCounts(total=total, counts=counts)
+
 
 class LTIUser(BaseModel):
     """Model to represent LTI user data."""

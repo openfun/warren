@@ -1,6 +1,5 @@
 """Tests for the Token classes."""
 
-
 from urllib.parse import urlencode
 
 from django.test import RequestFactory, TestCase

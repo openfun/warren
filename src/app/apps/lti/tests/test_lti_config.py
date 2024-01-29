@@ -1,4 +1,5 @@
 """Tests for the LTI configuration view."""
+
 import xmltodict
 from django.test import TestCase, override_settings
 

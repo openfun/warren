@@ -1,4 +1,5 @@
 """Warren API root."""
+
 from contextlib import asynccontextmanager
 
 import sentry_sdk

@@ -1,6 +1,5 @@
 """Tests for indexers and source factories."""
 
-
 import re
 from typing import Optional
 

@@ -1,4 +1,5 @@
 """Tests for the core models."""
+
 import datetime
 from random import randint
 

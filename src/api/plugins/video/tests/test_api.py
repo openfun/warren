@@ -1,4 +1,5 @@
 """Tests for the video API endpoints."""
+
 import json
 import re
 import urllib

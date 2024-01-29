@@ -1,4 +1,5 @@
 """Warren utils."""
+
 import logging
 from functools import reduce
 from typing import Callable

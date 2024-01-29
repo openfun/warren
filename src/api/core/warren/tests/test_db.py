@@ -1,4 +1,5 @@
 """Tests for Warren db module."""
+
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session as SASession
 
