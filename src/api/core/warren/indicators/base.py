@@ -5,12 +5,13 @@ from abc import ABC, abstractmethod
 from functools import cached_property
 from typing import List, Optional
 
+from ralph.backends.lrs.base import LRSStatementsQuery
 from ralph.exceptions import BackendException
 
 from warren.backends import lrs_client as async_lrs_client
 from warren.exceptions import LrsClientException
 from warren.filters import Datetime, DatetimeRange
-from warren.models import XAPI_STATEMENT, LRSStatementsQuery
+from warren.models import XAPI_STATEMENT
 
 
 class BaseIndicator(ABC):
@@ -96,7 +97,7 @@ class BaseIndicator(ABC):
             return [
                 value
                 async for value in self.lrs_client.read(
-                    target=self.lrs_client.statements_endpoint,
+                    target=self.lrs_client.settings.STATEMENTS_ENDPOINT,
                     query=self.get_lrs_query(),
                 )
             ]

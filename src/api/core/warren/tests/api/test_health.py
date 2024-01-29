@@ -1,6 +1,6 @@
 """Tests for the health check endpoints."""
 import pytest
-from ralph.backends.http.base import HTTPBackendStatus
+from ralph.backends.data.base import DataBackendStatus
 
 from warren.api import health
 from warren.backends import lrs_client
@@ -19,43 +19,43 @@ async def test_api_health_heartbeat(http_client, monkeypatch):
     """Test the heartbeat healthcheck."""
 
     async def lrs_ok():
-        return HTTPBackendStatus.OK
+        return DataBackendStatus.OK
 
     async def lrs_away():
-        return HTTPBackendStatus.AWAY
+        return DataBackendStatus.AWAY
 
     async def lrs_error():
-        return HTTPBackendStatus.ERROR
+        return DataBackendStatus.ERROR
 
     with monkeypatch.context() as lrs_context:
         lrs_context.setattr(lrs_client, "status", lrs_ok)
         response = await http_client.get("/__heartbeat__")
         assert response.status_code == 200
-        assert response.json() == {"database": "ok", "lrs": "ok"}
+        assert response.json() == {"data": "ok", "lrs": "ok"}
 
         lrs_context.setattr(lrs_client, "status", lrs_away)
         response = await http_client.get("/__heartbeat__")
-        assert response.json() == {"database": "ok", "lrs": "away"}
+        assert response.json() == {"data": "ok", "lrs": "away"}
         assert response.status_code == 500
 
         lrs_context.setattr(lrs_client, "status", lrs_error)
         response = await http_client.get("/__heartbeat__")
-        assert response.json() == {"database": "ok", "lrs": "error"}
+        assert response.json() == {"data": "ok", "lrs": "error"}
         assert response.status_code == 500
 
     with monkeypatch.context() as db_context:
         lrs_context.setattr(lrs_client, "status", lrs_ok)
         db_context.setattr(health, "is_db_alive", lambda: False)
         response = await http_client.get("/__heartbeat__")
-        assert response.json() == {"database": "error", "lrs": "ok"}
+        assert response.json() == {"data": "error", "lrs": "ok"}
         assert response.status_code == 500
 
         db_context.setattr(lrs_client, "status", lrs_away)
         response = await http_client.get("/__heartbeat__")
-        assert response.json() == {"database": "error", "lrs": "away"}
+        assert response.json() == {"data": "error", "lrs": "away"}
         assert response.status_code == 500
 
         db_context.setattr(lrs_client, "status", lrs_error)
         response = await http_client.get("/__heartbeat__")
-        assert response.json() == {"database": "error", "lrs": "error"}
+        assert response.json() == {"data": "error", "lrs": "error"}
         assert response.status_code == 500

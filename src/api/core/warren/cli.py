@@ -160,7 +160,7 @@ def indicator_compute(ctx: click.Context, indicator: str, cache: bool):
 
         # Cast value given parameter annotation
         if issubclass(parameter.annotation, str):
-            pass
+            value = value.strip('"')
         elif issubclass(parameter.annotation, (dict, list)):
             value = json.loads(value)
         elif issubclass(parameter.annotation, BaseModel):

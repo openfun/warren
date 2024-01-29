@@ -1,6 +1,7 @@
 """Factories for video xAPI events."""
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
-from ralph.models.xapi.video.statements import VideoDownloaded, VideoPlayed
+from ralph.models.xapi.lms.statements import LMSDownloadedVideo
+from ralph.models.xapi.video.statements import VideoPlayed
 from warren.factories.base import BaseXapiStatementFactory
 
 
@@ -23,10 +24,7 @@ class VideoPlayedFactory(BaseXapiStatementFactory):
                     {
                         "id": "https://w3id.org/xapi/video",
                         "definition": {
-                            "id": "uuid://C678149d-956a-483d-8975-c1506de1e1a9",
-                            "definition": {
-                                "type": "http://adlnet.gov/expapi/activities/profile"
-                            },
+                            "type": "http://adlnet.gov/expapi/activities/profile"
                         },
                     }
                 ],
@@ -63,8 +61,8 @@ class VideoPlayedFactory(BaseXapiStatementFactory):
     model: VideoPlayed = VideoPlayed
 
 
-class VideoDownloadedFactory(BaseXapiStatementFactory):
-    """VideoDownloaded xAPI statement factory."""
+class LMSDownloadedVideoFactory(BaseXapiStatementFactory):
+    """LMSDownloadedVideo xAPI statement factory."""
 
     template: dict = {
         "verb": {
@@ -82,12 +80,9 @@ class VideoDownloadedFactory(BaseXapiStatementFactory):
             "contextActivities": {
                 "category": [
                     {
-                        "id": "https://w3id.org/xapi/video",
+                        "id": "https://w3id.org/xapi/lms",
                         "definition": {
-                            "id": "uuid://C678149d-956a-483d-8975-c1506de1e1a9",
-                            "definition": {
-                                "type": "http://adlnet.gov/expapi/activities/profile"
-                            },
+                            "type": "http://adlnet.gov/expapi/activities/profile"
                         },
                     }
                 ],
@@ -120,4 +115,4 @@ class VideoDownloadedFactory(BaseXapiStatementFactory):
         },
         "timestamp": "2021-12-01T08:17:47.150905+00:00",
     }
-    model: VideoPlayed = VideoDownloaded
+    model: LMSDownloadedVideo = LMSDownloadedVideo

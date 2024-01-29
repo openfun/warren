@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING, Optional
 
 import pandas as pd
-from ralph.backends.http.async_lrs import LRSQuery
+from ralph.backends.data.async_lrs import LRSStatementsQuery
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from ralph.models.xapi.concepts.verbs.scorm_profile import CompletedVerb
 from ralph.models.xapi.concepts.verbs.tincan_vocabulary import DownloadedVerb
@@ -50,15 +50,13 @@ class BaseDailyEvent(BaseIndicator, IncrementalCacheMixin):
 
     def get_lrs_query(
         self,
-    ) -> LRSQuery:
+    ) -> LRSStatementsQuery:
         """Get the LRS query for fetching required statements."""
-        return LRSQuery(
-            query={
-                "verb": self.verb_id,
-                "activity": self.video_id,
-                "since": self.since.isoformat(),
-                "until": self.until.isoformat(),
-            }
+        return LRSStatementsQuery(
+            verb=self.verb_id,
+            activity=self.video_id,
+            since=self.since,
+            until=self.until,
         )
 
     def filter_statements(self, statements: pd.DataFrame) -> pd.DataFrame:

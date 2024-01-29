@@ -282,7 +282,7 @@ def test_indicator_compute_command_with_list_or_dict_parameter(monkeypatch):
 
 
 def test_indicator_compute_command_with_cache(monkeypatch):
-    """Test warren indicator compute command for no return annotation."""
+    """Test warren indicator compute command with cache."""
     runner = CliRunner()
 
     get_or_compute_mock = AsyncMock()

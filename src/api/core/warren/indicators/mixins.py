@@ -72,7 +72,9 @@ class CacheMixin(Cacheable):
 
         """
         lrs_query_hash = hashlib.sha256(
-            self.get_lrs_query().json(exclude={"query": {"since", "until"}}).encode()
+            self.get_lrs_query()
+            .json(exclude={"since", "until"}, exclude_none=True, exclude_unset=True)
+            .encode()
         ).hexdigest()
         return f"{self.__class__.__name__.lower()}-{lrs_query_hash}"
 
