@@ -10,7 +10,7 @@ import pytest
 from arrow import Arrow
 from freezegun import freeze_time
 from pydantic import BaseModel
-from ralph.backends.http.async_lrs import LRSQuery
+from ralph.backends.lrs.base import LRSStatementsQuery
 from sqlalchemy import func
 from sqlalchemy.exc import MultipleResultsFound
 from sqlmodel import select
@@ -27,8 +27,8 @@ def test_cache_key_calculation():
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(query={"verb": "played"})
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
 
         async def fetch_statements(self):
             pass
@@ -37,7 +37,7 @@ def test_cache_key_calculation():
             pass
 
     indicator = MyIndicator()
-    lrs_query = '{"query_string": null, "query": {"verb": "played"}}'
+    lrs_query = '{"verb": "https://w3id.org/xapi/video/verbs/played"}'
     expected = f"myindicator-{hashlib.sha256(lrs_query.encode()).hexdigest()}"
     assert indicator.cache_key == expected
 
@@ -51,13 +51,11 @@ def test_cache_key_calculation_with_lrs_query_datetime_range():
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(
-                query={
-                    "verb": "played",
-                    "since": datetime(2023, 1, 1),
-                    "until": datetime(2023, 2, 1),
-                }
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(
+                verb="https://w3id.org/xapi/video/verbs/played",
+                since=datetime(2023, 1, 1),
+                until=datetime(2023, 2, 1),
             )
 
         async def fetch_statements(self):
@@ -69,7 +67,7 @@ def test_cache_key_calculation_with_lrs_query_datetime_range():
     indicator = MyIndicator()
     # We exclude "since" and "until" parameters from the LRS query to calculate
     # the cache key
-    lrs_query = '{"query_string": null, "query": {"verb": "played"}}'
+    lrs_query = '{"verb": "https://w3id.org/xapi/video/verbs/played"}'
     expected = f"myindicator-{hashlib.sha256(lrs_query.encode()).hexdigest()}"
     assert indicator.cache_key == expected
 
@@ -82,8 +80,8 @@ async def test_save_with_single_cache_instance(db_session):
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(query={"verb": "played"})
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
 
         async def fetch_statements(self):
             pass
@@ -117,8 +115,8 @@ async def test_save_with_multiple_cache_instances(db_session):
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(query={"verb": "played"})
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
 
         async def fetch_statements(self):
             pass
@@ -162,8 +160,8 @@ async def test_get_cache(db_session):
     class MyIndicatorA(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(query={"verb": "played"})
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
 
         async def fetch_statements(self):
             pass
@@ -174,8 +172,8 @@ async def test_get_cache(db_session):
     class MyIndicatorB(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(query={"verb": "played"})
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
 
         async def fetch_statements(self):
             pass
@@ -205,8 +203,8 @@ async def test_get_cache_when_no_cache_exists(db_session):
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(query={"verb": "played"})
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
 
         async def fetch_statements(self):
             pass
@@ -230,8 +228,8 @@ async def test_get_cache_when_unexpected_multiple_cache_exist(db_session):
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(query={"verb": "played"})
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
 
         async def fetch_statements(self):
             pass
@@ -258,7 +256,7 @@ def test_compute_annotation():
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
+        def get_lrs_query(self) -> LRSStatementsQuery:
             return None
 
         async def fetch_statements(self):
@@ -298,7 +296,7 @@ async def test_to_pydantic(value):
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
+        def get_lrs_query(self) -> LRSStatementsQuery:
             pass
 
         async def compute(self) -> MyType:
@@ -328,7 +326,7 @@ async def test_raw_or_pydantic(value):
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
+        def get_lrs_query(self) -> LRSStatementsQuery:
             pass
 
         async def compute(self) -> MyType:
@@ -340,7 +338,7 @@ async def test_raw_or_pydantic(value):
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
+        def get_lrs_query(self) -> LRSStatementsQuery:
             pass
 
         # For python >= 3.11, "Any" is recognized as a class:
@@ -364,8 +362,8 @@ async def test_get_or_compute(db_session, monkeypatch):
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(query={"verb": "played"})
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
 
         async def fetch_statements(self):
             pass
@@ -393,8 +391,8 @@ async def test_get_or_compute(db_session, monkeypatch):
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy mocked indicator."""
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(query={"verb": "played"})
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
 
         async def fetch_statements(self):
             pass
@@ -434,8 +432,12 @@ async def test_incremental_get_cache(db_session):
 
         def get_lrs_query(
             self, since: datetime = None, until: datetime = None
-        ) -> LRSQuery:
-            return LRSQuery(query={"verb": "played", "since": since, "until": until})
+        ) -> LRSStatementsQuery:
+            return LRSStatementsQuery(
+                verb="https://w3id.org/xapi/video/verbs/played",
+                since=since,
+                until=until,
+            )
 
         async def fetch_statements(self):
             pass
@@ -501,8 +503,12 @@ async def test_incremental_get_cache_when_multiple_cache_exists(db_session):
 
         def get_lrs_query(
             self, since: datetime = None, until: datetime = None
-        ) -> LRSQuery:
-            return LRSQuery(query={"verb": "played", "since": since, "until": until})
+        ) -> LRSStatementsQuery:
+            return LRSStatementsQuery(
+                verb="https://w3id.org/xapi/video/verbs/played",
+                since=since,
+                until=until,
+            )
 
         async def fetch_statements(self):
             pass
@@ -574,8 +580,12 @@ async def test_incremental_get_cache_limits(db_session):
 
         def get_lrs_query(
             self, since: datetime = None, until: datetime = None
-        ) -> LRSQuery:
-            return LRSQuery(query={"verb": "played", "since": since, "until": until})
+        ) -> LRSStatementsQuery:
+            return LRSStatementsQuery(
+                verb="https://w3id.org/xapi/video/verbs/played",
+                since=since,
+                until=until,
+            )
 
         async def fetch_statements(self):
             pass
@@ -639,8 +649,12 @@ async def test_incremental_get_continuous_cache_for_time_span(db_session):
 
         def get_lrs_query(
             self, since: datetime = None, until: datetime = None
-        ) -> LRSQuery:
-            return LRSQuery(query={"verb": "played", "since": since, "until": until})
+        ) -> LRSStatementsQuery:
+            return LRSStatementsQuery(
+                verb="https://w3id.org/xapi/video/verbs/played",
+                since=since,
+                until=until,
+            )
 
         async def fetch_statements(self):
             pass
@@ -702,8 +716,12 @@ async def test_incremental_get_continuous_cache_for_time_span_with_week_frame(
 
         def get_lrs_query(
             self, since: datetime = None, until: datetime = None
-        ) -> LRSQuery:
-            return LRSQuery(query={"verb": "played", "since": since, "until": until})
+        ) -> LRSStatementsQuery:
+            return LRSStatementsQuery(
+                verb="https://w3id.org/xapi/video/verbs/played",
+                since=since,
+                until=until,
+            )
 
         async def fetch_statements(self):
             pass
@@ -759,8 +777,12 @@ async def test_incremental_merge():
 
         def get_lrs_query(
             self, since: datetime = None, until: datetime = None
-        ) -> LRSQuery:
-            return LRSQuery(query={"verb": "played", "since": since, "until": until})
+        ) -> LRSStatementsQuery:
+            return LRSStatementsQuery(
+                verb="https://w3id.org/xapi/video/verbs/played",
+                since=since,
+                until=until,
+            )
 
         async def fetch_statements(self):
             pass
@@ -787,7 +809,7 @@ async def test_incremental_compute_annotation():
 
         frame = "day"
 
-        def get_lrs_query(self) -> LRSQuery:
+        def get_lrs_query(self) -> LRSStatementsQuery:
             pass
 
         async def compute(self) -> dict:
@@ -814,7 +836,7 @@ async def test_incremental_compute_annotation():
 
         frame = "day"
 
-        def get_lrs_query(self) -> LRSQuery:
+        def get_lrs_query(self) -> LRSStatementsQuery:
             pass
 
         async def compute(self) -> MyType:
@@ -853,7 +875,7 @@ async def test_incremental_to_pydantic(values):
 
         frame = "day"
 
-        def get_lrs_query(self) -> LRSQuery:
+        def get_lrs_query(self) -> LRSStatementsQuery:
             pass
 
         async def compute(self) -> MyType:
@@ -885,9 +907,11 @@ async def test_incremental_get_or_compute(db_session):
 
         frame = "day"
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(
-                query={"verb": "played", "since": self.since, "until": self.until}
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(
+                verb="https://w3id.org/xapi/video/verbs/played",
+                since=self.since,
+                until=self.until,
             )
 
         async def fetch_statements(self):
@@ -969,9 +993,11 @@ async def test_incremental_get_or_compute_update(db_session):
 
         frame = "day"
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(
-                query={"verb": "played", "since": self.since, "until": self.until}
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(
+                verb="https://w3id.org/xapi/video/verbs/played",
+                since=self.since,
+                until=self.until,
             )
 
         async def fetch_statements(self):
@@ -1060,9 +1086,11 @@ async def test_incremental_get_or_compute_update_and_create(db_session):
 
         frame = "day"
 
-        def get_lrs_query(self) -> LRSQuery:
-            return LRSQuery(
-                query={"verb": "played", "since": self.since, "until": self.until}
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(
+                verb="https://w3id.org/xapi/video/verbs/played",
+                since=self.since,
+                until=self.until,
             )
 
         async def fetch_statements(self):

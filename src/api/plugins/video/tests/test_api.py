@@ -8,7 +8,7 @@ import pytest
 from pytest_httpx import HTTPXMock
 from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
 from warren.backends import lrs_client
-from warren_video.factories import VideoDownloadedFactory, VideoPlayedFactory
+from warren_video.factories import LMSDownloadedVideoFactory, VideoPlayedFactory
 
 
 @pytest.mark.anyio
@@ -127,8 +127,8 @@ async def test_views_backend_query(
         statements = []
         params = urllib.parse.parse_qs(request.url.query)
         if (
-            params.get(b"since")[0] == b"2020-01-01T00:00:00+05:00"
-            and params.get(b"until")[0] == b"2020-01-01T23:59:59.999999+05:00"
+            params.get(b"since")[0] == b"2020-01-01 00:00:00+05:00"
+            and params.get(b"until")[0] == b"2020-01-01 23:59:59.999999+05:00"
         ):
             statements = [
                 json.loads(
@@ -146,21 +146,21 @@ async def test_views_backend_query(
                     ).json(),
                 )
                 for view_data in [
-                    {"timestamp": "2019-12-31T20:00:00.000+00:00", "time": 3},
-                    {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 23},
-                    {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 18},
+                    {"timestamp": "2019-12-31 20:00:00.000+00:00", "time": 3},
+                    {"timestamp": "2020-01-01 00:00:00.000+00:00", "time": 23},
+                    {"timestamp": "2020-01-01 00:00:30.000+00:00", "time": 18},
                 ]
             ]
         elif (
-            params.get(b"since")[0] == b"2020-01-02T00:00:00+05:00"
-            and params.get(b"until")[0] == b"2020-01-02T23:59:59.999999+05:00"
+            params.get(b"since")[0] == b"2020-01-02 00:00:00+05:00"
+            and params.get(b"until")[0] == b"2020-01-02 23:59:59.999999+05:00"
         ):
             statements = [
                 json.loads(
                     LocalVideoPlayedFactory.build(
                         [
                             {"result": {"extensions": {RESULT_EXTENSION_TIME: 5}}},
-                            {"timestamp": "2020-01-02T00:00:00.000+00:00"},
+                            {"timestamp": "2020-01-02 00:00:00.000+00:00"},
                         ]
                     ).json(),
                 )
@@ -385,10 +385,10 @@ async def test_downloads_backend_query(
 ):
     """Test the video downloads endpoint backend query results."""
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
-    local_template = VideoDownloadedFactory.template
+    local_template = LMSDownloadedVideoFactory.template
     local_template["object"]["id"] = video_id
 
-    class LocalVideoDownloadFactory(VideoDownloadedFactory):
+    class LocalLMSDownloadedVideoFactory(LMSDownloadedVideoFactory):
         template: dict = local_template
 
     def lrs_response(request: httpx.Request):
@@ -396,32 +396,32 @@ async def test_downloads_backend_query(
         statements = []
         params = urllib.parse.parse_qs(request.url.query)
         if (
-            params.get(b"since")[0] == b"2020-01-01T00:00:00+02:00"
-            and params.get(b"until")[0] == b"2020-01-01T23:59:59.999999+02:00"
+            params.get(b"since")[0] == b"2020-01-01 00:00:00+02:00"
+            and params.get(b"until")[0] == b"2020-01-01 23:59:59.999999+02:00"
         ):
             statements = [
                 json.loads(
-                    LocalVideoDownloadFactory.build(
+                    LocalLMSDownloadedVideoFactory.build(
                         [
                             {"timestamp": timestamp},
                         ]
                     ).json(),
                 )
                 for timestamp in [
-                    "2019-12-31T23:00:00.000+00:00",
-                    "2020-01-01T00:00:00.000+00:00",
-                    "2020-01-01T00:00:30.000+00:00",
+                    "2019-12-31 23:00:00.000+00:00",
+                    "2020-01-01 00:00:00.000+00:00",
+                    "2020-01-01 00:00:30.000+00:00",
                 ]
             ]
         elif (
-            params.get(b"since")[0] == b"2020-01-02T00:00:00+02:00"
-            and params.get(b"until")[0] == b"2020-01-02T23:59:59.999999+02:00"
+            params.get(b"since")[0] == b"2020-01-02 00:00:00+02:00"
+            and params.get(b"until")[0] == b"2020-01-02 23:59:59.999999+02:00"
         ):
             statements = [
                 json.loads(
-                    LocalVideoDownloadFactory.build(
+                    LocalLMSDownloadedVideoFactory.build(
                         [
-                            {"timestamp": "2020-01-02T00:00:00.000+00:00"},
+                            {"timestamp": "2020-01-02 00:00:00.000+00:00"},
                         ]
                     ).json(),
                 )
@@ -434,6 +434,7 @@ async def test_downloads_backend_query(
 
     # Mock the LRS call so that it returns the fixture statements
     lrs_client.base_url = "http://fake-lrs.com"
+    lrs_client.settings.BASE_URL = "http://fake-lrs.com"
     httpx_mock.add_callback(
         callback=lrs_response,
         url=re.compile(r"^http://fake-lrs\.com/xAPI/statements\?.*$"),
@@ -445,8 +446,8 @@ async def test_downloads_backend_query(
     response = await http_client.get(
         url=f"/api/v1/video/{video_id}/downloads",
         params={
-            "since": "2020-01-01T00:00:00+02:00",
-            "until": "2020-01-03T00:00:00+02:00",
+            "since": "2020-01-01 00:00:00+02:00",
+            "until": "2020-01-03 00:00:00+02:00",
         },
         headers=auth_headers,
     )
@@ -476,17 +477,17 @@ async def test_unique_downloads_backend_query(
     """Test the video downloads endpoint, with parameter unique=True."""
     video_id = "uuid://ba4252ce-d042-43b0-92e8-f033f45612ee"
 
-    local_template = VideoDownloadedFactory.template
+    local_template = LMSDownloadedVideoFactory.template
     local_template["object"]["id"] = video_id
 
-    class LocalVideoDownloadFactory(VideoDownloadedFactory):
+    class LocalLMSDownloadedVideoFactory(LMSDownloadedVideoFactory):
         template: dict = local_template
 
     def lrs_response(request: httpx.Request):
         """Dynamic mock for the LRS response."""
         statements = [
             json.loads(
-                LocalVideoDownloadFactory.build(
+                LocalLMSDownloadedVideoFactory.build(
                     [
                         {"timestamp": timestamp},
                     ]

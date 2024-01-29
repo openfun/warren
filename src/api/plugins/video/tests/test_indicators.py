@@ -131,8 +131,8 @@ async def test_daily_unique_views(httpx_mock: HTTPXMock, db_session):
         statements = []
         params = urllib.parse.parse_qs(request.url.query)
         if (
-            params.get(b"since")[0] == b"2020-01-01T00:00:00+00:00"
-            and params.get(b"until")[0] == b"2020-01-01T23:59:59.999999+00:00"
+            params.get(b"since")[0] == b"2020-01-01 00:00:00+00:00"
+            and params.get(b"until")[0] == b"2020-01-01 23:59:59.999999+00:00"
         ):
             statements = [
                 json.loads(
@@ -150,20 +150,20 @@ async def test_daily_unique_views(httpx_mock: HTTPXMock, db_session):
                     ).json(),
                 )
                 for view_data in [
-                    {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 17},
-                    {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 23},
+                    {"timestamp": "2020-01-01 00:00:00.000+00:00", "time": 17},
+                    {"timestamp": "2020-01-01 00:00:30.000+00:00", "time": 23},
                 ]
             ]
         elif (
-            params.get(b"since")[0] == b"2020-01-02T00:00:00+00:00"
-            and params.get(b"until")[0] == b"2020-01-02T23:59:59.999999+00:00"
+            params.get(b"since")[0] == b"2020-01-02 00:00:00+00:00"
+            and params.get(b"until")[0] == b"2020-01-02 23:59:59.999999+00:00"
         ):
             statements = [
                 json.loads(
                     LocalVideoPlayedFactory.build(
                         [
                             {"result": {"extensions": {RESULT_EXTENSION_TIME: 300}}},
-                            {"timestamp": "2020-01-02T00:00:00.000+00:00"},
+                            {"timestamp": "2020-01-02 00:00:00.000+00:00"},
                         ]
                     ).json(),
                 )
@@ -174,8 +174,8 @@ async def test_daily_unique_views(httpx_mock: HTTPXMock, db_session):
             json={"statements": statements},
         )
 
-    # Mock the LRS call so that it returns the fixture statements
     lrs_client.base_url = "http://fake-lrs.com"
+    lrs_client.settings.BASE_URL = "http://fake-lrs.com"
     httpx_mock.add_callback(
         callback=lrs_response,
         url=re.compile(r"^http://fake-lrs\.com/xAPI/statements\?.*$"),

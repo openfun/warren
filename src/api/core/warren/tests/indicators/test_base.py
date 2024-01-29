@@ -1,7 +1,7 @@
 """Test the functions from the BaseIndicator class."""
 import pytest
 from pytest_httpx import HTTPXMock
-from ralph.backends.http.async_lrs import LRSQuery
+from ralph.backends.lrs.base import LRSStatementsQuery
 
 from warren.exceptions import LrsClientException
 from warren.indicators.base import BaseIndicator
@@ -18,7 +18,7 @@ async def test_base_indicator_fetch_statements_with_default_query(
 
     class MyIndicator(BaseIndicator):
         def get_lrs_query(self):
-            return LRSQuery(query={"verb": "played"})
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
 
         async def compute(self):
             return None
@@ -28,7 +28,7 @@ async def test_base_indicator_fetch_statements_with_default_query(
 
     # Mock the LRS call so that it returns the fixture statements
     httpx_mock.add_response(
-        url="http://fake-lrs.com/xAPI/statements?verb=played&limit=500",
+        url="http://fake-lrs.com/xAPI/statements?verb=https://w3id.org/xapi/video/verbs/played&limit=500",
         method="GET",
         json={"statements": [{"id": 1}, {"id": 2}]},
         status_code=200,
@@ -49,7 +49,7 @@ async def test_base_indicator_fetch_statements_with_lrs_failure(
 
     class MyIndicator(BaseIndicator):
         def get_lrs_query(self):
-            return LRSQuery(query={"verb": "played"})
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
 
         async def compute(self):
             return None
@@ -59,7 +59,7 @@ async def test_base_indicator_fetch_statements_with_lrs_failure(
 
     # Mock the LRS call so that it returns fails
     httpx_mock.add_response(
-        url="http://fake-lrs.com/xAPI/statements?verb=played&limit=500",
+        url="http://fake-lrs.com/xAPI/statements?verb=https://w3id.org/xapi/video/verbs/played&limit=500",
         method="GET",
         status_code=500,
     )

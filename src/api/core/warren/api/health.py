@@ -1,11 +1,10 @@
 """API routes related to application health checking."""
 
 import logging
-from enum import Enum, unique
 
 from fastapi import APIRouter, Response, status
 from pydantic import BaseModel
-from ralph.backends.http.base import HTTPBackendStatus
+from ralph.backends.data.base import DataBackendStatus
 
 from warren.backends import lrs_client
 from warren.db import is_alive as is_db_alive
@@ -15,25 +14,16 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
-@unique
-class BackendStatus(str, Enum):
-    """Generic backend statuses inspired from Ralph HTTP backend."""
-
-    OK = "ok"
-    AWAY = "away"
-    ERROR = "error"
-
-
 class Heartbeat(BaseModel):
     """Warren backends status."""
 
-    database: BackendStatus
-    lrs: HTTPBackendStatus
+    data: DataBackendStatus
+    lrs: DataBackendStatus
 
     @property
     def is_alive(self):
         """A helper that checks the overall status."""
-        if self.database == BackendStatus.OK and self.lrs == HTTPBackendStatus.OK:
+        if self.data == DataBackendStatus.OK and self.lrs == DataBackendStatus.OK:
             return True
         return False
 
@@ -54,7 +44,7 @@ async def heartbeat(response: Response) -> Heartbeat:
     Return a 200 if all checks are successful.
     """
     statuses = Heartbeat(
-        database=BackendStatus.OK if is_db_alive() else BackendStatus.ERROR,
+        data=DataBackendStatus.OK if is_db_alive() else DataBackendStatus.ERROR,
         lrs=await lrs_client.status(),
     )
     if not statuses.is_alive:
