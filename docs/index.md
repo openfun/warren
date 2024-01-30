@@ -11,7 +11,7 @@
 
 </div>
 
-[Warren](/) is a framework for your learning analytics. Its key features are:
+[Warren](./) is a framework for your learning analytics. Its key features are:
 
 1. a simple Python interface to define indicators,
 2. cacheable indicators calculation,
