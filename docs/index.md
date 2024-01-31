@@ -1,5 +1,5 @@
 <div class="hero" markdown="1">
-    [![Warren logo](./img/warren-color-light.png)](/ "Warren")
+    ![Warren logo](./img/warren-color-light.png)
 
     _📊 A framework for your learning analytics (expect some xAPI ❤️)_
 
