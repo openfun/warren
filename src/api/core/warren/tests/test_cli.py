@@ -1,5 +1,6 @@
 """Test Warren commands functions."""
 
+# ruff: noqa: S106
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -7,10 +8,19 @@ from alembic import command as alembic_command
 from click import BadParameter
 from click.testing import CliRunner
 from pydantic import BaseModel
+from sqlalchemy import select
+from sqlmodel import Session
 from warren_video.indicators import DailyUniqueCompletedViews
 
 from warren import migrations
 from warren.cli import _get_indicator, _get_indicator_entrypoints, cli
+from warren.xi.client import CRUDExperience, ExperienceIndex
+from warren.xi.enums import AggregationLevel, RelationType
+from warren.xi.factories import ExperienceFactory, RelationFactory
+from warren.xi.indexers.moodle.client import Moodle
+from warren.xi.indexers.moodle.etl import CourseContent, Courses
+from warren.xi.models import ExperienceRead, ExperienceReadSnapshot
+from warren.xi.schema import Experience
 
 
 def test_migration_current_command(monkeypatch):
@@ -302,3 +312,299 @@ def test_indicator_compute_command_with_cache(monkeypatch):
         ],
     )
     get_or_compute_mock.assert_awaited()
+
+
+def test_xi_index_courses_command(monkeypatch):
+    """Test warren xi index courses command."""
+    runner = CliRunner()
+
+    moodle_client_mock = MagicMock(return_value=None)
+    xi_client_mock = MagicMock(return_value=None)
+    indexer_execute_mock = AsyncMock()
+    monkeypatch.setattr(Moodle, "__init__", moodle_client_mock)
+    monkeypatch.setattr(ExperienceIndex, "__init__", xi_client_mock)
+    monkeypatch.setattr(Courses, "execute", indexer_execute_mock)
+
+    result = runner.invoke(
+        cli,
+        [
+            "xi",
+            "index",
+            "courses",
+            "--xi-url",
+            "http://xi.foo.com",
+            "--moodle-url",
+            "http://moodle.foo.com",
+            "--moodle-ws-token",
+            "faketoken",
+        ],
+    )
+
+    assert result.exit_code == 0
+    moodle_client_mock.assert_called_with(
+        url="http://moodle.foo.com", token="faketoken"
+    )
+    xi_client_mock.assert_called_with(url="http://xi.foo.com")
+    indexer_execute_mock.assert_called()
+
+
+def test_xi_index_course_content_command(monkeypatch):
+    """Test warren xi index course content command."""
+    runner = CliRunner()
+
+    moodle_client_mock = MagicMock(return_value=None)
+    xi_experience_get_mock = AsyncMock(
+        return_value=ExperienceRead(
+            **ExperienceFactory.build_dict(
+                exclude=set(), id="ce0927fa-5f72-4623-9d29-37ef45c39609"
+            )
+        )
+    )
+    indexer_execute_mock = AsyncMock()
+    monkeypatch.setattr(Moodle, "__init__", moodle_client_mock)
+    monkeypatch.setattr(CRUDExperience, "get", xi_experience_get_mock)
+    monkeypatch.setattr(CourseContent, "execute", indexer_execute_mock)
+
+    result = runner.invoke(
+        cli,
+        [
+            "xi",
+            "index",
+            "content",
+            "--xi-url",
+            "http://xi.foo.com",
+            "--moodle-url",
+            "http://moodle.foo.com",
+            "--moodle-ws-token",
+            "faketoken",
+            "ce0927fa-5f72-4623-9d29-37ef45c39609",
+        ],
+    )
+
+    assert result.exit_code == 0
+    moodle_client_mock.assert_called_with(
+        url="http://moodle.foo.com", token="faketoken"
+    )
+    xi_experience_get_mock.assert_called_with(
+        object_id="ce0927fa-5f72-4623-9d29-37ef45c39609"
+    )
+    indexer_execute_mock.assert_called()
+
+
+def test_xi_index_course_content_command_with_unknown_course(monkeypatch):
+    """Test warren xi index course content command when course does not exist."""
+    runner = CliRunner()
+
+    moodle_client_mock = MagicMock(return_value=None)
+    xi_experience_get_mock = AsyncMock(return_value=None)
+    monkeypatch.setattr(Moodle, "__init__", moodle_client_mock)
+    monkeypatch.setattr(CRUDExperience, "get", xi_experience_get_mock)
+
+    result = runner.invoke(
+        cli,
+        [
+            "xi",
+            "index",
+            "content",
+            "--xi-url",
+            "http://xi.foo.com",
+            "--moodle-url",
+            "http://moodle.foo.com",
+            "--moodle-ws-token",
+            "faketoken",
+            "fake-course-id",
+        ],
+    )
+
+    assert result.exit_code == 2
+    xi_experience_get_mock.assert_called_with(object_id="fake-course-id")
+    assert "Unknown course fake-course-id. It should be indexed first!" in result.output
+
+
+def test_xi_list_courses_command_when_no_course_exists(monkeypatch):
+    """Test warren xi list courses command with no indexed course."""
+    runner = CliRunner()
+
+    # No course exists
+    xi_experience_read_mock = AsyncMock(return_value=[])
+    monkeypatch.setattr(CRUDExperience, "read", xi_experience_read_mock)
+
+    result = runner.invoke(
+        cli,
+        [
+            "xi",
+            "list",
+            "courses",
+            "--xi-url",
+            "http://xi.foo.com",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert result.output == ""
+    xi_experience_read_mock.assert_called()
+
+
+def test_xi_list_courses_command(monkeypatch):
+    """Test warren xi list courses command."""
+    runner = CliRunner()
+
+    courses = [
+        ExperienceReadSnapshot(
+            **ExperienceFactory.build_dict(
+                exclude=set(), aggregation_level=AggregationLevel.THREE
+            )
+        ),
+        ExperienceReadSnapshot(
+            **ExperienceFactory.build_dict(
+                exclude=set(), aggregation_level=AggregationLevel.THREE
+            )
+        ),
+        ExperienceReadSnapshot(
+            **ExperienceFactory.build_dict(
+                exclude=set(), aggregation_level=AggregationLevel.THREE
+            )
+        ),
+    ]
+    xi_experience_read_mock = AsyncMock(return_value=courses)
+    monkeypatch.setattr(CRUDExperience, "read", xi_experience_read_mock)
+
+    result = runner.invoke(
+        cli,
+        [
+            "xi",
+            "list",
+            "courses",
+            "--xi-url",
+            "http://xi.foo.com",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert result.output == "".join([f"{c.id}\t{c.title}\n" for c in courses])
+    xi_experience_read_mock.assert_called()
+
+
+def test_xi_list_course_content_command_with_unknown_course(monkeypatch):
+    """Test warren xi index course content command when course does not exist."""
+    runner = CliRunner()
+
+    xi_experience_get_mock = AsyncMock(return_value=None)
+    monkeypatch.setattr(CRUDExperience, "get", xi_experience_get_mock)
+
+    result = runner.invoke(
+        cli,
+        [
+            "xi",
+            "list",
+            "content",
+            "--xi-url",
+            "http://xi.foo.com",
+            "fake-course-id",
+        ],
+    )
+
+    assert result.exit_code == 2
+    xi_experience_get_mock.assert_called_with(object_id="fake-course-id")
+    assert "Unknown course fake-course-id. It should be indexed first!" in result.output
+
+
+def test_xi_list_course_content_command_with_no_content(monkeypatch):
+    """Test warren xi list course content command when no content exists."""
+    runner = CliRunner()
+
+    course = ExperienceRead(
+        **ExperienceFactory.build_dict(
+            exclude=set(),
+            id="ce0927fa-5f72-4623-9d29-37ef45c39609",
+            aggregation_level=AggregationLevel.THREE,
+            relations_target=[],
+        )
+    )
+    xi_experience_get_mock = AsyncMock(return_value=course)
+    monkeypatch.setattr(CRUDExperience, "get", xi_experience_get_mock)
+
+    result = runner.invoke(
+        cli,
+        [
+            "xi",
+            "list",
+            "content",
+            "--xi-url",
+            "http://xi.foo.com",
+            "ce0927fa-5f72-4623-9d29-37ef45c39609",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert (
+        "No content indexed for course ce0927fa-5f72-4623-9d29-37ef45c39609"
+        in result.output
+    )
+
+
+def test_xi_list_course_content_command(db_session: Session, monkeypatch):
+    """Test warren xi list course content command."""
+    ExperienceFactory.__session__ = db_session
+    RelationFactory.__session__ = db_session
+
+    course = ExperienceFactory.create_sync(aggregation_level=AggregationLevel.THREE)
+    RelationFactory.create_batch_sync(5, target_id=course.id, kind=RelationType.HASPART)
+    modules = db_session.scalars(
+        select(Experience).where(
+            Experience.id.in_([t.source_id for t in course.relations_target])
+        )
+    ).all()
+    experiences = iter([course] + modules)
+
+    xi_experience_get_mock = AsyncMock(side_effect=experiences)
+    monkeypatch.setattr(CRUDExperience, "get", xi_experience_get_mock)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        [
+            "xi",
+            "list",
+            "content",
+            f"{course.id}",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert result.output == "".join([f"{m.id}\t{m.title}\n" for m in modules])
+
+
+def test_xi_list_course_content_command_with_outdated_relation(
+    db_session: Session, monkeypatch
+):
+    """Test warren xi list course content command when a course content is outdated."""
+    ExperienceFactory.__session__ = db_session
+    RelationFactory.__session__ = db_session
+
+    course = ExperienceFactory.create_sync(aggregation_level=AggregationLevel.THREE)
+    RelationFactory.create_batch_sync(5, target_id=course.id, kind=RelationType.HASPART)
+    first_module = db_session.scalars(
+        select(Experience).where(Experience.id == course.relations_target[0].source_id)
+    ).one()
+    experiences = iter([course, None])
+
+    xi_experience_get_mock = AsyncMock(side_effect=experiences)
+    monkeypatch.setattr(CRUDExperience, "get", xi_experience_get_mock)
+
+    runner = CliRunner()
+    result = runner.invoke(
+        cli,
+        [
+            "xi",
+            "list",
+            "content",
+            f"{course.id}",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert (
+        f"Cannot find content with id {first_module.id} for course {course.id}"
+        in result.output
+    )

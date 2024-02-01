@@ -6,11 +6,19 @@ import logging
 import sys
 from inspect import Parameter, Signature, signature
 from typing import Optional
+from uuid import UUID
 
 import click
 from pydantic import BaseModel
 
 from warren import __version__ as warren_version
+from warren.xi.client import ExperienceIndex
+from warren.xi.enums import AggregationLevel
+from warren.xi.indexers.moodle.client import Moodle
+from warren.xi.indexers.moodle.etl import (
+    CourseContent,
+    Courses,
+)
 
 from . import migrations as alembic_migrations
 
@@ -175,4 +183,130 @@ def indicator_compute(ctx: click.Context, indicator: str, cache: bool):
     result = asyncio.run(run())
     click.echo(
         result.json() if issubclass(compute_annotation, BaseModel) else str(result)
+    )
+
+
+# -- EXPERIENCE INDEX (AKA XI) COMMAND --
+@cli.group(name="xi")
+def xi():
+    """Experience index commands."""
+
+
+@xi.group("list")
+def xi_list():
+    """List Experience Index objects."""
+
+
+@xi_list.command("courses")
+@click.option("--xi-url", "-x", default="")
+def xi_list_courses(xi_url: str):
+    """List indexed LMS courses."""
+    xi = ExperienceIndex(url=xi_url)
+    experiences = asyncio.run(
+        xi.experience.read(aggregation_level=AggregationLevel.THREE)
+    )
+    for experience in experiences:
+        click.echo(f"{experience.id}\t{experience.title}")
+
+
+async def _xi_list_course_content(course_id: UUID, xi_url: str):
+    """List indexed LMS course content.
+
+    Nota bene: as we are calling multiple asynchronous functions, we need
+    to wrap calls in a single async function called in a synchronous Click
+    command using the asyncio.run method. Calling asyncio.run multiple times
+    can close the execution loop unexpectedly.
+    """
+    xi = ExperienceIndex(url=xi_url)
+    # Get the course given its experience UUID
+    experience = await xi.experience.get(object_id=course_id)
+    if experience is None:
+        raise click.BadParameter(
+            f"Unknown course {course_id}. It should be indexed first!"
+        )
+    if not experience.relations_target:
+        raise click.BadParameter(f"No content indexed for course {course_id}")
+    for source in experience.relations_target:
+        content = await xi.experience.get(object_id=source.source_id)
+        if content is None:
+            raise click.ClickException(
+                f"Cannot find content with id {source.source_id} for course {course_id}"
+            )
+        click.echo(f"{content.id}\t{content.title}")
+
+
+@xi_list.command("content")
+@click.argument("course-id")
+@click.option("--xi-url", "-x", default="")
+def xi_list_course_content(course_id: UUID, xi_url: str):
+    """List indexed LMS course content."""
+    asyncio.run(_xi_list_course_content(course_id=course_id, xi_url=xi_url))
+
+
+@xi.group("index")
+def xi_index():
+    """Feed the Experience Index with an indexer."""
+
+
+@xi_index.command("courses")
+@click.option("--xi-url", "-x", default="")
+@click.option("--moodle-url", "-u", default="")
+@click.option("--moodle-ws-token", "-t", default="")
+@click.option("--ignore-errors/--no-ignore-errors", "-I/-F", default=False)
+def xi_index_courses(
+    xi_url: str, moodle_url: str, moodle_ws_token: str, ignore_errors: bool
+):
+    """Index LMS courses."""
+    lms = Moodle(url=moodle_url, token=moodle_ws_token)
+    xi = ExperienceIndex(url=xi_url)
+    indexer = Courses(lms=lms, xi=xi, ignore_errors=ignore_errors)
+    asyncio.run(indexer.execute())
+
+
+async def _xi_index_course_content(
+    course_id: UUID,
+    xi_url: str,
+    moodle_url: str,
+    moodle_ws_token: str,
+    ignore_errors: bool,
+):
+    """Index LMS course content.
+
+    Nota bene: as we are calling multiple asynchronous functions, we need
+    to wrap calls in a single async function called in a synchronous Click
+    command using the asyncio.run method. Calling asyncio.run multiple times
+    can close the execution loop unexpectedly.
+    """
+    lms = Moodle(url=moodle_url, token=moodle_ws_token)
+    xi = ExperienceIndex(url=xi_url)
+
+    # Check if the course has been indexed
+    course = await xi.experience.get(object_id=course_id)
+    if course is None:
+        raise click.BadParameter(
+            f"Unknown course {course_id}. It should be indexed first!"
+        )
+
+    indexer = CourseContent(course=course, lms=lms, xi=xi, ignore_errors=ignore_errors)
+    await indexer.execute()
+
+
+@xi_index.command("content")
+@click.argument("course-id")
+@click.option("--xi-url", "-x", default="")
+@click.option("--moodle-url", "-u", default="")
+@click.option("--moodle-ws-token", "-t", default="")
+@click.option("--ignore-errors/--no-ignore-errors", "-I/-F", default=False)
+def xi_index_course_content(
+    course_id: UUID,
+    xi_url: str,
+    moodle_url: str,
+    moodle_ws_token: str,
+    ignore_errors: bool,
+):
+    """Index LMS course content."""
+    asyncio.run(
+        _xi_index_course_content(
+            course_id, xi_url, moodle_url, moodle_ws_token, ignore_errors
+        )
     )
