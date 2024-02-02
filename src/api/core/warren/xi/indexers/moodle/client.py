@@ -8,6 +8,7 @@ from pydantic import parse_obj_as
 from warren.conf import settings
 
 from ..clients import LMS
+from ..exceptions import IndexerQueryException
 from .models import Course, Section
 
 
@@ -42,7 +43,17 @@ class Moodle(LMS):
             "/", data={"wsfunction": wsfunction, **kwargs}
         )
         response.raise_for_status()
-        return response.json()
+        # As Moodle's response has a 200 HTTP code when an exception occurs, we
+        # need to check the response content instead of only raising for status.
+        api_response = response.json()
+        if "exception" in api_response:
+            raise IndexerQueryException(
+                (
+                    "An error occurred while querying Moodle API. Error was: "
+                    f"[{api_response['errorcode']}] {api_response['message']}"
+                )
+            )
+        return api_response
 
     async def get_courses(self) -> List[Course]:
         """Retrieve a list of courses from Moodle."""

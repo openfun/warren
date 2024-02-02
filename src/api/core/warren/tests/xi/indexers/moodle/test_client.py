@@ -7,6 +7,7 @@ from httpx import HTTPError
 from pydantic import ValidationError
 from pytest_httpx import HTTPXMock
 
+from warren.xi.indexers.exceptions import IndexerQueryException
 from warren.xi.indexers.moodle.client import Moodle
 from warren.xi.indexers.moodle.models import Course, Module, Section
 
@@ -21,6 +22,22 @@ async def test_get(httpx_mock: HTTPXMock):
         method="POST", url=re.compile(r".*webservice.*"), status_code=404
     )
     with pytest.raises(HTTPError):
+        await client._get(wsfunction="foo.")
+
+    # Assert '_get' raises exception when encountering Moodle exception
+    httpx_mock.add_response(
+        method="POST",
+        url=re.compile(r".*webservice.*"),
+        status_code=200,
+        json={
+            "exception": "moodle_exception",
+            "errorcode": "invalidtoken",
+            "message": "Jeton invalide (introuvable)",
+        },
+    )
+    with pytest.raises(
+        IndexerQueryException, match="An error occurred while querying Moodle API"
+    ):
         await client._get(wsfunction="foo.")
 
     # Assert '_get' returns a dict response
