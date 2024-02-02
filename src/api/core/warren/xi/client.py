@@ -109,7 +109,7 @@ class CRUDExperience(BaseCRUD):
             return None
 
         response.raise_for_status()
-        return ExperienceRead.construct(**response.json())
+        return ExperienceRead(**response.json())
 
     async def update(
         self, object_id: UUID, data: Union[ExperienceUpdate, ExperienceCreate]
