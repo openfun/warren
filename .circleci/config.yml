@@ -153,7 +153,7 @@ jobs:
 
   build-docker-app:
     machine:
-      image: ubuntu-2204:2023.07.2
+      image: default
       docker_layer_caching: true
     working_directory: ~/fun
     steps:
@@ -580,7 +580,7 @@ jobs:
   # ---- DockerHub publication job ----
   hub:
     machine:
-      image: ubuntu-2204:2023.07.2
+      image: default
       docker_layer_caching: true
     working_directory: ~/fun
     steps:
