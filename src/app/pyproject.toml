@@ -37,8 +37,8 @@ dependencies = [
     "gunicorn==21.2.0",
     "oauthlib==3.2.2",
     "psycopg2-binary==2.9.9",
-    "sentry-sdk==1.39.2",
-    "urllib3==2.1.0",
+    "sentry-sdk==1.40.0",
+    "urllib3==2.2.0",
     "whitenoise==6.6.0",
 ]
 dynamic = ["version"]
@@ -52,13 +52,13 @@ dev = [
     "black==24.1.1",
     "build==1.0.3",
     "factory-boy==3.3.0",
-    "Faker==22.5.1",
+    "Faker==22.6.0",
     "ipdb==0.13.13",
     "ipython==8.18.1",
     "pytest==8.0.0",
     "pytest-cov==4.1.0",
-    "pytest-django==4.7.0",
-    "ruff==0.1.14",
+    "pytest-django==4.8.0",
+    "ruff==0.2.0",
     "xmltodict==0.13.0",
 ]
 ci = [
