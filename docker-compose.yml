@@ -83,7 +83,7 @@ services:
 
   # -- backends
   ralph:
-    image: fundocker/ralph:4.0.0
+    image: fundocker/ralph:4.1.0
     user: ${DOCKER_USER:-1000}
     env_file:
       - .env
@@ -102,13 +102,22 @@ services:
       - elasticsearch
 
   elasticsearch:
-    image: elasticsearch:8.7.1
+    image: elasticsearch:8.1.0
     environment:
+      bootstrap.memory_lock: true
       discovery.type: single-node
       xpack.security.enabled: "false"
     ports:
       - "9200:9200"
     mem_limit: 2g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    healthcheck:
+      test: curl --fail http://localhost:9200/_cluster/health?wait_for_status=green || exit 1
+      interval: 1s
+      retries: 60
 
   # -- tools
   dockerize:
