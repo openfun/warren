@@ -128,8 +128,8 @@ async def test_views_backend_query(
         statements = []
         params = urllib.parse.parse_qs(request.url.query)
         if (
-            params.get(b"since")[0] == b"2020-01-01 00:00:00+05:00"
-            and params.get(b"until")[0] == b"2020-01-01 23:59:59.999999+05:00"
+            params.get(b"since")[0] == b"2020-01-01T00:00:00+05:00"
+            and params.get(b"until")[0] == b"2020-01-01T23:59:59.999999+05:00"
         ):
             statements = [
                 json.loads(
@@ -147,21 +147,21 @@ async def test_views_backend_query(
                     ).json(),
                 )
                 for view_data in [
-                    {"timestamp": "2019-12-31 20:00:00.000+00:00", "time": 3},
-                    {"timestamp": "2020-01-01 00:00:00.000+00:00", "time": 23},
-                    {"timestamp": "2020-01-01 00:00:30.000+00:00", "time": 18},
+                    {"timestamp": "2019-12-31T20:00:00.000+00:00", "time": 3},
+                    {"timestamp": "2020-01-01T00:00:00.000+00:00", "time": 23},
+                    {"timestamp": "2020-01-01T00:00:30.000+00:00", "time": 18},
                 ]
             ]
         elif (
-            params.get(b"since")[0] == b"2020-01-02 00:00:00+05:00"
-            and params.get(b"until")[0] == b"2020-01-02 23:59:59.999999+05:00"
+            params.get(b"since")[0] == b"2020-01-02T00:00:00+05:00"
+            and params.get(b"until")[0] == b"2020-01-02T23:59:59.999999+05:00"
         ):
             statements = [
                 json.loads(
                     LocalVideoPlayedFactory.build(
                         [
                             {"result": {"extensions": {RESULT_EXTENSION_TIME: 5}}},
-                            {"timestamp": "2020-01-02 00:00:00.000+00:00"},
+                            {"timestamp": "2020-01-02T00:00:00.000+00:00"},
                         ]
                     ).json(),
                 )
@@ -397,8 +397,8 @@ async def test_downloads_backend_query(
         statements = []
         params = urllib.parse.parse_qs(request.url.query)
         if (
-            params.get(b"since")[0] == b"2020-01-01 00:00:00+02:00"
-            and params.get(b"until")[0] == b"2020-01-01 23:59:59.999999+02:00"
+            params.get(b"since")[0] == b"2020-01-01T00:00:00+02:00"
+            and params.get(b"until")[0] == b"2020-01-01T23:59:59.999999+02:00"
         ):
             statements = [
                 json.loads(
@@ -409,20 +409,20 @@ async def test_downloads_backend_query(
                     ).json(),
                 )
                 for timestamp in [
-                    "2019-12-31 23:00:00.000+00:00",
-                    "2020-01-01 00:00:00.000+00:00",
-                    "2020-01-01 00:00:30.000+00:00",
+                    "2019-12-31T23:00:00.000+00:00",
+                    "2020-01-01T00:00:00.000+00:00",
+                    "2020-01-01T00:00:30.000+00:00",
                 ]
             ]
         elif (
-            params.get(b"since")[0] == b"2020-01-02 00:00:00+02:00"
-            and params.get(b"until")[0] == b"2020-01-02 23:59:59.999999+02:00"
+            params.get(b"since")[0] == b"2020-01-02T00:00:00+02:00"
+            and params.get(b"until")[0] == b"2020-01-02T23:59:59.999999+02:00"
         ):
             statements = [
                 json.loads(
                     LocalLMSDownloadedVideoFactory.build(
                         [
-                            {"timestamp": "2020-01-02 00:00:00.000+00:00"},
+                            {"timestamp": "2020-01-02T00:00:00.000+00:00"},
                         ]
                     ).json(),
                 )
@@ -447,8 +447,8 @@ async def test_downloads_backend_query(
     response = await http_client.get(
         url=f"/api/v1/video/{video_id}/downloads",
         params={
-            "since": "2020-01-01 00:00:00+02:00",
-            "until": "2020-01-03 00:00:00+02:00",
+            "since": "2020-01-01T00:00:00+02:00",
+            "until": "2020-01-03T00:00:00+02:00",
         },
         headers=auth_headers,
     )
