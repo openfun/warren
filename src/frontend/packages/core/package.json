@@ -3,19 +3,26 @@
   "version": "0.1.0",
   "description": "Warren frontend core elements.",
   "private": false,
+  "type": "module",
   "publishConfig": {
     "access": "public"
   },
   "license": "MIT",
-  "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.mjs"
+    },
+    "./style": "./dist/style.css"
+  },
   "files": [
     "dist/"
   ],
   "scripts": {
     "lint": "eslint . '**/*.{ts,tsx}'",
-    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "build": "tsc && vite build",
     "dev": "yarn run build -- --watch"
   },
   "devDependencies": {
@@ -25,7 +32,8 @@
     "eslint-config-custom": "*",
     "tsconfig": "*",
     "typescript": "5.3.3",
-    "tsup": "8.0.1"
+    "vite-plugin-dts": "3.7.2",
+    "vite-tsconfig-paths": "4.3.1"
   },
   "dependencies": {
     "@openfun/cunningham-react": "2.4.0",
