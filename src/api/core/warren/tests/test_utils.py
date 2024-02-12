@@ -7,10 +7,12 @@ from unittest import mock
 
 import pytest
 from fastapi import HTTPException
+from freezegun import freeze_time
 from jose import jwt
 from lti_toolbox.launch_params import LTIRole
 
-from warren.utils import get_lti_token, pipe
+from warren.models import LTIToken, LTIUser
+from warren.utils import JOHN_DOE_USER, forge_lti_token, get_lti_token, pipe
 
 from ..conf import settings
 
@@ -198,4 +200,59 @@ def test_get_lti_token_wrong_payload(mock_logger):
     assert str(exception.value.detail) == "An error occurred while validating the token"
     mock_logger.assert_called_with(
         "%s: %s", "An error occurred while validating the token", mock.ANY
+    )
+
+
+def test_forge_lti_token(monkeypatch):
+    """Test the forge_lti_token function."""
+    session_id = uuid.uuid4()
+    monkeypatch.setattr(
+        settings, "APP_SIGNING_KEY", "SigningKeyToChange__FOR_TEST_ONLY"
+    )
+    monkeypatch.setattr(settings, "APP_SIGNING_ALGORITHM", "HS256")
+    monkeypatch.setattr(uuid, "uuid4", lambda: session_id)
+    now = datetime.datetime.now()
+
+    # Generate token with defaults
+    with freeze_time(now):
+        token = forge_lti_token()
+    assert get_lti_token(token) == LTIToken(
+        token_type="lti_access",  # noqa: S106
+        exp=now.timestamp() + 10000,
+        iat=now.timestamp(),
+        jti="",
+        session_id=str(session_id),
+        roles=("instructor",),
+        user=JOHN_DOE_USER,
+        locale="fr",
+        resource_link_id="",
+        resource_link_description="",
+    )
+
+    # OVerride some parameters
+    user = LTIUser(
+        platform="http://my-moodle.com",
+        course="i-am-a-course-key",
+        email="citizen4@my-moodle.com",
+        user="citizen4",
+    )
+    with freeze_time(now):
+        token = forge_lti_token(
+            user=user,
+            roles=("student",),
+            locale="en",
+            resource_link_id="foo",
+            resource_link_description="this is me",
+        )
+    assert get_lti_token(token) == LTIToken(
+        token_type="lti_access",  # noqa: S106
+        exp=now.timestamp() + 10000,
+        iat=now.timestamp(),
+        jti="",
+        session_id=str(session_id),
+        roles=("student",),
+        user=user,
+        locale="en",
+        resource_link_id="foo",
+        resource_link_description="this is me",
     )

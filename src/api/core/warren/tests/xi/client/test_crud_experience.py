@@ -14,10 +14,10 @@ from warren.xi.models import ExperienceCreate, ExperienceRead
 
 
 @pytest.mark.anyio
-async def test_crud_experience_raise_status(http_client: AsyncClient, monkeypatch):
+async def test_crud_experience_raise_status(http_auth_client: AsyncClient, monkeypatch):
     """Test that each operation raises an HTTP error in case of failure."""
     monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
-    crud_instance = CRUDExperience(client=http_client)
+    crud_instance = CRUDExperience(client=http_auth_client)
 
     class WrongData(BaseModel):
         name: str
@@ -36,10 +36,12 @@ async def test_crud_experience_raise_status(http_client: AsyncClient, monkeypatc
 
 
 @pytest.mark.anyio
-async def test_crud_experience_get_not_found(http_client: AsyncClient, monkeypatch):
+async def test_crud_experience_get_not_found(
+    http_auth_client: AsyncClient, monkeypatch
+):
     """Test getting an unknown experience."""
     monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
-    crud_instance = CRUDExperience(client=http_client)
+    crud_instance = CRUDExperience(client=http_auth_client)
 
     # Assert 'get' return 'None' without raising any HTTP errors
     response = await crud_instance.get(object_id=uuid.uuid4())
@@ -47,10 +49,10 @@ async def test_crud_experience_get_not_found(http_client: AsyncClient, monkeypat
 
 
 @pytest.mark.anyio
-async def test_crud_experience_read_empty(http_client: AsyncClient, monkeypatch):
+async def test_crud_experience_read_empty(http_auth_client: AsyncClient, monkeypatch):
     """Test reading experiences when no experience has been saved."""
     monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
-    crud_instance = CRUDExperience(client=http_client)
+    crud_instance = CRUDExperience(client=http_auth_client)
 
     # Assert 'get' return 'None' without raising any HTTP errors
     experiences = await crud_instance.read()
@@ -59,11 +61,11 @@ async def test_crud_experience_read_empty(http_client: AsyncClient, monkeypatch)
 
 @pytest.mark.anyio
 async def test_crud_experience_create_or_update_new(
-    http_client: AsyncClient, db_session: Session, monkeypatch
+    http_auth_client: AsyncClient, db_session: Session, monkeypatch
 ):
     """Test creating an experience using 'create_or_update'."""
     monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
-    crud_instance = CRUDExperience(client=http_client)
+    crud_instance = CRUDExperience(client=http_auth_client)
 
     # Get random experience data
     data = ExperienceFactory.build_dict()
@@ -83,11 +85,11 @@ async def test_crud_experience_create_or_update_new(
 
 @pytest.mark.anyio
 async def test_crud_experience_create_or_update_existing(
-    http_client: AsyncClient, db_session: Session, monkeypatch
+    http_auth_client: AsyncClient, db_session: Session, monkeypatch
 ):
     """Test updating an experience using 'create_or_update'."""
     monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
-    crud_instance = CRUDExperience(client=http_client)
+    crud_instance = CRUDExperience(client=http_auth_client)
 
     # Get random experience data
     data = ExperienceFactory.build_dict(exclude={})

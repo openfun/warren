@@ -1,13 +1,8 @@
 """Fixtures for the authorization headers of warren api."""
 
-import datetime
-import uuid
-
 import pytest
-from jose import jwt
 
-from ...conf import settings
-from ...models import LTIToken, LTIUser
+from ...utils import forge_lti_token
 
 
 @pytest.fixture
@@ -30,30 +25,4 @@ def auth_headers() -> dict:
                 assert response.status_code == 200
 
     """
-    lti_user = LTIUser(
-        platform="http://fake-lms.com",
-        course="course-v1:openfun+mathematics101+session01",
-        email="johndoe@example.com",
-        user="johndoe",
-    )
-    timestamp = int(datetime.datetime.now().timestamp())
-    lti_parameters = LTIToken(
-        token_type="lti_access",  # noqa: S106
-        exp=timestamp + 10000,
-        iat=timestamp,
-        jti="",
-        session_id=str(uuid.uuid4()),
-        roles=["instructor"],
-        user=lti_user,
-        locale="fr",
-        resource_link_id="8d5dabc2-6af4-42ac-a29b-97649db4a162",
-        resource_link_description="",
-    )
-
-    token = jwt.encode(
-        lti_parameters.dict(),
-        settings.APP_SIGNING_KEY,
-        algorithm=settings.APP_SIGNING_ALGORITHM,
-    )
-
-    return {"Authorization": f"Bearer {token}"}
+    return {"Authorization": f"Bearer {forge_lti_token()}"}
