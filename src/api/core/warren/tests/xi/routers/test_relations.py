@@ -19,7 +19,18 @@ from warren.xi.schema import Experience, Relation
 
 
 @pytest.mark.anyio
-async def test_relation_read(http_client: AsyncClient, db_session: Session):
+async def test_relation_auth(http_client: AsyncClient):
+    """Test required authentication for relation endpoints."""
+    assert (await http_client.get("/api/v1/relations/")).status_code == 401
+    assert (await http_client.post("/api/v1/relations/", json={})).status_code == 401
+    assert (await http_client.get("/api/v1/relations/foo")).status_code == 401
+    assert (await http_client.put("/api/v1/relations/foo", json={})).status_code == 401
+
+
+@pytest.mark.anyio
+async def test_relation_read(
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
+):
     """Test retrieving detailed information about a relation."""
     RelationFactory.__session__ = db_session
 
@@ -29,7 +40,10 @@ async def test_relation_read(http_client: AsyncClient, db_session: Session):
         relation = RelationFactory.create_sync()
 
     # Attempt to read the last created relation
-    response = await http_client.get(f"/api/v1/relations/{relation.id}")
+    response = await http_client.get(
+        f"/api/v1/relations/{relation.id}",
+        headers=auth_headers,
+    )
     assert response.status_code == 200
 
     # Verify the retrieved data matches the expected format
@@ -50,7 +64,7 @@ async def test_relation_read(http_client: AsyncClient, db_session: Session):
 @pytest.mark.anyio
 @pytest.mark.parametrize("invalid_id", ["foo", 123, "a1-a2-aa", uuid4().hex + "a"])
 async def test_relation_read_invalid(
-    http_client: AsyncClient, db_session: Session, invalid_id: any
+    http_client: AsyncClient, auth_headers: dict, db_session: Session, invalid_id: any
 ):
     """Test retrieving a relation with an invalid or nonexistent ID."""
     RelationFactory.__session__ = db_session
@@ -60,12 +74,18 @@ async def test_relation_read_invalid(
     RelationFactory.create_batch_sync(number_relations)
 
     # Attempt to read a relation with an invalid ID
-    response = await http_client.get(f"/api/v1/relations/{invalid_id}")
+    response = await http_client.get(
+        f"/api/v1/relations/{invalid_id}",
+        headers=auth_headers,
+    )
     assert response.status_code == 422
 
     # Attempt to read a relation with a nonexistent ID
     nonexistent_id = uuid4().hex
-    response = await http_client.get(f"/api/v1/relations/{nonexistent_id}")
+    response = await http_client.get(
+        f"/api/v1/relations/{nonexistent_id}",
+        headers=auth_headers,
+    )
     assert response.status_code == 404
     assert response.json() == {"detail": "Relation not found"}
 
@@ -75,7 +95,9 @@ async def test_relation_read_invalid(
 
 
 @pytest.mark.anyio
-async def test_relations_read_default(http_client: AsyncClient, db_session: Session):
+async def test_relations_read_default(
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
+):
     """Test the default behavior of retrieving relations."""
     RelationFactory.__session__ = db_session
 
@@ -86,7 +108,10 @@ async def test_relations_read_default(http_client: AsyncClient, db_session: Sess
     relations = db_session.exec(select(Relation)).all()
 
     # Retrieve relations without any query parameters
-    response = await http_client.get("/api/v1/relations/")
+    response = await http_client.get(
+        "/api/v1/relations/",
+        headers=auth_headers,
+    )
     response_data = response.json()
     assert response.status_code == 200
 
@@ -121,6 +146,7 @@ async def test_relations_read_default(http_client: AsyncClient, db_session: Sess
 )
 async def test_relations_read_pagination(
     http_client: AsyncClient,
+    auth_headers: dict,
     db_session: Session,
     offset: int,
     limit: int,
@@ -137,7 +163,9 @@ async def test_relations_read_pagination(
 
     # Get relations with pagination
     response = await http_client.get(
-        "/api/v1/relations/", params={"offset": offset, "limit": limit}
+        "/api/v1/relations/",
+        headers=auth_headers,
+        params={"offset": offset, "limit": limit},
     )
     response_data = response.json()
     assert response.status_code == 200
@@ -171,7 +199,10 @@ async def test_relations_read_pagination(
     ],
 )
 async def test_relations_read_invalid_params(
-    http_client: AsyncClient, db_session: Session, invalid_params: dict
+    http_client: AsyncClient,
+    auth_headers: dict,
+    db_session: Session,
+    invalid_params: dict,
 ):
     """Test scenarios with invalid query parameters when retrieving relations."""
     RelationFactory.__session__ = db_session
@@ -181,7 +212,9 @@ async def test_relations_read_invalid_params(
     RelationFactory.create_batch_sync(number_relations)
 
     # Read relations with invalid query parameters
-    response = await http_client.get("/api/v1/relations/", params=invalid_params)
+    response = await http_client.get(
+        "/api/v1/relations/", headers=auth_headers, params=invalid_params
+    )
 
     # Assert the request fails
     assert response.status_code == 422
@@ -192,7 +225,9 @@ async def test_relations_read_invalid_params(
 
 
 @pytest.mark.anyio
-async def test_relation_create(http_client: AsyncClient, db_session: Session):
+async def test_relation_create(
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
+):
     """Test creating a relation with valid data."""
     ExperienceFactory.__session__ = db_session
 
@@ -206,6 +241,7 @@ async def test_relation_create(http_client: AsyncClient, db_session: Session):
     with freeze_time(time):
         response = await http_client.post(
             "/api/v1/relations/",
+            headers=auth_headers,
             json={
                 "source_id": str(source.id),
                 "target_id": str(target.id),
@@ -246,7 +282,9 @@ async def test_relation_create(http_client: AsyncClient, db_session: Session):
 
 
 @pytest.mark.anyio
-async def test_relation_create_multiple(http_client: AsyncClient, db_session: Session):
+async def test_relation_create_multiple(
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
+):
     """Test creating multiple relations with valid data."""
     ExperienceFactory.__session__ = db_session
 
@@ -261,6 +299,7 @@ async def test_relation_create_multiple(http_client: AsyncClient, db_session: Se
         with freeze_time(time):
             response = await http_client.post(
                 "/api/v1/relations/",
+                headers=auth_headers,
                 json={
                     "source_id": str(source.id),
                     "target_id": str(target.id),
@@ -301,10 +340,14 @@ async def test_relation_create_multiple(http_client: AsyncClient, db_session: Se
 
 
 @pytest.mark.anyio
-async def test_relation_create_empty(http_client: AsyncClient, db_session: Session):
+async def test_relation_create_empty(
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
+):
     """Test creating an empty relation."""
     # Attempt to create an empty relation
-    response = await http_client.post("/api/v1/relations/", json={})
+    response = await http_client.post(
+        "/api/v1/relations/", headers=auth_headers, json={}
+    )
 
     # Relation's creation should fail
     assert response.status_code == 422
@@ -325,7 +368,10 @@ async def test_relation_create_empty(http_client: AsyncClient, db_session: Sessi
     ],
 )
 async def test_relation_create_invalid(
-    http_client: AsyncClient, db_session: Session, invalid_data: dict
+    http_client: AsyncClient,
+    auth_headers: dict,
+    db_session: Session,
+    invalid_data: dict,
 ):
     """Test creating a relation with invalid data."""
     # Valid data for creating a relation
@@ -338,6 +384,7 @@ async def test_relation_create_invalid(
     # Create a relation with invalid data
     response = await http_client.post(
         "/api/v1/relations/",
+        headers=auth_headers,
         json={**base_data, **invalid_data},
     )
     assert response.status_code == 422
@@ -349,7 +396,7 @@ async def test_relation_create_invalid(
 
 @pytest.mark.anyio
 async def test_relation_create_nonexistent_target(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test creating a relation with a nonexistent target experience."""
     ExperienceFactory.__session__ = db_session
@@ -363,6 +410,7 @@ async def test_relation_create_nonexistent_target(
     # Attempt creating a relation between existing and nonexistent experiences
     response = await http_client.post(
         "/api/v1/relations/",
+        headers=auth_headers,
         json={
             "source_id": str(source.id),
             "target_id": nonexistent_id,
@@ -377,7 +425,7 @@ async def test_relation_create_nonexistent_target(
 
 @pytest.mark.anyio
 async def test_relation_create_nonexistent_source(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test creating a relation with a nonexistent source experience."""
     ExperienceFactory.__session__ = db_session
@@ -391,6 +439,7 @@ async def test_relation_create_nonexistent_source(
     # Attempt creating a relation between existing and nonexistent experiences
     response = await http_client.post(
         "/api/v1/relations/",
+        headers=auth_headers,
         json={
             "source_id": nonexistent_id,
             "target_id": str(target.id),
@@ -404,11 +453,15 @@ async def test_relation_create_nonexistent_source(
 
 
 @pytest.mark.anyio
-async def test_relation_create_nonexistent_source_and_target(http_client: AsyncClient):
+async def test_relation_create_nonexistent_source_and_target(
+    http_client: AsyncClient,
+    auth_headers: dict,
+):
     """Test creating a relation with nonexistent source and target experiences."""
     # Attempt creating a relation between nonexistent experiences
     response = await http_client.post(
         "/api/v1/relations/",
+        headers=auth_headers,
         json={
             "source_id": uuid4().hex,
             "target_id": uuid4().hex,
@@ -423,7 +476,7 @@ async def test_relation_create_nonexistent_source_and_target(http_client: AsyncC
 
 @pytest.mark.anyio
 async def test_relation_create_bidirectional(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test creating bidirectional relations between source and target experiences."""
     RelationFactory.__session__ = db_session
@@ -436,6 +489,7 @@ async def test_relation_create_bidirectional(
     with freeze_time(time):
         response = await http_client.post(
             "/api/v1/relations/",
+            headers=auth_headers,
             json={
                 "source_id": str(relation.source_id),
                 "target_id": str(relation.target_id),
@@ -476,6 +530,7 @@ async def test_relation_create_bidirectional(
     with freeze_time(time):
         response = await http_client.post(
             "/api/v1/relations/",
+            headers=auth_headers,
             json={
                 "source_id": str(target.id),
                 "target_id": str(source.id),
@@ -517,7 +572,7 @@ async def test_relation_create_bidirectional(
 
 @pytest.mark.anyio
 async def test_relation_create_self_referential(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test creating a self-referential relation on a single experience."""
     RelationFactory.__session__ = db_session
@@ -529,6 +584,7 @@ async def test_relation_create_self_referential(
     # Attempt creating a self-referential relation
     response = await http_client.post(
         "/api/v1/relations/",
+        headers=auth_headers,
         json={
             "source_id": experience_id,
             "target_id": experience_id,
@@ -543,7 +599,7 @@ async def test_relation_create_self_referential(
 
 @pytest.mark.anyio
 async def test_relation_create_duplicated(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test creating a duplicated relation between source and target experiences."""
     RelationFactory.__session__ = db_session
@@ -554,6 +610,7 @@ async def test_relation_create_duplicated(
     # Attempt creating a duplicated relation
     response = await http_client.post(
         "/api/v1/relations/",
+        headers=auth_headers,
         json={
             "source_id": str(relation.source_id),
             "target_id": str(relation.target_id),
@@ -567,7 +624,9 @@ async def test_relation_create_duplicated(
 
 
 @pytest.mark.anyio
-async def test_relation_update(http_client: AsyncClient, db_session: Session):
+async def test_relation_update(
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
+):
     """Test updating a relation with a single update scenario."""
     ExperienceFactory.__session__ = RelationFactory.__session__ = db_session
 
@@ -594,6 +653,7 @@ async def test_relation_update(http_client: AsyncClient, db_session: Session):
     with freeze_time(update_date):
         response = await http_client.put(
             f"/api/v1/relations/{relation.id}",
+            headers=auth_headers,
             json={
                 "source_id": str(experience_three.id),
                 "target_id": str(experience_one.id),
@@ -619,7 +679,9 @@ async def test_relation_update(http_client: AsyncClient, db_session: Session):
 
 
 @pytest.mark.anyio
-async def test_relation_update_empty(http_client: AsyncClient, db_session: Session):
+async def test_relation_update_empty(
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
+):
     """Test updating a relation with empty data."""
     RelationFactory.__session__ = db_session
 
@@ -635,6 +697,7 @@ async def test_relation_update_empty(http_client: AsyncClient, db_session: Sessi
     with freeze_time(update_date):
         response = await http_client.put(
             f"/api/v1/relations/{relation.id}",
+            headers=auth_headers,
             json={},
         )
     assert response.status_code == 200
@@ -665,7 +728,10 @@ async def test_relation_update_empty(http_client: AsyncClient, db_session: Sessi
     ],
 )
 async def test_relation_update_invalid(
-    http_client: AsyncClient, db_session: Session, invalid_data: dict
+    http_client: AsyncClient,
+    auth_headers: dict,
+    db_session: Session,
+    invalid_data: dict,
 ):
     """Test updating a relation with invalid data."""
     RelationFactory.__session__ = db_session
@@ -677,6 +743,7 @@ async def test_relation_update_invalid(
     wrong_id = uuid4().hex
     response = await http_client.put(
         f"/api/v1/relations/{wrong_id}",
+        headers=auth_headers,
         json={},
     )
     assert response.status_code == 404
@@ -685,6 +752,7 @@ async def test_relation_update_invalid(
     # Attempt updating the relation with invalid data
     response = await http_client.put(
         f"/api/v1/relations/{relation.id}",
+        headers=auth_headers,
         json=invalid_data,
     )
     assert response.status_code == 422
@@ -696,7 +764,7 @@ async def test_relation_update_invalid(
 
 @pytest.mark.anyio
 async def test_relation_update_self_referential(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test updating a relation to a self-referential relation."""
     ExperienceFactory.__session__ = RelationFactory.__session__ = db_session
@@ -707,6 +775,7 @@ async def test_relation_update_self_referential(
     # Attempt updating the relation to a self-referential relation
     response = await http_client.put(
         f"/api/v1/relations/{relation.id}",
+        headers=auth_headers,
         json={
             "source_id": str(relation.source_id),
             "target_id": str(relation.source_id),
@@ -720,7 +789,7 @@ async def test_relation_update_self_referential(
 
 @pytest.mark.anyio
 async def test_relation_update_duplicated(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test updating a relation with duplicated data."""
     RelationFactory.__session__ = db_session
@@ -742,6 +811,7 @@ async def test_relation_update_duplicated(
     # Attempt updating the second relation to be equal to the first one
     response = await http_client.put(
         f"/api/v1/relations/{second_relation.id}",
+        headers=auth_headers,
         json={"kind": first_relation.kind},
     )
     assert response.status_code == 500
@@ -752,7 +822,7 @@ async def test_relation_update_duplicated(
 
 @pytest.mark.anyio
 async def test_relation_update_nonexistent_source(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test updating a relation with a nonexistent source."""
     RelationFactory.__session__ = db_session
@@ -766,6 +836,7 @@ async def test_relation_update_nonexistent_source(
     # Attempt updating the relation with a nonexistent source
     response = await http_client.put(
         f"/api/v1/relations/{relation.id}",
+        headers=auth_headers,
         json={"source_id": nonexistent_id},
     )
     assert response.status_code == 500
@@ -776,7 +847,7 @@ async def test_relation_update_nonexistent_source(
 
 @pytest.mark.anyio
 async def test_relation_update_nonexistent_target(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test updating a relation with a nonexistent target."""
     RelationFactory.__session__ = db_session
@@ -790,6 +861,7 @@ async def test_relation_update_nonexistent_target(
     # Attempt updating the relation with a nonexistent target
     response = await http_client.put(
         f"/api/v1/relations/{relation.id}",
+        headers=auth_headers,
         json={"target_id": nonexistent_id},
     )
     assert response.status_code == 500

@@ -11,6 +11,8 @@ from sqlmodel import Session, select
 from typing_extensions import Annotated  # python <3.9 compat
 
 from warren.db import get_session
+from warren.models import LTIToken
+from warren.utils import get_lti_token
 
 from ..filters import Pagination
 from ..models import (
@@ -30,12 +32,14 @@ logger = logging.getLogger(__name__)
 @router.get("/", response_model=List[RelationRead])
 async def read_relations(
     pagination: Annotated[Pagination, Depends()],
+    token: Annotated[LTIToken, Depends(get_lti_token)],
     session: Session = Depends(get_session),
 ):
     """Retrieve a list of relations based on query parameters.
 
     Args:
         pagination (Pagination): The filters for pagination (offset and limit).
+        token (LTIToken): The LTI token used to authenticate user.
         session (Session, optional): The database session.
 
     Returns:
@@ -53,12 +57,15 @@ async def read_relations(
 
 @router.post("/", response_model=UUID)
 async def create_relation(
-    relation: RelationCreate, session: Session = Depends(get_session)
+    relation: RelationCreate,
+    token: Annotated[LTIToken, Depends(get_lti_token)],
+    session: Session = Depends(get_session),
 ):
     """Create a relation.
 
     Args:
         relation (Relation): The data of the relation to create.
+        token (LTIToken): The LTI token used to authenticate user.
         session (Session, optional): The database session.
 
     Returns:
@@ -89,13 +96,17 @@ async def create_relation(
 
 @router.put("/{relation_id}", response_model=RelationRead)
 async def update_relation(
-    relation_id: UUID, relation: RelationUpdate, session: Session = Depends(get_session)
+    relation_id: UUID,
+    relation: RelationUpdate,
+    token: Annotated[LTIToken, Depends(get_lti_token)],
+    session: Session = Depends(get_session),
 ):
     """Update an existing relation by ID.
 
     Args:
         relation_id (UUID): The unique identifier of the relation to be updated.
         relation (RelationUpdate): The data to update the relation with.
+        token (LTIToken): The LTI token used to authenticate user.
         session (Session, optional): The database session.
 
     Returns:
@@ -130,11 +141,16 @@ async def update_relation(
 
 
 @router.get("/{relation_id}", response_model=RelationRead)
-async def read_relation(relation_id: UUID, session: Session = Depends(get_session)):
+async def read_relation(
+    relation_id: UUID,
+    token: Annotated[LTIToken, Depends(get_lti_token)],
+    session: Session = Depends(get_session),
+):
     """Retrieve detailed information about a relation.
 
     Args:
         relation_id (IRI): The ID of the relation to retrieve.
+        token (LTIToken): The LTI token used to authenticate user.
         session (Session, optional): The database session.
 
     Returns:

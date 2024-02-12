@@ -20,7 +20,22 @@ from warren.xi.schema import Experience
 
 
 @pytest.mark.anyio
-async def test_experience_create(http_client: AsyncClient, db_session: Session):
+async def test_experience_auth(http_client: AsyncClient):
+    """Test required authentication for experience endpoints."""
+    assert (await http_client.get("/api/v1/experiences/")).status_code == 401
+    assert (await http_client.post("/api/v1/experiences/", json={})).status_code == 401
+    assert (await http_client.get("/api/v1/experiences/foo")).status_code == 401
+    assert (
+        await http_client.put("/api/v1/experiences/foo", json={})
+    ).status_code == 401
+
+
+@pytest.mark.anyio
+async def test_experience_create(
+    http_client: AsyncClient,
+    auth_headers: dict,
+    db_session: Session,
+):
     """Test creating an experience with valid data."""
     ExperienceFactory.__session__ = db_session
 
@@ -34,7 +49,9 @@ async def test_experience_create(http_client: AsyncClient, db_session: Session):
     # Attempt creating a first experience with valid data
     time = ExperienceFactory.__faker__.date_time(timezone.utc).isoformat()
     with freeze_time(time):
-        response = await http_client.post("/api/v1/experiences/", json=experience_data)
+        response = await http_client.post(
+            "/api/v1/experiences/", headers=auth_headers, json=experience_data
+        )
         response_data = response.json()
 
     assert response.status_code == 200
@@ -56,7 +73,7 @@ async def test_experience_create(http_client: AsyncClient, db_session: Session):
 
 @pytest.mark.anyio
 async def test_experience_create_multiple(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test creating multiple experiences with valid data."""
     ExperienceFactory.__session__ = db_session
@@ -73,7 +90,7 @@ async def test_experience_create_multiple(
         time = ExperienceFactory.__faker__.date_time(timezone.utc).isoformat()
         with freeze_time(time):
             response = await http_client.post(
-                "/api/v1/experiences/", json=experience_data
+                "/api/v1/experiences/", headers=auth_headers, json=experience_data
             )
             response_data = response.json()
 
@@ -95,10 +112,14 @@ async def test_experience_create_multiple(
 
 
 @pytest.mark.anyio
-async def test_experience_create_empty(http_client: AsyncClient, db_session: Session):
+async def test_experience_create_empty(
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
+):
     """Test creating an empty experience."""
     # Attempt to create an empty experience
-    response = await http_client.post("/api/v1/experiences/", json={})
+    response = await http_client.post(
+        "/api/v1/experiences/", headers=auth_headers, json={}
+    )
 
     # Experience's creation should fail
     assert response.status_code == 422
@@ -106,7 +127,7 @@ async def test_experience_create_empty(http_client: AsyncClient, db_session: Ses
 
 @pytest.mark.anyio
 async def test_experience_create_without_duration(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test creating experiences without the optional duration."""
     # Generate randomized valid experience data
@@ -115,7 +136,9 @@ async def test_experience_create_without_duration(
     # Attempt to create an experience without duration
     time = ExperienceFactory.__faker__.date_time(timezone.utc).isoformat()
     with freeze_time(time):
-        response = await http_client.post("/api/v1/experiences/", json=experience_data)
+        response = await http_client.post(
+            "/api/v1/experiences/", headers=auth_headers, json=experience_data
+        )
         response_data = response.json()
 
     assert response.status_code == 200
@@ -137,7 +160,7 @@ async def test_experience_create_without_duration(
 
 @pytest.mark.anyio
 async def test_experience_create_duplicated_iri(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test creating an experience with a duplicated IRI."""
     ExperienceFactory.__session__ = db_session
@@ -152,7 +175,9 @@ async def test_experience_create_duplicated_iri(
 
     # Attempt creating another experience with the same IRI
     response = await http_client.post(
-        "/api/v1/experiences/", json=ExperienceFactory.build_dict(iri=duplicated_iri)
+        "/api/v1/experiences/",
+        headers=auth_headers,
+        json=ExperienceFactory.build_dict(iri=duplicated_iri),
     )
 
     # Experience's creation should fail due to IRI uniqueness
@@ -182,7 +207,10 @@ async def test_experience_create_duplicated_iri(
     ],
 )
 async def test_experience_create_invalid(
-    http_client: AsyncClient, db_session: Session, invalid_data: dict
+    http_client: AsyncClient,
+    auth_headers: dict,
+    db_session: Session,
+    invalid_data: dict,
 ):
     """Test creating an experience with invalid data."""
     # Invalid data for creating an experience
@@ -191,6 +219,7 @@ async def test_experience_create_invalid(
     # Attempt creating an experience with invalid data
     response = await http_client.post(
         "/api/v1/experiences/",
+        headers=auth_headers,
         json=invalid_data,
     )
     assert response.status_code == 422
@@ -206,7 +235,10 @@ async def test_experience_create_invalid(
     [100, 0],
 )
 async def test_experience_read(
-    http_client: AsyncClient, db_session: Session, number_experiences: int
+    http_client: AsyncClient,
+    auth_headers: dict,
+    db_session: Session,
+    number_experiences: int,
 ):
     """Test retrieving detailed information about an experience."""
     ExperienceFactory.__session__ = db_session
@@ -221,7 +253,10 @@ async def test_experience_read(
         experience = ExperienceFactory.create_sync()
 
     # Attempt to read the last created experience
-    response = await http_client.get(f"/api/v1/experiences/{experience.id}")
+    response = await http_client.get(
+        f"/api/v1/experiences/{experience.id}",
+        headers=auth_headers,
+    )
     assert response.status_code == 200
 
     # Verify the retrieved data matches the expected format
@@ -242,7 +277,7 @@ async def test_experience_read(
 @pytest.mark.anyio
 @pytest.mark.parametrize("invalid_id", ["foo", 123, "a1-a2-aa", uuid4().hex + "a"])
 async def test_experience_read_invalid(
-    http_client: AsyncClient, db_session: Session, invalid_id: Any
+    http_client: AsyncClient, auth_headers: dict, db_session: Session, invalid_id: Any
 ):
     """Test retrieving an experience with an invalid or nonexistent ID."""
     ExperienceFactory.__session__ = db_session
@@ -252,12 +287,18 @@ async def test_experience_read_invalid(
     ExperienceFactory.create_batch_sync(number_experiences)
 
     # Attempt to read an experience with an invalid ID
-    response = await http_client.get(f"/api/v1/experiences/{invalid_id}")
+    response = await http_client.get(
+        f"/api/v1/experiences/{invalid_id}",
+        headers=auth_headers,
+    )
     assert response.status_code == 422
 
     # Attempt to read an experience with a nonexistent ID
     nonexistent_id = uuid4().hex
-    response = await http_client.get(f"/api/v1/experiences/{nonexistent_id}")
+    response = await http_client.get(
+        f"/api/v1/experiences/{nonexistent_id}",
+        headers=auth_headers,
+    )
     assert response.status_code == 404
     assert response.json() == {"detail": "Experience not found"}
 
@@ -267,7 +308,9 @@ async def test_experience_read_invalid(
 
 
 @pytest.mark.anyio
-async def test_experience_read_with_relation(http_client: AsyncClient, db_session):
+async def test_experience_read_with_relation(
+    http_client: AsyncClient, auth_headers: dict, db_session
+):
     """Test retrieving experiences with a relation."""
     ExperienceFactory.__session__ = RelationFactory.__session__ = db_session
 
@@ -282,7 +325,10 @@ async def test_experience_read_with_relation(http_client: AsyncClient, db_sessio
     db_session.refresh(relation)
 
     # Attempt to read the source experience
-    response = await http_client.get(f"/api/v1/experiences/{relation.source_id}")
+    response = await http_client.get(
+        f"/api/v1/experiences/{relation.source_id}",
+        headers=auth_headers,
+    )
     response_data = response.json()
     assert response.status_code == 200
 
@@ -299,7 +345,10 @@ async def test_experience_read_with_relation(http_client: AsyncClient, db_sessio
     assert response_data["relations_target"] == []
 
     # Attempt to read the target experience
-    response = await http_client.get(f"/api/v1/experiences/{relation.target_id}")
+    response = await http_client.get(
+        f"/api/v1/experiences/{relation.target_id}",
+        headers=auth_headers,
+    )
     response_data = response.json()
     assert response.status_code == 200
 
@@ -335,7 +384,7 @@ async def test_experience_read_with_relation(http_client: AsyncClient, db_sessio
     ],
 )
 async def test_experience_update(
-    http_client: AsyncClient, db_session: Session, update_data: dict
+    http_client: AsyncClient, auth_headers: dict, db_session: Session, update_data: dict
 ):
     """Test updating an experience with various update scenarios."""
     ExperienceFactory.__session__ = db_session
@@ -357,6 +406,7 @@ async def test_experience_update(
     with freeze_time(update_date):
         response = await http_client.put(
             f"/api/v1/experiences/{experience.id}",
+            headers=auth_headers,
             json=update_data,
         )
         response_data = response.json()
@@ -386,7 +436,7 @@ async def test_experience_update(
 
 @pytest.mark.anyio
 async def test_experience_update_duplicated_IRI(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test updating an experience with an existing IRI."""
     ExperienceFactory.__session__ = db_session
@@ -397,6 +447,7 @@ async def test_experience_update_duplicated_IRI(
     # Attempt to update the second experience with first experience's IRI
     response = await http_client.put(
         f"/api/v1/experiences/{second_experience.id}",
+        headers=auth_headers,
         json={"iri": first_experience.iri},
     )
 
@@ -418,7 +469,10 @@ async def test_experience_update_duplicated_IRI(
     ],
 )
 async def test_experience_update_invalid(
-    http_client: AsyncClient, db_session: Session, invalid_data: dict
+    http_client: AsyncClient,
+    auth_headers: dict,
+    db_session: Session,
+    invalid_data: dict,
 ):
     """Test updating an experience with invalid data."""
     ExperienceFactory.__session__ = db_session
@@ -429,7 +483,9 @@ async def test_experience_update_invalid(
     # Attempt to update an experience with an invalid ID
     wrong_id = uuid4().hex
     response = await http_client.put(
-        f"/api/v1/experiences/{wrong_id}", json={"iri": "uuid://foo."}
+        f"/api/v1/experiences/{wrong_id}",
+        headers=auth_headers,
+        json={"iri": "uuid://foo."},
     )
     assert response.status_code == 404
     assert response.json() == {"detail": "Experience not found"}
@@ -437,6 +493,7 @@ async def test_experience_update_invalid(
     # Attempt to update an experience with invalid data
     response = await http_client.put(
         f"/api/v1/experiences/{experience.id}",
+        headers=auth_headers,
         json=invalid_data,
     )
     assert response.status_code == 422
@@ -447,7 +504,9 @@ async def test_experience_update_invalid(
 
 
 @pytest.mark.anyio
-async def test_experience_update_same(http_client: AsyncClient, db_session: Session):
+async def test_experience_update_same(
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
+):
     """Test updating an experience with the same data."""
     ExperienceFactory.__session__ = db_session
 
@@ -469,6 +528,7 @@ async def test_experience_update_same(http_client: AsyncClient, db_session: Sess
     with freeze_time(update_date):
         response = await http_client.put(
             f"/api/v1/experiences/{experience.id}",
+            headers=auth_headers,
             json=experience_data,
         )
         response_data = response.json()
@@ -494,7 +554,9 @@ async def test_experience_update_same(http_client: AsyncClient, db_session: Sess
 
 
 @pytest.mark.anyio
-async def test_experience_update_empty(http_client: AsyncClient, db_session: Session):
+async def test_experience_update_empty(
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
+):
     """Test updating an experience with empty data."""
     ExperienceFactory.__session__ = db_session
 
@@ -516,6 +578,7 @@ async def test_experience_update_empty(http_client: AsyncClient, db_session: Ses
     with freeze_time(update_date):
         response = await http_client.put(
             f"/api/v1/experiences/{experience.id}",
+            headers=auth_headers,
             json={},
         )
         response_data = response.json()
@@ -541,12 +604,17 @@ async def test_experience_update_empty(http_client: AsyncClient, db_session: Ses
 
 
 @pytest.mark.anyio
-async def test_experiences_read_default(http_client: AsyncClient, db_session: Session):
+async def test_experiences_read_default(
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
+):
     """Test the default behavior of retrieving experiences."""
     ExperienceFactory.__session__ = db_session
 
     # Attempt to retrieve experiences when the database is empty
-    response = await http_client.get("/api/v1/experiences/")
+    response = await http_client.get(
+        "/api/v1/experiences/",
+        headers=auth_headers,
+    )
     assert response.status_code == 200
     assert response.json() == []
 
@@ -557,7 +625,10 @@ async def test_experiences_read_default(http_client: AsyncClient, db_session: Se
     experiences = db_session.exec(select(Experience)).all()
 
     # Retrieve experiences without any query parameters
-    response = await http_client.get("/api/v1/experiences/")
+    response = await http_client.get(
+        "/api/v1/experiences/",
+        headers=auth_headers,
+    )
     response_data = response.json()
     assert response.status_code == 200
 
@@ -592,6 +663,7 @@ async def test_experiences_read_default(http_client: AsyncClient, db_session: Se
 )
 async def test_experiences_read_pagination(
     http_client: AsyncClient,
+    auth_headers: dict,
     db_session: Session,
     offset: int,
     limit: int,
@@ -609,7 +681,9 @@ async def test_experiences_read_pagination(
 
     # Get experiences with pagination
     response = await http_client.get(
-        "/api/v1/experiences/", params={"offset": offset, "limit": limit}
+        "/api/v1/experiences/",
+        headers=auth_headers,
+        params={"offset": offset, "limit": limit},
     )
     response_data = response.json()
     assert response.status_code == 200
@@ -645,7 +719,10 @@ async def test_experiences_read_pagination(
     ],
 )
 async def test_experiences_read_invalid_params(
-    http_client: AsyncClient, db_session: Session, invalid_params: dict
+    http_client: AsyncClient,
+    auth_headers: dict,
+    db_session: Session,
+    invalid_params: dict,
 ):
     """Test scenarios with invalid query parameters when retrieving experiences."""
     ExperienceFactory.__session__ = db_session
@@ -655,7 +732,9 @@ async def test_experiences_read_invalid_params(
     ExperienceFactory.create_batch_sync(10)
 
     # Read experiences with invalid query parameters
-    response = await http_client.get("/api/v1/experiences/", params=invalid_params)
+    response = await http_client.get(
+        "/api/v1/experiences/", headers=auth_headers, params=invalid_params
+    )
 
     # Assert the request fails
     assert response.status_code == 422
@@ -680,14 +759,20 @@ async def test_experiences_read_invalid_params(
     ],
 )
 async def test_experiences_read_filter(
-    http_client: AsyncClient, db_session: Session, params: dict, expected_count: int
+    http_client: AsyncClient,
+    auth_headers: dict,
+    db_session: Session,
+    params: dict,
+    expected_count: int,
 ):
     """Test scenarios with valid query parameters when retrieving experiences."""
     ExperienceFactory.__session__ = db_session
 
     # Attempt to retrieve experiences when the database is empty
     # with valid query parameters
-    response = await http_client.get("/api/v1/experiences/", params=params)
+    response = await http_client.get(
+        "/api/v1/experiences/", headers=auth_headers, params=params
+    )
     assert response.status_code == 200
     assert response.json() == []
 
@@ -702,6 +787,7 @@ async def test_experiences_read_filter(
     # Read experiences with valid query parameters
     response = await http_client.get(
         "/api/v1/experiences/",
+        headers=auth_headers,
         params=params,
     )
     response_data = response.json()
@@ -719,7 +805,7 @@ async def test_experiences_read_filter(
 
 @pytest.mark.anyio
 async def test_experiences_read_filter_on_iri(
-    http_client: AsyncClient, db_session: Session
+    http_client: AsyncClient, auth_headers: dict, db_session: Session
 ):
     """Test reading an experience from its IRI."""
     ExperienceFactory.__session__ = db_session
@@ -734,7 +820,7 @@ async def test_experiences_read_filter_on_iri(
 
     # Attempt to read the last created experience from its IRI
     response = await http_client.get(
-        "/api/v1/experiences/", params={"iri": experience.iri}
+        "/api/v1/experiences/", headers=auth_headers, params={"iri": experience.iri}
     )
     assert response.status_code == 200
 
