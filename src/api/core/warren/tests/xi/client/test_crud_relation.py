@@ -14,10 +14,10 @@ from warren.xi.models import RelationCreate
 
 
 @pytest.mark.anyio
-async def test_crud_relation_raise_status(http_client: AsyncClient, monkeypatch):
+async def test_crud_relation_raise_status(http_auth_client: AsyncClient, monkeypatch):
     """Test that each operation raises an HTTP error in case of failure."""
     monkeypatch.setattr(CRUDRelation, "_base_url", "/api/v1/relations")
-    crud_instance = CRUDRelation(client=http_client)
+    crud_instance = CRUDRelation(client=http_auth_client)
 
     class WrongData(BaseModel):
         name: str
@@ -36,10 +36,10 @@ async def test_crud_relation_raise_status(http_client: AsyncClient, monkeypatch)
 
 
 @pytest.mark.anyio
-async def test_crud_relation_get_not_found(http_client: AsyncClient, monkeypatch):
+async def test_crud_relation_get_not_found(http_auth_client: AsyncClient, monkeypatch):
     """Test getting an unknown relation."""
     monkeypatch.setattr(CRUDRelation, "_base_url", "/api/v1/relations")
-    crud_instance = CRUDRelation(client=http_client)
+    crud_instance = CRUDRelation(client=http_auth_client)
 
     # Assert 'get' return 'None' without raising any HTTP errors
     response = await crud_instance.get(object_id=uuid4())
@@ -47,10 +47,10 @@ async def test_crud_relation_get_not_found(http_client: AsyncClient, monkeypatch
 
 
 @pytest.mark.anyio
-async def test_crud_relation_read_empty(http_client: AsyncClient, monkeypatch):
+async def test_crud_relation_read_empty(http_auth_client: AsyncClient, monkeypatch):
     """Test reading relations when no relation has been saved."""
     monkeypatch.setattr(CRUDRelation, "_base_url", "/api/v1/relations")
-    crud_instance = CRUDRelation(client=http_client)
+    crud_instance = CRUDRelation(client=http_auth_client)
 
     # Assert 'get' return 'None' without raising any HTTP errors
     relations = await crud_instance.read()
@@ -59,11 +59,11 @@ async def test_crud_relation_read_empty(http_client: AsyncClient, monkeypatch):
 
 @pytest.mark.anyio
 async def test_crud_relation_create_bidirectional(
-    http_client: AsyncClient, db_session: Session, monkeypatch
+    http_auth_client: AsyncClient, db_session: Session, monkeypatch
 ):
     """Test creating bidirectional relations."""
     monkeypatch.setattr(CRUDRelation, "_base_url", "/api/v1/relations")
-    crud_instance = CRUDRelation(client=http_client)
+    crud_instance = CRUDRelation(client=http_auth_client)
 
     # Get two inverse relation types
     relation_type = RelationType.HASPART

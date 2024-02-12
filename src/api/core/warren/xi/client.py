@@ -12,6 +12,8 @@ from pydantic import parse_obj_as
 
 from warren.conf import settings
 from warren.fields import IRI
+from warren.models import LTIUser
+from warren.utils import forge_lti_token
 
 from .enums import (
     RelationType,
@@ -96,7 +98,8 @@ class CRUDExperience(BaseCRUD):
     async def create(self, data: ExperienceCreate) -> UUID:
         """Create an experience."""
         response = await self._client.post(
-            url=self._construct_url(""), data=data.json()  # type: ignore[arg-type]
+            url=self._construct_url(""),
+            data=data.json(),  # type: ignore[arg-type]
         )
         response.raise_for_status()
         return UUID(response.json())
@@ -116,7 +119,8 @@ class CRUDExperience(BaseCRUD):
     ) -> Experience:
         """Update an experience."""
         response = await self._client.put(
-            url=self._construct_url(object_id), data=data.json()  # type: ignore[arg-type]
+            url=self._construct_url(object_id),
+            data=data.json(),  # type: ignore[arg-type]
         )
         response.raise_for_status()
         return Experience(**response.json())
@@ -149,7 +153,8 @@ class CRUDRelation(BaseCRUD):
     async def create(self, data: RelationCreate) -> UUID:
         """Create a relation."""
         response = await self._client.post(
-            url=self._construct_url(""), data=data.json()  # type: ignore[arg-type]
+            url=self._construct_url(""),
+            data=data.json(),  # type: ignore[arg-type]
         )
         response.raise_for_status()
         return UUID(response.json())
@@ -169,7 +174,8 @@ class CRUDRelation(BaseCRUD):
     ) -> Relation:
         """Update a relation."""
         response = await self._client.put(
-            url=self._construct_url(object_id), data=data.json()  # type: ignore[arg-type]
+            url=self._construct_url(object_id),
+            data=data.json(),  # type: ignore[arg-type]
         )
         response.raise_for_status()
         return Relation(**response.json())
@@ -220,8 +226,18 @@ class ExperienceIndex(Client):
         """Initialize the asynchronous HTTP client."""
         self._url = url or settings.XI_BASE_URL
 
+        token = forge_lti_token(
+            user=LTIUser(
+                platform="https://fake-lms.com",
+                course="all",
+                email="xi@fake-lms.com",
+                user="xi",
+            ),
+            roles=("administrator",),
+        )
         self._client = AsyncClient(
             base_url=self._url,
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         self.experience = CRUDExperience(client=self._client)
