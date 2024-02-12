@@ -12,6 +12,8 @@ from typing_extensions import Annotated  # python <3.9 compat
 
 from warren.db import get_session
 from warren.fields import IRI
+from warren.models import LTIToken
+from warren.utils import get_lti_token
 
 from ..enums import AggregationLevel, Structure
 from ..filters import Pagination
@@ -31,8 +33,9 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/", response_model=List[ExperienceReadSnapshot])
-async def read_experiences(
+async def read_experiences(  # noqa: PLR0913
     pagination: Annotated[Pagination, Depends()],
+    token: Annotated[LTIToken, Depends(get_lti_token)],
     session: Session = Depends(get_session),
     structure: Optional[Structure] = None,
     aggregation_level: Optional[AggregationLevel] = None,
@@ -42,6 +45,7 @@ async def read_experiences(
 
     Args:
         pagination (Pagination): The filters for pagination (offset and limit).
+        token (LTIToken): The LTI token used to authenticate user.
         session (Session, optional): The database session.
         structure (Structure, optional): Filter by experience structure.
         aggregation_level (AggregationLevel, optional): Filter by aggregation level.
@@ -71,12 +75,15 @@ async def read_experiences(
 
 @router.post("/", response_model=UUID)
 async def create_experience(
-    experience: ExperienceCreate, session: Session = Depends(get_session)
+    experience: ExperienceCreate,
+    token: Annotated[LTIToken, Depends(get_lti_token)],
+    session: Session = Depends(get_session),
 ):
     """Create an experience.
 
     Args:
         experience (Experience): The data of the experience to create.
+        token (LTIToken): The LTI token used to authenticate user.
         session (Session, optional): The database session.
 
     Returns:
@@ -109,6 +116,7 @@ async def create_experience(
 async def update_experience(
     experience_id: UUID,
     experience: ExperienceUpdate,
+    token: Annotated[LTIToken, Depends(get_lti_token)],
     session: Session = Depends(get_session),
 ):
     """Update an existing experience by ID.
@@ -116,6 +124,7 @@ async def update_experience(
     Args:
         experience_id (UUID): The unique identifier of the experience to be updated.
         experience (ExperienceUpdate): The data to update the experience with.
+        token (LTIToken): The LTI token used to authenticate user.
         session (Session, optional): The database session.
 
     Returns:
@@ -151,11 +160,16 @@ async def update_experience(
 
 
 @router.get("/{experience_id}", response_model=ExperienceRead)
-async def read_experience(experience_id: UUID, session: Session = Depends(get_session)):
+async def read_experience(
+    experience_id: UUID,
+    token: Annotated[LTIToken, Depends(get_lti_token)],
+    session: Session = Depends(get_session),
+):
     """Retrieve detailed information about an experience.
 
     Args:
         experience_id (UUID): The ID of the experience to retrieve.
+        token (LTIToken): The LTI token used to authenticate user.
         session (Session, optional): The database session.
 
     Returns:
