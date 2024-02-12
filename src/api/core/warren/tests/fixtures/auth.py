@@ -11,7 +11,7 @@ from ...models import LTIToken, LTIUser
 
 
 @pytest.fixture
-def auth_headers():
+def auth_headers() -> dict:
     """Generate authentication headers with a JWT token.
 
     This fixture generates authentication headers for use in testing scenarios.
@@ -43,7 +43,7 @@ def auth_headers():
         iat=timestamp,
         jti="",
         session_id=str(uuid.uuid4()),
-        roles=["instrucgtor"],
+        roles=["instructor"],
         user=lti_user,
         locale="fr",
         resource_link_id="8d5dabc2-6af4-42ac-a29b-97649db4a162",
