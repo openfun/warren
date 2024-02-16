@@ -423,6 +423,69 @@ async def test_get_or_compute(db_session, monkeypatch):
 
 
 @pytest.mark.anyio
+@freeze_time("2023-10-14")
+async def test_get_or_compute_for_complex_models(db_session):
+    """Test saving cached results (complex model) to the database."""
+
+    class User(BaseModel):
+        firstname: str
+        lastname: str
+
+    class Organization(BaseModel):
+        name: str
+        people: list[User]
+
+    class MyIndicator(BaseIndicator, CacheMixin):
+        """Dummy indicator."""
+
+        def get_lrs_query(self) -> LRSStatementsQuery:
+            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
+
+        async def fetch_statements(self):
+            pass
+
+        async def compute(self) -> Organization:
+            return Organization(
+                name="Doe's Restaurant",
+                people=[
+                    User(firstname="jane", lastname="doe"),
+                    User(firstname="john", lastname="Doe"),
+                ],
+            )
+
+    indicator = MyIndicator()
+    caches = db_session.exec(
+        select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
+    ).all()
+    assert len(caches) == 0
+    result = await indicator.get_or_compute()
+
+    saved = db_session.exec(
+        select(CacheEntry).where(CacheEntry.key == indicator.cache_key)
+    ).one()
+
+    assert isinstance(saved, CacheEntry)
+    assert saved.key == indicator.cache_key
+    assert saved.value == {
+        "name": "Doe's Restaurant",
+        "people": [
+            {"firstname": "jane", "lastname": "doe"},
+            {"firstname": "john", "lastname": "Doe"},
+        ],
+    }
+    assert saved.since is None
+    assert saved.until is None
+    assert saved.created_at == datetime(2023, 10, 14, tzinfo=timezone.utc)
+    assert result == Organization(
+        name="Doe's Restaurant",
+        people=[
+            User(firstname="jane", lastname="doe"),
+            User(firstname="john", lastname="Doe"),
+        ],
+    )
+
+
+@pytest.mark.anyio
 async def test_incremental_get_cache(db_session):
     """Test getting cache(s) for the incremental mixin."""
 

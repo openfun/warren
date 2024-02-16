@@ -136,9 +136,11 @@ class CacheMixin(Cacheable):
             return self._raw_or_pydantic(cache.value)
 
         value = await self.compute()
+        if issubclass(self._compute_annotation, BaseModel):
+            value = value.json()
 
         if cache is None:
-            cache = CacheEntry.model_validate(
+            cache = CacheEntry.parse_obj(
                 CacheEntryCreate(key=self.cache_key, value=value)
             )
             await self.save(cache)
