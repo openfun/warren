@@ -1,12 +1,11 @@
 """Database migrations helpers."""
 
-from pathlib import Path
-
 from alembic import command
 from alembic.config import Config
 
-ROOT_PATH: Path = Path(__file__).parent.parent
-ALEMBIC_CFG: Config = Config(ROOT_PATH / "alembic.ini")
+from ..conf import settings
+
+ALEMBIC_CFG: Config = Config(settings.ALEMBIC_CFG_PATH)
 
 
 def current(verbose: bool = False):
