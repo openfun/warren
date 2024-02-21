@@ -43,6 +43,13 @@ class Settings(BaseSettings):
         "actor.openid",
     }
 
+    # API Core Root path
+    # (used at least by everything that is alembic-configuration-related)
+    ROOT_PATH: Path = Path(__file__).parent
+
+    # Alembic
+    ALEMBIC_CFG_PATH: Path = ROOT_PATH / "alembic.ini"
+
     # Security
     ALLOWED_HOSTS: List[str] = [
         "http://localhost:8090",
