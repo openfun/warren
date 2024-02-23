@@ -32,7 +32,12 @@ loggers:
       - access
     level: INFO
     propagate: false
-  core.warren.api.v1:
+  core.warren:
+    handlers:
+      - default
+    level: DEBUG
+    propagate: false
+  warren:
     handlers:
       - default
     level: DEBUG
