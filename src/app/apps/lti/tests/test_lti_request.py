@@ -41,7 +41,7 @@ class LTIRequestViewTestCase(TestCase):
             "accept_presentation_document_targets": "frame,iframe,window",
             "content_item_return_url": "http://fake-lms.com/",
             "context_id": "1",
-            "lis_person_sourcedid": "1",
+            "user_id": "1",
             "lis_person_contact_email_primary": "contact@example.com",
         }
 
@@ -136,7 +136,7 @@ class LTIRequestViewTestCase(TestCase):
             "resource_link_id": "df7",
             "context_id": "course-v1:openfun+mathematics101+session01",
             "context_title": "Mathematics 101",
-            "lis_person_sourcedid": "1",
+            "user_id": "1",
             "lis_person_contact_email_primary": "contact@example.com",
         }
 

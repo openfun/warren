@@ -43,7 +43,7 @@ class DevelopmentLTIView(TemplateView):
             "lti_version": "LTI-1p0",
             "resource_link_id": str(uuid.uuid4()),
             "lis_person_contact_email_primary": "johndoe@example.com",
-            "lis_person_sourcedid": "johndoe",
+            "user_id": "1234",
             "context_id": "course-v1:openfun+mathematics101+session01",
             "context_title": "Mathematics 101",
             "roles": "student",

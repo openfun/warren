@@ -46,7 +46,7 @@ class LTISelectFormAccessTokenTestCase(TestCase):
                 "lti_version": "LTI-1p0",
                 "resource_link_id": "df7",
                 "context_id": "1",
-                "lis_person_sourcedid": "1",
+                "user_id": "1",
                 "lis_person_contact_email_primary": "contact@example.com",
                 "roles": "Instructor",
             }
