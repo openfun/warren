@@ -10,7 +10,7 @@ from sqlmodel import Session
 
 from warren.xi.client import CRUDExperience
 from warren.xi.factories import ExperienceFactory
-from warren.xi.models import ExperienceCreate, ExperienceRead
+from warren.xi.models import ExperienceCreate, ExperienceRead, ExperienceUpdate
 
 
 @pytest.mark.anyio
@@ -33,6 +33,81 @@ async def test_crud_experience_raise_status(http_auth_client: AsyncClient, monke
     # Assert 'get' raises an HTTP error
     with pytest.raises(HTTPError, match="422"):
         await crud_instance.get(object_id="foo.")
+
+
+@pytest.mark.anyio
+async def test_crud_experience_create(http_auth_client: AsyncClient, monkeypatch):
+    """Test we are able to create a new experience."""
+    monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
+    crud_instance = CRUDExperience(client=http_auth_client)
+
+    experience = ExperienceFactory.build_dict(exclude={})
+    experience_read = await crud_instance.create(ExperienceCreate(**experience))
+
+    expected = ExperienceRead(**experience)
+    exclude = {
+        "id",
+        "created_at",
+        "updated_at",
+        "relations_source",
+        "relations_target",
+    }
+    cmp_options = {"exclude": exclude}
+    assert experience_read.dict(**cmp_options) == expected.dict(**cmp_options)
+
+
+@pytest.mark.anyio
+async def test_crud_experience_get_from_iri(
+    http_auth_client: AsyncClient, db_session: Session, monkeypatch
+):
+    """Test we are able to get an experience from its IRI."""
+    ExperienceFactory.__session__ = db_session
+    monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
+    crud_instance = CRUDExperience(client=http_auth_client)
+
+    # Create an experience object but don't save it to database
+    # so that it's not expected to exists
+    experience = ExperienceFactory.build()
+    experience_read = await crud_instance.get(object_id=experience.iri)
+    assert experience_read is None
+
+    # Now save a new experience and try to get it by its IRI
+    experience = ExperienceFactory.create_sync()
+    experience_read = await crud_instance.get(object_id=experience.iri)
+    expected = ExperienceRead(**experience.dict())
+    exclude = {
+        "relations_source",
+        "relations_target",
+    }
+    cmp_options = {"exclude": exclude}
+    assert experience_read.dict(**cmp_options) == expected.dict(**cmp_options)
+
+
+@pytest.mark.anyio
+async def test_crud_experience_get_from_id(
+    http_auth_client: AsyncClient, db_session: Session, monkeypatch
+):
+    """Test we are able to get an experience from its ID."""
+    ExperienceFactory.__session__ = db_session
+    monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
+    crud_instance = CRUDExperience(client=http_auth_client)
+
+    # Create an experience object but don't save it to database
+    # so that it's not expected to exists
+    experience = ExperienceFactory.build()
+    experience_read = await crud_instance.get(object_id=experience.id)
+    assert experience_read is None
+
+    # Now save a new experience and try to get it by its IRI
+    experience = ExperienceFactory.create_sync()
+    experience_read = await crud_instance.get(object_id=experience.id)
+    expected = ExperienceRead(**experience.dict())
+    exclude = {
+        "relations_source",
+        "relations_target",
+    }
+    cmp_options = {"exclude": exclude}
+    assert experience_read.dict(**cmp_options) == expected.dict(**cmp_options)
 
 
 @pytest.mark.anyio
@@ -60,8 +135,42 @@ async def test_crud_experience_read_empty(http_auth_client: AsyncClient, monkeyp
 
 
 @pytest.mark.anyio
-async def test_crud_experience_create_or_update_new(
+async def test_crud_experience_update(
     http_auth_client: AsyncClient, db_session: Session, monkeypatch
+):
+    """Test we are able to update an experience."""
+    ExperienceFactory.__session__ = db_session
+    monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
+    crud_instance = CRUDExperience(client=http_auth_client)
+
+    # Save a new experience to update
+    experience = ExperienceFactory.create_sync(language="fr")
+    assert (await crud_instance.get(experience.id)).language == "fr"
+
+    # Update
+    experience_update = await crud_instance.update(
+        experience.id, ExperienceUpdate(language="en")
+    )
+    assert experience_update.language == "en"
+    assert (await crud_instance.get(experience.id)).language == "en"
+
+
+@pytest.mark.anyio
+async def test_crud_experience_delete(
+    http_auth_client: AsyncClient, db_session: Session, monkeypatch
+):
+    """Test we are not able to delete an experience using the client."""
+    ExperienceFactory.__session__ = db_session
+    monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
+    crud_instance = CRUDExperience(client=http_auth_client)
+
+    with pytest.raises(NotImplementedError):
+        await crud_instance.delete()
+
+
+@pytest.mark.anyio
+async def test_crud_experience_create_or_update_new(
+    http_auth_client: AsyncClient, monkeypatch
 ):
     """Test creating an experience using 'create_or_update'."""
     monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
@@ -85,7 +194,7 @@ async def test_crud_experience_create_or_update_new(
 
 @pytest.mark.anyio
 async def test_crud_experience_create_or_update_existing(
-    http_auth_client: AsyncClient, db_session: Session, monkeypatch
+    http_auth_client: AsyncClient, monkeypatch
 ):
     """Test updating an experience using 'create_or_update'."""
     monkeypatch.setattr(CRUDExperience, "_base_url", "/api/v1/experiences")
