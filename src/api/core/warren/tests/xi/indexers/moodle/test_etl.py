@@ -44,7 +44,7 @@ async def test_course_content_factory(
     wrong_iri = f"uuid://{uuid4().hex}"
     httpx_mock.add_response(
         url=re.compile(r".*experiences.*"),
-        status_code=404,
+        json=[],
     )
 
     # Attempt to build a 'CourseContent' indexer with a wrong iri
@@ -57,11 +57,16 @@ async def test_course_content_factory(
 
     # Generate random experience's data
     experience = ExperienceFactory.build_dict(exclude={}, json_dump={})
-
     experience["created_at"] = str(experience["created_at"])
     experience["updated_at"] = str(experience["updated_at"])
 
     # Return the generated experience by mocking the XI response
+    httpx_mock.add_response(
+        url=re.compile(r".*experiences.*"),
+        json=[
+            experience,
+        ],
+    )
     httpx_mock.add_response(
         url=re.compile(r".*experiences.*"),
         json=experience,
@@ -366,58 +371,17 @@ async def test_course_content_load_create(
     )
 
     # Mock data to be loaded
-    data = [ExperienceCreate(**ExperienceFactory.build_dict())]
+    content = ExperienceRead(**ExperienceFactory.build_dict(exclude={}))
 
     # Mock relation 'create_bidirectional' operation
     indexer._xi.relation.create_bidirectional = AsyncMock()
 
     # Mock experience 'create_or_update' operation to fake creation
-    mocked_uuid = uuid4()
-    indexer._xi.experience.create_or_update = AsyncMock(return_value=mocked_uuid)
+    indexer._xi.experience.create_or_update = AsyncMock(return_value=content)
 
     # Load data with mocked CRUD operations
-    await indexer._load(data=data)
+    await indexer._load(data=[ExperienceCreate(**content.dict())])
 
     # Assert 'create_bidirectional' has been called
     # It should be called only when creating new experiences
     indexer._xi.relation.create_bidirectional.assert_awaited_once()
-
-
-@pytest.mark.anyio
-async def test_course_content_load_update(
-    httpx_mock: HTTPXMock, http_client: AsyncClient, monkeypatch
-):
-    """Test '_load' method from 'CourseContent' when updating experience."""
-    # Generate a random experience
-    experience = ExperienceRead(
-        **ExperienceFactory.build_dict(
-            exclude={},
-            json_dump={},
-            iri="http://foo.com/course/view.php?id=1",
-            language="fr",
-        )
-    )
-
-    # Instantiate an indexer
-    indexer = CourseContent(
-        lms=Moodle(),
-        xi=ExperienceIndex(),
-        course=experience,
-    )
-
-    # Mock data to be loaded
-    data = [ExperienceCreate(**ExperienceFactory.build_dict())]
-
-    # Mock relation 'create_bidirectional' operation
-    indexer._xi.relation.create_bidirectional = AsyncMock()
-
-    # Mock experience 'create_or_update' operation to fake update
-    mocked_experience = ExperienceFactory.build()
-    indexer._xi.experience.create_or_update = AsyncMock(return_value=mocked_experience)
-
-    # Load data with mocked CRUD operations
-    await indexer._load(data=data)
-
-    # Assert 'create_bidirectional' has not been called
-    # It should be called only when creating new experiences
-    indexer._xi.relation.create_bidirectional.assert_not_awaited()

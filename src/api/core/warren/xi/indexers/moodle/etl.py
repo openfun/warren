@@ -3,8 +3,7 @@
 import logging
 import re
 from itertools import chain
-from typing import Iterator, List, Union
-from uuid import UUID
+from typing import Iterator, List
 
 from httpx import HTTPError
 from pydantic import ValidationError
@@ -17,7 +16,6 @@ from ...models import (
     ExperienceCreate,
     ExperienceRead,
 )
-from ...schema import Experience
 from ..etl import ETL, ETLRunnerMixin
 from .client import LMS
 from .models import Course, Section
@@ -128,19 +126,14 @@ class CourseContent(ETL[Section, ExperienceCreate], ETLRunnerMixin):
         """Load experiences into the Experience Index (XI) and create relations."""
         for experience in data:
             try:
-                # If a new experience is created, it will return a UUID
-                response: Union[UUID, Experience] = (
-                    await self._xi.experience.create_or_update(experience)
+                content: ExperienceRead = await self._xi.experience.create_or_update(
+                    experience
                 )
-
-                # If it's a new experience, create relations to its course
-                if isinstance(response, UUID):
-                    await self._xi.relation.create_bidirectional(
-                        self._course.id,
-                        response,
-                        (RelationType.ISPARTOF, RelationType.HASPART),
-                    )
-
+                await self._xi.relation.create_bidirectional(
+                    self._course.id,
+                    content.id,
+                    (RelationType.ISPARTOF, RelationType.HASPART),
+                )
             except HTTPError as err:
                 if not self._ignore_errors:
                     raise err

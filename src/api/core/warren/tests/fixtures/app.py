@@ -29,5 +29,6 @@ async def http_auth_client() -> AsyncIterator[AsyncClient]:
         app=app,
         base_url=settings.SERVER_URL,
         headers={"Authorization": f"Bearer {forge_lti_token()}"},
+        follow_redirects=True,
     ) as client:
         yield client
