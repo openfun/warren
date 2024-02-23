@@ -39,6 +39,7 @@ async def read_experiences(  # noqa: PLR0913
     session: Session = Depends(get_session),
     structure: Optional[Structure] = None,
     aggregation_level: Optional[AggregationLevel] = None,
+    technical_datatypes: Optional[list[str]] = None,
     iri: Optional[IRI] = None,
 ):
     """Retrieve a list of experiences based on query parameters.
@@ -49,6 +50,7 @@ async def read_experiences(  # noqa: PLR0913
         session (Session, optional): The database session.
         structure (Structure, optional): Filter by experience structure.
         aggregation_level (AggregationLevel, optional): Filter by aggregation level.
+        technical_datatypes (list, optional): Filter by mime type.
         iri (IRI, optional): Filter by iri.
 
     Returns:
@@ -64,6 +66,10 @@ async def read_experiences(  # noqa: PLR0913
         statement = statement.where(Experience.aggregation_level == aggregation_level)
     if iri:
         statement = statement.where(Experience.iri == iri)
+    if technical_datatypes:
+        statement = statement.filter(
+            Experience.technical_datatypes.comparator.contains(technical_datatypes)  # type: ignore[union-attr]
+        )
 
     experiences = session.exec(
         statement.offset(pagination.offset).limit(pagination.limit)

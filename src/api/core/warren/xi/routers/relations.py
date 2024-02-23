@@ -1,7 +1,7 @@
 """Experience Index API Relations router."""
 
 import logging
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -14,6 +14,7 @@ from warren.db import get_session
 from warren.models import LTIToken
 from warren.utils import get_lti_token
 
+from ..enums import RelationType
 from ..filters import Pagination
 from ..models import (
     RelationCreate,
@@ -30,10 +31,13 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/", response_model=List[RelationRead])
-async def read_relations(
+async def read_relations(  # noqa: PLR0913
     pagination: Annotated[Pagination, Depends()],
     token: Annotated[LTIToken, Depends(get_lti_token)],
     session: Session = Depends(get_session),
+    source: Optional[UUID] = None,
+    target: Optional[UUID] = None,
+    kind: Optional[RelationType] = None,
 ):
     """Retrieve a list of relations based on query parameters.
 
@@ -41,12 +45,23 @@ async def read_relations(
         pagination (Pagination): The filters for pagination (offset and limit).
         token (LTIToken): The LTI token used to authenticate user.
         session (Session, optional): The database session.
+        source (UUID, optional): Filter relations having experience ID as source.
+        target (UUID, optional): Filter relations having experience ID as target.
+        kind (RelationType, optional): Filter relations of a particular kind.
 
     Returns:
         List[RelationRead]: List of relations matching the query.
     """
     logger.debug("Reading relations")
+    logger.debug(f"Filters: {source=} / {target=} / {kind=}")
     statement = select(Relation)
+    if source:
+        statement = statement.where(Relation.source_id == source)
+    if target:
+        statement = statement.where(Relation.target_id == target)
+    if kind:
+        statement = statement.where(Relation.kind == kind)
+
     relations = session.exec(
         statement.offset(pagination.offset).limit(pagination.limit)
     ).all()
