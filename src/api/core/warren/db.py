@@ -72,6 +72,7 @@ def is_alive() -> bool:
     try:
         session.execute(text("SELECT 1 as is_alive"))
         return True
-    except OperationalError:
+    except OperationalError as err:
+        logger.debug("Exception: %s", err)
         return False
     return False
