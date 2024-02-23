@@ -112,6 +112,8 @@ class Experience(BaseTimestamp, table=True):  # type: ignore[call-arg, misc]
         sa_column=Column(SAEnum(AggregationLevel)),
         description="The functional granularity of this learning object.",
     )
+    # FIXME
+    # technical_datatypes: Json = Field(
     technical_datatypes: JsonField = Field(
         sa_column=Column(JSON),
         description=(
