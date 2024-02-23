@@ -98,10 +98,13 @@ async def create_experience(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=message
         ) from exception
+
+    session.add(db_experience)
+
     try:
-        session.add(db_experience)
         session.commit()
     except IntegrityError as exception:
+        session.rollback()
         message = "An error occurred while creating the experience"
         logger.debug("%s. Exception:", message, exc_info=True)
         raise HTTPException(
@@ -143,10 +146,12 @@ async def update_experience(
     for key, value in experience_data.items():
         setattr(db_experience, key, value)
 
+    session.add(db_experience)
+
     try:
-        session.add(db_experience)
         session.commit()
     except IntegrityError as exception:
+        session.rollback()
         message = "An error occurred while updating the experience"
         logger.debug("%s: %s", message, exception)
         raise HTTPException(

@@ -80,10 +80,13 @@ async def create_relation(
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=message
         ) from exception
+
+    session.add(db_relation)
+
     try:
-        session.add(db_relation)
         session.commit()
     except IntegrityError as exception:
+        session.rollback()
         message = "An error occurred while creating the relation"
         logger.debug("%s. Exception:", message, exc_info=True)
         raise HTTPException(
@@ -125,10 +128,12 @@ async def update_relation(
     for key, value in relation_data.items():
         setattr(db_relation, key, value)
 
+    session.add(db_relation)
+
     try:
-        session.add(db_relation)
         session.commit()
     except IntegrityError as exception:
+        session.rollback()
         message = "An error occurred while updating the relation"
         logger.debug("%s. Exception:", message, exc_info=True)
         raise HTTPException(
