@@ -40,7 +40,7 @@ class TokenMixin:
         lti_user_data = {
             "platform": lti_request.get_consumer().url,
             "course": lti_request.get_param("context_id"),
-            "user": lti_request.get_param("lis_person_sourcedid"),
+            "user": lti_request.get_param("user_id"),
             "email": lti_request.get_param("lis_person_contact_email_primary"),
         }
         lti_user_form = BaseLTIUserForm(lti_user_data)
@@ -105,7 +105,7 @@ class LTIRequestView(BaseLTIView, RenderMixin, TokenMixin):
         lti_user = {
             "platform": lti_request.get_consumer().url,
             "course": lti_request.get_param("context_id"),
-            "user": lti_request.get_param("lis_person_sourcedid"),
+            "user": lti_request.get_param("user_id"),
             "email": lti_request.get_param("lis_person_contact_email_primary"),
         }
 

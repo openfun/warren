@@ -40,7 +40,7 @@ class LTISelectViewTestCase(TestCase):
             "lti_version": "LTI-1p0",
             "resource_link_id": "df7",
             "context_id": "1",
-            "lis_person_sourcedid": "1",
+            "user_id": "1",
             "lis_person_contact_email_primary": "contact@example.com",
             "roles": "instructor",
         }
@@ -135,7 +135,7 @@ class LTISelectViewTestCase(TestCase):
             "accept_presentation_document_targets": "frame,iframe,window",
             "content_item_return_url": "http://fake-lms.com/",
             "context_id": "1",
-            "lis_person_sourcedid": "1",
+            "user_id": "1",
             "lis_person_contact_email_primary": "contact@example.com",
             "roles": "student",
         }
@@ -174,7 +174,7 @@ class LTISelectViewTestCase(TestCase):
             "accept_presentation_document_targets": "frame,iframe,window",
             "content_item_return_url": "http://fake-lms.com/",
             "context_id": "1",
-            "lis_person_sourcedid": "1",
+            "user_id": "1",
             "lis_person_contact_email_primary": "contact@example.com",
             "roles": "instructor",
         }
