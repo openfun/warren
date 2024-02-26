@@ -43,16 +43,20 @@ spec:
             httpGet:
               path: /__heartbeat__
               port: http
+              {{- if .Values.allowedHosts }}
               httpHeaders:
                 - name: Host
                   value: "{{ first .Values.allowedHosts }}"
+              {{- end }}
           readinessProbe:
             httpGet:
               path: /__lbheartbeat__
               port: http
+              {{- if .Values.allowedHosts }}
               httpHeaders:
                 - name: Host
                   value: "{{ first .Values.allowedHosts }}"
+              {{- end }}
           envFrom:
             - configMapRef:
                 name: "warren-app-env"

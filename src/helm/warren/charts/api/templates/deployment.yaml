@@ -46,18 +46,22 @@ spec:
             httpGet:
               path: /__heartbeat__
               port: http
+              {{- if .Values.allowedHosts }}
               httpHeaders:
                 - name: Host
                   value: '{{ first .Values.allowedHosts | trimPrefix "https://" }}'
+              {{- end }}
             initialDelaySeconds: 15
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /__lbheartbeat__
               port: http
+              {{- if .Values.allowedHosts }}
               httpHeaders:
                 - name: Host
                   value: '{{ first .Values.allowedHosts | trimPrefix "https://" }}'
+              {{- end }}
             initialDelaySeconds: 5
             periodSeconds: 5
           envFrom:
