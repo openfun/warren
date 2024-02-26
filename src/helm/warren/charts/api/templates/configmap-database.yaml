@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: warren-api-database
+  labels:
+    {{- include "api.labels" . | nindent 4 }}
+data:
+  WARREN_API_DB_ENGINE: {{ .Values.database.engine | quote }}
+  WARREN_API_DB_HOST: {{ .Values.database.host | quote }}
+  WARREN_API_DB_PORT: {{ .Values.database.port | quote }}
+  WARREN_API_DB_NAME: {{ .Values.database.name | quote }}
+  WARREN_API_DB_USER: {{ .Values.database.user | quote }}

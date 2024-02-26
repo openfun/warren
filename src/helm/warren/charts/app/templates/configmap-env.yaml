@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: warren-app-env
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+data:
+  DJANGO_SETTINGS_MODULE: {{ .Values.djangoSettingsModule | quote }}
+  DJANGO_CONFIGURATION: {{ .Values.djangoConfiguration | quote }}
+  {{- if .Values.persistence.enabled }}
+  WARREN_APP_MEDIA_ROOT: {{ .Values.persistence.volumes.media.mountPath | quote }}
+  WARREN_APP_STATIC_ROOT: {{ .Values.persistence.volumes.static.mountPath | quote }}
+  {{- end }}
+  WARREN_APP_SIGNING_ALGORITHM: {{ .Values.signing.algorithm | quote }}
+  WARREN_APP_ACCESS_TOKEN_LIFETIME: {{ .Values.accessTokenLifetime | quote }}
+  WARREN_APP_REFRESH_TOKEN_LIFETIME: {{ .Values.refreshTokenLifetime | quote }}
+  WARREN_APP_LTI_ACCESS_TOKEN_LIFETIME: {{ .Values.ltiAccessTokenLifetime | quote }}
+  WARREN_API_ROOT_URL: {{ .Values.apiRootUrl | quote }}
+  WARREN_APP_ROOT_URL: {{ .Values.appRootUrl | quote }}
+  WARREN_APP_ALLOWED_HOSTS: {{ include "app.allowedHosts" . }}
+  WARREN_APP_CORS_ALLOWED_ORIGINS: {{ join "," .Values.corsAllowedOrigins | quote }}

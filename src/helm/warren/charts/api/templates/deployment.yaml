@@ -13,10 +13,13 @@ spec:
       {{- include "api.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        checksum/db_config: {{ include (print $.Template.BasePath "/configmap-database.yaml") . | sha256sum }}
+        checksum/env_config: {{ include (print $.Template.BasePath "/configmap-env.yaml") . | sha256sum }}
+        checksum/logging_config: {{ include (print $.Template.BasePath "/configmap-logging.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
       labels:
         {{- include "api.labels" . | nindent 8 }}
         {{- with .Values.podLabels }}
@@ -57,20 +60,17 @@ spec:
                   value: '{{ first .Values.allowedHosts | trimPrefix "https://" }}'
             initialDelaySeconds: 5
             periodSeconds: 5
-          env:
-            - name: WARREN_API_SERVER_PORT
-              value: "{{ .Values.service.port }}"
-            - name: WARREN_API_DB_ENGINE
-              value: {{ .Values.database.engine }}
-            - name: WARREN_API_DB_PORT
-              value: {{ .Values.database.port | quote }}
-            - name: WARREN_APP_SIGNING_ALGORITHM
-              value: {{ .Values.signingAlgorithm }}
-            - name: WARREN_ALLOWED_HOSTS
-              value: {{ include "api.allowedHosts" . }}
           envFrom:
+            - configMapRef:
+                name: "warren-api-env"
+            - configMapRef:
+                name: "warren-api-database"
             - secretRef:
-                name: {{ .Values.envVarsSecret | quote }}
+                name: {{ .Values.lrs.passwordSecretName | quote }}
+            - secretRef:
+                name: {{ .Values.database.passwordSecretName | quote }}
+            - secretRef:
+                name: {{ .Values.signing.keySecretName | quote }}
           {{ with .Values.podCommand }}
           command:
             {{- toYaml . | nindent 12 }}

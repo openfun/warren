@@ -33,9 +33,6 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-# Secret name to inject as environment variables
-envVarsSecret: "warren-app-env"
-
 jobs:
   dbMigrate:
     name: "warren-app-db-migrate"
@@ -97,7 +94,7 @@ persistence:
   enabled: false
   storageClass: "standard"
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   volumes:
     media:
       name: media
@@ -130,16 +127,29 @@ tolerations: []
 affinity: {}
 
 # Django application configuration
-accessTokenLifetime: 300
 allowedHosts: []
-database:
-  port: 5432
+
+signing:
+  algorithm: HS256
+  key: ""
+  keySecretName: "warren-signing-key"
+
+accessTokenLifetime: 300
 djangoConfiguration: Production
 djangoSettingsModule: warren.settings
 ltiAccessTokenLifetime: 86400
 refreshTokenLifetime: 86400
-signingAlgorithm: HS256
 apiRootUrl: "http://localhost:8090"
 appRootUrl: "http://localhost:8100"
 corsAllowedOrigins:
   - "http://localhost:8090"
+secretKey: ""
+secretKeySecretName: "warren-app-secret-key"
+
+database:
+  host: "my-release-postgresql"
+  port: 5432
+  name: "warren-app"
+  user: "warren-app"
+  password: ""
+  passwordSecretName: "warren-app-database-password"

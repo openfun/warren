@@ -5,7 +5,9 @@ metadata:
   labels:
     {{- include "api.labels" . | nindent 4 }}
   annotations:
-    "helm.sh/hook": post-install, pre-upgrade
+    # Execute before deployment but after PVC and secrets creation
+    "helm.sh/hook": pre-install, pre-upgrade
+    "helm.sh/hook-weight": "1"
 spec:
   template:
     metadata:
@@ -27,12 +29,17 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          env:
-            - name: WARREN_APP_SIGNING_ALGORITHM
-              value: {{ .Values.signingAlgorithm }}
           envFrom:
+            - configMapRef:
+                name: "warren-api-env"
+            - configMapRef:
+                name: "warren-api-database"
             - secretRef:
-                name: {{ .Values.envVarsSecret | quote }}
+                name: {{ .Values.lrs.passwordSecretName | quote }}
+            - secretRef:
+                name: {{ .Values.database.passwordSecretName | quote }}
+            - secretRef:
+                name: {{ .Values.signing.keySecretName | quote }}
           {{ with .Values.jobs.dbMigrate.command }}
           command:
             {{- toYaml . | nindent 12 }}
