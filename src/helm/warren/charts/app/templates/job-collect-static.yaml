@@ -5,8 +5,6 @@ metadata:
   name: "{{ .Values.jobs.collectStatic.name }}"
   labels:
     {{- include "app.labels" . | nindent 4 }}
-  annotations:
-    "helm.sh/hook": post-install, pre-upgrade
 spec:
   template:
     metadata:
@@ -28,30 +26,11 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          env:
-            - name: DJANGO_SETTINGS_MODULE
-              value: {{ .Values.djangoSettingsModule }}
-            - name: DJANGO_CONFIGURATION
-              value: {{ .Values.djangoConfiguration }}
-            - name: WARREN_APP_MEDIA_ROOT
-              value: {{ .Values.persistence.volumes.media.mountPath }}
-            - name: WARREN_APP_STATIC_ROOT
-              value: {{ .Values.persistence.volumes.static.mountPath }}
-            - name: WARREN_APP_DB_PORT
-              value: {{ .Values.database.port | quote }}
-            - name: WARREN_APP_SIGNING_ALGORITHM
-              value: {{ .Values.signingAlgorithm }}
-            - name: WARREN_APP_ACCESS_TOKEN_LIFETIME
-              value: {{ .Values.accessTokenLifetime | quote }}
-            - name: WARREN_APP_REFRESH_TOKEN_LIFETIME
-              value: {{ .Values.refreshTokenLifetime | quote }}
-            - name: WARREN_APP_LTI_ACCESS_TOKEN_LIFETIME
-              value: {{ .Values.ltiAccessTokenLifetime | quote }}
-            - name: WARREN_APP_ALLOWED_HOSTS
-              value: {{ include "app.allowedHosts" . }}
           envFrom:
+            - configMapRef:
+                name: "warren-app-env"
             - secretRef:
-                name: {{ .Values.envVarsSecret | quote }}
+                name: {{ .Values.secretKeySecretName | quote }}
           {{ with .Values.jobs.collectStatic.command }}
           command:
             {{- toYaml . | nindent 12 }}

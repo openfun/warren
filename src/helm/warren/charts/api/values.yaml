@@ -38,18 +38,13 @@ securityContext: {}
   # runAsNonRoot: true
   # runAsUser: 1000
 
-# Secret name to inject as environment variables
-envVarsSecret: "warren-api-env"
-
 jobs:
   dbMigrate:
     name: "warren-api-db-migrate"
     command:
-      - "alembic"
+      - bash 
       - "-c"
-      - "core/alembic.ini"
-      - "upgrade"
-      - "head"
+      - "warren migration upgrade head"
     restartPolicy: Never
 
 service:
@@ -112,9 +107,27 @@ affinity: {}
 
 # API configuration
 allowedHosts: []
+
+signing:
+  algorithm: HS256
+  key: ""
+  keySecretName: "warren-signing-key"
+
+lrs:
+  host: ""
+  username: ""
+  password: ""
+  passwordSecretName: "warren-api-lrs-password"
+
 database:
   engine: postgresql
+  host: "my-release-postgresql"
   port: 5432
+  name: "warren-api"
+  user: "warren-api"
+  password: ""
+  passwordSecretName: "warren-api-database-password"
+
 loggingConfigConfigMap: api-logging-config
 loggingConfig:
   version: 1
@@ -154,4 +167,3 @@ loggingConfig:
         - default
       level: INFO
       propagate: false
-signingAlgorithm: HS256

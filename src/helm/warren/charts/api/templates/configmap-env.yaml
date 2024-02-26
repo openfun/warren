@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: warren-api-env
+  labels:
+    {{- include "api.labels" . | nindent 4 }}
+data:
+  WARREN_API_SERVER_PORT: {{ .Values.service.port | quote}}
+  WARREN_APP_SIGNING_ALGORITHM: {{ .Values.signing.algorithm | quote }}
+  WARREN_ALLOWED_HOSTS: {{ include "api.allowedHosts" . }}
+  WARREN_LRS_HOSTS: {{ .Values.lrs.host | quote }}
+  WARREN_LRS_AUTH_BASIC_USERNAME: {{ .Values.lrs.username | quote}}

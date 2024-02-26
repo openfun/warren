@@ -53,38 +53,17 @@ spec:
               httpHeaders:
                 - name: Host
                   value: "{{ first .Values.allowedHosts }}"
-          env:
-            - name: DJANGO_SETTINGS_MODULE
-              value: {{ .Values.djangoSettingsModule }}
-            - name: DJANGO_CONFIGURATION
-              value: {{ .Values.djangoConfiguration }}
-            {{- if .Values.persistence.enabled }}
-            - name: WARREN_APP_MEDIA_ROOT
-              value: {{ .Values.persistence.volumes.media.mountPath }}
-            - name: WARREN_APP_STATIC_ROOT
-              value: {{ .Values.persistence.volumes.static.mountPath }}
-            {{- end }}
-            - name: WARREN_APP_DB_PORT
-              value: {{ .Values.database.port | quote }}
-            - name: WARREN_APP_SIGNING_ALGORITHM
-              value: {{ .Values.signingAlgorithm }}
-            - name: WARREN_APP_ACCESS_TOKEN_LIFETIME
-              value: {{ .Values.accessTokenLifetime | quote }}
-            - name: WARREN_APP_REFRESH_TOKEN_LIFETIME
-              value: {{ .Values.refreshTokenLifetime | quote }}
-            - name: WARREN_APP_LTI_ACCESS_TOKEN_LIFETIME
-              value: {{ .Values.ltiAccessTokenLifetime | quote }}
-            - name: WARREN_API_ROOT_URL
-              value: {{ .Values.apiRootUrl | quote }}
-            - name: WARREN_APP_ROOT_URL
-              value: {{ .Values.appRootUrl | quote }}
-            - name: WARREN_APP_ALLOWED_HOSTS
-              value: {{ include "app.allowedHosts" . }}
-            - name: WARREN_APP_CORS_ALLOWED_ORIGINS
-              value: {{ join "," .Values.corsAllowedOrigins | quote }}
           envFrom:
+            - configMapRef:
+                name: "warren-app-env"
+            - configMapRef:
+                name: "warren-app-database"
             - secretRef:
-                name: {{ .Values.envVarsSecret | quote }}
+                name: {{ .Values.database.passwordSecretName | quote }}
+            - secretRef:
+                name: {{ .Values.secretKeySecretName | quote }}
+            - secretRef:
+                name: {{ .Values.signing.keySecretName | quote }}
           {{ with .Values.podCommand }}
           command:
             {{- toYaml . | nindent 12 }}
