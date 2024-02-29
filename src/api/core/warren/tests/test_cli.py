@@ -266,6 +266,31 @@ def test_indicator_compute_command_for_not_annotated_indicator(monkeypatch):
     )
 
 
+def test_indicator_compute_command_with_iri_parameter(monkeypatch):
+    """Test warren indicator compute command for standard type return."""
+    runner = CliRunner()
+
+    async def compute(self) -> dict:
+        return self.video_id
+
+    monkeypatch.setattr(DailyUniqueCompletedViews, "compute", compute)
+
+    # Test IRI value parameter
+    result = runner.invoke(
+        cli,
+        [
+            "indicator",
+            "compute",
+            "warren_video.indicators:DailyUniqueCompletedViews",
+            'video_id="uuid://foo?id=1"',
+            "span_range={}",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "uuid://foo?id=1\n" == result.output
+
+
 def test_indicator_compute_command_with_list_or_dict_parameter(monkeypatch):
     """Test warren indicator compute command for an indicator that is not annotated."""
     runner = CliRunner()
