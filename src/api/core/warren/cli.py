@@ -152,7 +152,7 @@ def indicator_compute(ctx: click.Context, indicator: str, cache: bool):
     # Parse indicator arguments
     indicator_kwargs: dict = {}
     for arg in ctx.args:
-        name, value = arg.split("=")
+        name, value = arg.split(sep="=", maxsplit=1)
 
         # Get expected parameter from its name
         parameter: Optional[Parameter] = indicator_signature.parameters.get(name)
