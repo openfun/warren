@@ -24,7 +24,7 @@ api:
 postgresql:
   # If enabled, a postgresql database will be deployed in the k8s cluster, else
   # a simple gateway can be used (see the postgresql-gw chart)
-  enabled: true
+  enabled: false
 
 # Global variables are accessible both from charts and subcharts templates using
 # the "global" prefix path: {{ .Values.global.var_name }}
