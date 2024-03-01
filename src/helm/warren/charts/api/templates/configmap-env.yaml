@@ -4,6 +4,8 @@ metadata:
   name: warren-api-env
   labels:
     {{- include "api.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install, pre-upgrade
 data:
   WARREN_API_SERVER_PORT: {{ .Values.service.port | quote}}
   WARREN_APP_SIGNING_ALGORITHM: {{ .Values.signing.algorithm | quote }}

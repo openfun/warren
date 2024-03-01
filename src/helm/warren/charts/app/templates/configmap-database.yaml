@@ -4,6 +4,8 @@ metadata:
   name: warren-app-database
   labels:
     {{- include "app.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install, pre-upgrade
 data:
   WARREN_APP_DB_HOST: {{ .Values.database.host | quote }}
   WARREN_APP_DB_PORT: {{ .Values.database.port | quote }}

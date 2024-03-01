@@ -4,6 +4,8 @@ metadata:
   name: warren-app-env
   labels:
     {{- include "app.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install, pre-upgrade
 data:
   DJANGO_SETTINGS_MODULE: {{ .Values.djangoSettingsModule | quote }}
   DJANGO_CONFIGURATION: {{ .Values.djangoConfiguration | quote }}
