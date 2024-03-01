@@ -1,18 +1,19 @@
 import React, { lazy } from "react";
 import {
   AppContentLoader,
-  parseDataContext,
-  Routes,
   AppLayout,
   AppProvider,
+  parseDataContext,
+  Routes,
 } from "@openfun/warren-core";
 
 const dataContext = parseDataContext(document);
 
 // todo - brainstorm on an autodiscovery mechanism for routes
 const routes: Routes = {
-  demo: lazy(() => import("@openfun/warren-video/src/pages/Overview")),
+  demo: lazy(() => import("./Overview.ts")),
 };
+
 
 export const App = () => {
   return (
