@@ -660,6 +660,48 @@ jobs:
               docker push fundocker/warren:api-full-latest
             fi
 
+  publish-helm:
+    docker:
+      - image: cimg/base:current
+        auth:
+          username: $DOCKER_HUB_USER
+          password: $DOCKER_HUB_PASSWORD
+    working_directory: ~/fun
+    steps:
+      # Checkout repository sources
+      - checkout
+      - *docker-login
+      - run:
+          name: Install helm
+          command: |
+            export HELM_RELEASE="v3.13.2"
+            curl -Lo "/tmp/helm.tar.gz" "https://get.helm.sh/helm-${HELM_RELEASE}-linux-amd64.tar.gz"
+            curl -sL "/tmp/helm.tar.gz.sha256sum" "https://get.helm.sh/helm-${HELM_RELEASE}-linux-amd64.tar.gz.sha256sum" | \
+              sed "s|helm-${HELM_RELEASE}-linux-amd64.tar.gz|/tmp/helm.tar.gz|" | \
+              sha256sum --check
+            tar -xf /tmp/helm.tar.gz --strip-components=1 -C ${HOME}/bin linux-amd64/helm
+            chmod 755 "${HOME}/bin/helm"
+      - run:
+          name: Get Helm chart target version from git tag
+          command: |
+            echo "export HELM_TAG=$(echo ${CIRCLE_TAG} | sed 's/^v\(.*\)-helm.*/\1/')" >> "$BASH_ENV"
+            # Display:
+            # - HELM_TAG: 1.1.2 (Git tag v1.1.2-helm)
+            echo "HELM_TAG: ${HELM_TAG} (Git ${CIRCLE_TAG})"
+      - run:
+          name: Package Warren Helm chart
+          working_directory: src/helm
+          command: |
+            helm dependency build warren/
+            helm package warren
+            # Check that chart version matches the tag
+            ls | grep warren-${HELM_TAG}.tgz
+      - run:
+          name: Upload built package to DockerHub
+          working_directory: src/helm
+          command: |
+            helm push warren-${HELM_TAG}.tgz oci://registry-1.docker.io/openfuncharts
+
 workflows:
   version: 2
 
@@ -836,6 +878,14 @@ workflows:
               only: main
             tags:
               only: /^v[0-9]+.[0-9]+.[0-9]+$/
+
+      # Publish Warren helm chart to DockerHub
+      - publish-helm:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v[0-9]+\.[0-9]+\.[0-9]+-helm$/
 
       # Publish the documentation website to GitHub Pages.
       # Only do it for master and for tagged stable releases with a tag in the format vX.Y.Z
