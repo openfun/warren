@@ -146,6 +146,7 @@ are releasing, you need to apply the following Git tag pattern conventions:
 | Front-end    | core         | `v[0-9]+.[0-9]+.[0-9]+-ui`           | `v5.1.0-ui`         |
 |              | plugin       | `v[0-9]+.[0-9]+.[0-9]+-ui-<plugin>`  | `v3.22.5-ui-video`  |
 | Distribution | \*           | `v[0-9]+.[0-9]+.[0-9]+`              | `v2.0.0`            |
+| Helm         | \*           | `v[0-9]+.[0-9]+.[0-9]+-helm`         | `v1.2.1-helm`       |
 
 !!! Note "About Warren distributions"
 
