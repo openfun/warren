@@ -1,6 +1,5 @@
 """Views for the development app."""
 
-import uuid
 from logging import getLogger
 from urllib.parse import unquote, urlparse
 
@@ -11,6 +10,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
 from lti_toolbox.models import LTIConsumer, LTIPassport
 from oauthlib import oauth1
+
+from warren.settings import Development
 
 logger = getLogger(__name__)
 
@@ -38,17 +39,7 @@ class DevelopmentLTIView(TemplateView):
         dictionary
             context for template rendering.
         """
-        lti_parameters = {
-            "lti_message_type": "basic-lti-launch-request",
-            "lti_version": "LTI-1p0",
-            "resource_link_id": str(uuid.uuid4()),
-            "lis_person_contact_email_primary": "johndoe@example.com",
-            "user_id": "1234",
-            "context_id": "course-v1:openfun+mathematics101+session01",
-            "context_title": "Mathematics 101",
-            "roles": "student",
-            "launch_presentation_locale": "fr",
-        }
+        lti_parameters = Development.LTI_PARAMETERS
 
         # use the HTTP_REFERER like to be consistent with the LTI passport
         request_url = (
