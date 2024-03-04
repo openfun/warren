@@ -2,6 +2,7 @@
 
 import json
 import os
+import uuid
 from datetime import timedelta
 from pathlib import Path
 from typing import List
@@ -340,6 +341,25 @@ class Development(Base):
 
     DEBUG = True
     ALLOWED_HOSTS = ["*"]
+
+    # LTI parameters
+    LTI_PARAMETERS = {
+        "lti_message_type": "basic-lti-launch-request",
+        "lti_version": "LTI-1p0",
+        "resource_link_id": str(uuid.uuid4()),
+        "lis_person_contact_email_primary": Value(
+            "johndoe@example.com", environ_name="LTI_LIS_PERSON_CONTACT_EMAIL_PRIMARY"
+        ),
+        "user_id": Value("1234", environ_name="LTI_USER_ID"),
+        "context_id": Value(
+            "course-v1:openfun+mathematics101+session01", environ_name="LTI_CONTEXT_ID"
+        ),
+        "context_title": Value("Mathematics 101", environ_name="LTI_CONTEXT_TITLE"),
+        "roles": Value("student", environ_name="LTI_ROLES"),
+        "launch_presentation_locale": Value(
+            "fr", environ_name="LTI_LAUNCH_PRESENTATION_LOCALE"
+        ),
+    }
 
     LOGGING = {
         "version": 1,
