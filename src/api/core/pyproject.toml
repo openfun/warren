@@ -52,16 +52,16 @@ dynamic = ["version"]
 [project.optional-dependencies]
 dev = [
     "black==24.2.0",
-    "build==1.0.3",
+    "build==1.1.1",
     "freezegun==1.4.0",
     "httpx==0.24.1",
     "ipdb==0.13.13",
     "ipython==8.18.1",
-    "polyfactory==2.14.1",
+    "polyfactory==2.15.0",
     "pytest==7.4.4",
     "pytest-cov==4.1.0",
     "pytest-httpx==0.22.0",
-    "ruff==0.2.2",
+    "ruff==0.3.0",
     "mypy==1.8.0",
     "pandas-stubs==2.2.0.240218",
     "types-python-jose==3.3.4.20240106"
