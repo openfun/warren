@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.1.0] - 2024-03-04
+
 ### Added
 
 - Implement base view filters: date/times
@@ -31,4 +33,5 @@ and this project adheres to
 - Encapsulate statements pre-processing in a Mixin class
 - Factorize Video indicators
 
-[unreleased]: https://github.com/openfun/warren
+[unreleased]: https://github.com/openfun/warren/compare/v0.1.0...main
+[0.1.0]: https://github.com/openfun/warren/compare/abae78e...v0.1.0
