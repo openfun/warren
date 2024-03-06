@@ -99,7 +99,11 @@ testpaths = [
 exclude = [
     "core/warren/migrations/versions",
 ]
-lint.select = [
+# Assume Python 3.9.
+target-version = "py39"
+
+[tool.ruff.lint]
+select = [
     "B",  # flake8-bugbear
     "C4",  # flake8-comprehensions
     "D",  # pydocstyle
@@ -116,9 +120,6 @@ lint.select = [
     "T20", # flake8-print
     "W",  # pycodestyle warning
 ]
-
-# Assume Python 3.9.
-target-version = "py39"
 
 [tool.ruff.lint.per-file-ignores]
 "*/tests/*" = [
