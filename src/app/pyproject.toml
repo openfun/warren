@@ -37,7 +37,7 @@ dependencies = [
     "gunicorn==21.2.0",
     "oauthlib==3.2.2",
     "psycopg2-binary==2.9.9",
-    "sentry-sdk==1.42.0",
+    "sentry-sdk==1.43.0",
     "urllib3==2.2.1",
     "whitenoise==6.6.0",
 ]
@@ -56,9 +56,9 @@ dev = [
     "ipdb==0.13.13",
     "ipython==8.18.1",
     "pytest==8.0.0",
-    "pytest-cov==4.1.0",
+    "pytest-cov==5.0.0",
     "pytest-django==4.8.0",
-    "ruff==0.3.3",
+    "ruff==0.3.4",
     "xmltodict==0.13.0",
 ]
 ci = [
