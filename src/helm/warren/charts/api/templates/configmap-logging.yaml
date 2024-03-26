@@ -4,6 +4,8 @@ metadata:
   name: "{{ .Values.loggingConfigConfigMap }}"
   labels:
     {{- include "api.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install, pre-upgrade
 data:
   {{ with .Values.loggingConfig }}
   logging-config.yaml: |

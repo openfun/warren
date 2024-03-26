@@ -6,6 +6,8 @@ metadata:
   name: {{ include "app.fullname" . }}-media
   labels:
     {{- include "app.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install, pre-upgrade
 spec:
   accessModes:
   {{ with .Values.persistence.accessModes }}
@@ -22,6 +24,10 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: {{ include "app.fullname" . }}-static
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install, pre-upgrade
 spec:
   accessModes:
   {{ with .Values.persistence.accessModes }}
