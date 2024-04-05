@@ -333,6 +333,16 @@ class Base(Configuration):
             )
 
 
+class Build(Base):
+    """Settings used when the application is built.
+
+    This environment should not be used to run the application. Just to build it with
+    non blocking settings.
+    """
+
+    SECRET_KEY = Value("DummyKey")
+
+
 class Development(Base):
     """Development environment settings.
 

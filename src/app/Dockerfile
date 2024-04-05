@@ -23,7 +23,7 @@ FROM base as core
 # Install gettext
 RUN apt-get update && \
     apt-get install -y \
-    gettext && \
+        gettext && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy installed python dependencies
@@ -40,11 +40,14 @@ COPY ./staticfiles/warren/assets/index.js \
         ./staticfiles/warren/assets/index.css \
         /app/staticfiles/warren/assets/
 
+WORKDIR /app
+
+# Collect static files
+RUN DJANGO_CONFIGURATION=Build python manage.py collectstatic --noinput
+
 # Prepare production run using gunicorn
 RUN mkdir -p /usr/local/etc/gunicorn
 COPY ./docker/files/usr/local/etc/gunicorn/warren.py /usr/local/etc/gunicorn/warren.py
-
-WORKDIR /app
 
 # Un-privileged user running the application
 USER ${DOCKER_USER:-1000}
