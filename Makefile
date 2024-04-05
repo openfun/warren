@@ -295,12 +295,12 @@ lint-api-black: ## lint api python sources with black
 
 lint-api-ruff: ## lint api python sources with ruff
 	@echo 'lint-api:ruff started…'
-	@$(COMPOSE_RUN_API) ruff --config core/pyproject.toml core plugins
+	@$(COMPOSE_RUN_API) ruff check --config core/pyproject.toml core plugins
 .PHONY: lint-api-ruff
 
 lint-api-ruff-fix: ## lint and fix api python sources with ruff
 	@echo 'lint-api:ruff-fix started…'
-	@$(COMPOSE_RUN_API) ruff --config core/pyproject.toml core plugins --fix
+	@$(COMPOSE_RUN_API) ruff check --config core/pyproject.toml core plugins --fix
 .PHONY: lint-api-ruff-fix
 
 lint-api-mypy: ## lint api python sources with mypy
@@ -323,12 +323,12 @@ lint-app-black: ## lint app python sources with black
 
 lint-app-ruff: ## lint app python sources with ruff
 	@echo 'lint-app:ruff started…'
-	@$(COMPOSE_RUN_APP) ruff --config ./pyproject.toml apps warren manage.py
+	@$(COMPOSE_RUN_APP) ruff check --config ./pyproject.toml apps warren manage.py
 .PHONY: lint-app-ruff
 
 lint-app-ruff-fix: ## lint and fix app python sources with ruff
 	@echo 'lint-app:ruff-fix started…'
-	@$(COMPOSE_RUN_APP) ruff --config ./pyproject.toml apps warren manage.py --fix
+	@$(COMPOSE_RUN_APP) ruff check --config ./pyproject.toml apps warren manage.py --fix
 .PHONY: lint-app-ruff-fix
 
 ### Frontend ###
