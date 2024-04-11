@@ -41,7 +41,7 @@ dependencies = [
     "sentry-sdk[fastapi]==1.44.1",
     "sqlmodel==0.0.16",
     "uvicorn[standard]==0.29.0",
-    "ralph-malph[backend-lrs]==4.1.0"
+    "ralph-malph[backend-lrs]==4.2.0"
 ]
 dynamic = ["version"]
 
