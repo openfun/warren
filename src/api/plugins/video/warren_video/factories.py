@@ -55,7 +55,6 @@ class VideoPlayedFactory(BaseXapiStatementFactory):
                 "name": {"en-US": "Learning analytics 101"},
             },
             "id": "uuid://dd38149d-956a-483d-8975-c1506de1e1a9",
-            "objectType": "Activity",
         },
         "timestamp": "2021-12-01T08:17:47.150905+00:00",
     }
@@ -112,7 +111,6 @@ class LMSDownloadedVideoFactory(BaseXapiStatementFactory):
                 "name": {"en-US": "Learning analytics 101"},
             },
             "id": "uuid://dd38149d-956a-483d-8975-c1506de1e1a9",
-            "objectType": "Activity",
         },
         "timestamp": "2021-12-01T08:17:47.150905+00:00",
     }

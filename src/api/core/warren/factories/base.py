@@ -33,7 +33,6 @@ class BaseXapiStatementFactory(BaseFactory):
                 "name": {"en-US": "Example Activity"},
                 "description": {"en-US": "Example activity description"},
             },
-            "objectType": "Activity",
         },
         "actor": {
             "objectType": "Agent",
