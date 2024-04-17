@@ -39,7 +39,7 @@ class DevelopmentLTIView(TemplateView):
         dictionary
             context for template rendering.
         """
-        lti_parameters = Development.LTI_PARAMETERS
+        lti_parameters = Development.LTI_PARAMETERS.copy()
 
         # use the HTTP_REFERER like to be consistent with the LTI passport
         request_url = (
