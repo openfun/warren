@@ -40,6 +40,12 @@ jobs:
     working_directory: ~/fun
     steps:
       - checkout
+      - run: 
+          name: Check absence of print statements
+          command: |
+            ! git diff origin/main..HEAD -- . ':(exclude).circleci' \
+            ':(exclude)notebooks' | grep "print("
+
       - run:
           name: Check absence of fixup commits
           command: |
