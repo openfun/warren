@@ -365,7 +365,7 @@ class Development(Base):
             "course-v1:openfun+mathematics101+session01", environ_name="LTI_CONTEXT_ID"
         ),
         "context_title": Value("Mathematics 101", environ_name="LTI_CONTEXT_TITLE"),
-        "roles": Value("student", environ_name="LTI_ROLES"),
+        "roles": Value("teacher", environ_name="LTI_ROLES"),
         "launch_presentation_locale": Value(
             "fr", environ_name="LTI_LAUNCH_PRESENTATION_LOCALE"
         ),

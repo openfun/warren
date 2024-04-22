@@ -43,6 +43,7 @@ class LTIRequestViewTestCase(TestCase):
             "context_id": "1",
             "user_id": "1",
             "lis_person_contact_email_primary": "contact@example.com",
+            "roles": "teacher",
         }
 
         signed_parameters = sign_parameters(
@@ -117,6 +118,36 @@ class LTIRequestViewTestCase(TestCase):
             },
         )
 
+    @override_settings(ALLOWED_HOSTS=["fake-lms.com"])
+    @mock.patch.object(Logger, "debug")
+    def test_views_lti_request_insufficient_permissions(self, mock_logger):
+        """Validate that view fails when the LTI user has insufficient permissions."""
+        # LTI user information are missing.
+        lti_parameters = {
+            "lti_message_type": "basic-lti-launch-request",
+            "lti_version": "LTI-1p0",
+            "resource_link_id": "df7",
+            "context_id": "course-v1:openfun+mathematics101+session01",
+            "context_title": "Mathematics 101",
+            "user_id": "1",
+            "lis_person_contact_email_primary": "contact@example.com",
+            "roles": "student",
+        }
+
+        signed_parameters = sign_parameters(
+            self._passport, lti_parameters, f"http://fake-lms.com{TARGET_URL_PATH}"
+        )
+
+        response = self.client.post(
+            TARGET_URL_PATH,
+            urlencode(signed_parameters),
+            content_type=CONTENT_TYPE,
+            HTTP_REFERER="http://fake-lms.com",
+            HTTP_HOST="fake-lms.com",
+        )
+        self.assertEqual(response.status_code, 403)
+        mock_logger.assert_called_with("LTI user has insufficient permissions")
+
     @override_settings(
         ALLOWED_HOSTS=["fake-lms.com"],
         STORAGES={
@@ -138,6 +169,7 @@ class LTIRequestViewTestCase(TestCase):
             "context_title": "Mathematics 101",
             "user_id": "1",
             "lis_person_contact_email_primary": "contact@example.com",
+            "roles": "teacher",
         }
 
         signed_parameters = sign_parameters(

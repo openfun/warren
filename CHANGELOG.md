@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- Restrict dashboards access to instructors and administrators
+ 
 ## [0.1.0] - 2024-03-04
 
 ### Added
