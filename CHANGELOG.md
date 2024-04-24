@@ -12,6 +12,10 @@ and this project adheres to
 
 - Restrict dashboards access to instructors and administrators
  
+### Fixed
+
+- Fix Breadcrumb trail order to be `organization > course > session`
+
 ## [0.1.0] - 2024-03-04
 
 ### Added
