@@ -20,7 +20,7 @@ export const BreadCrumb: React.FC<BreadCrumbProps> = ({ courseInfo }) => {
   const content = useMemo(
     () =>
       courseInfo &&
-      Object.values(courseInfo).filter(Boolean).reverse().join(" > "),
+      `${courseInfo.organization} > ${courseInfo.course_name}${courseInfo.course_run ? ` > ${courseInfo.course_run}` : ""}`,
     [courseInfo],
   );
   return <div>{content}</div>;
