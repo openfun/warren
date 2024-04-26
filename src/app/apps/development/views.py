@@ -41,6 +41,34 @@ class DevelopmentLTIView(TemplateView):
         """
         lti_parameters = Development.LTI_PARAMETERS.copy()
 
+        return lti_parameters
+
+    # pylint: disable=unused-argument
+    def post(self, request, *args, **kwargs):
+        """Respond to POST request on the refresh button.
+
+        Context populated with POST request.
+
+        Parameters
+        ----------
+        request : Request
+            passed by Django
+        args : list
+            positional extra arguments
+        kwargs : dictionary
+            keyword extra arguments
+
+        -------
+        HTML
+            generated from applying the data to the template
+
+        """
+        lti_parameters = request.POST.dict()
+        lti_parameters.pop("refresh_signature")
+        lti_parameters = {
+            key: value for key, value in lti_parameters.items() if "oauth" not in key
+        }
+
         # use the HTTP_REFERER like to be consistent with the LTI passport
         request_url = (
             urlparse(self.request.build_absolute_uri())
@@ -89,4 +117,4 @@ class DevelopmentLTIView(TemplateView):
         oauth_dict["oauth_nonce"] = oauth_dict.pop("OAuth oauth_nonce")
         lti_parameters.update({"oauth_dict": oauth_dict})
 
-        return lti_parameters
+        return self.render_to_response(lti_parameters)
