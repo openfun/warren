@@ -10,14 +10,22 @@
         width: 100%;
         height: 80vh;
       }
-
+      input:read-write, select {
+        background-color: rgb(38, 58, 66);
+      }
+         
     </style>
   </head>
   <body>
     <main class="container-fluid">
       <section>
         <h1>LTI Consumer test</h1>
-        <form id="lti_request" method="post" action="{% url "lti:lti-request-view" "demo" %}" target="lti_request">
+        <form 
+          id="lti_params"
+          method="post"
+          target="lti_request"
+          action="{% url "lti:lti-request-view" "demo" %}"
+        >
 
           <div class="grid">
 
@@ -28,7 +36,6 @@
                 type="text"
                 name="lti_message_type"
                 value="{{ lti_message_type }}"
-                readonly
               />
             </div>
 
@@ -39,7 +46,6 @@
                 type="text"
                 name="lti_version"
                 value="{{ lti_version }}"
-                readonly
               />
             </div>
 
@@ -50,7 +56,6 @@
                 type="text"
                 name="resource_link_id"
                 value="{{ resource_link_id }}"
-                readonly
               />
             </div>
 
@@ -65,7 +70,6 @@
                 type="text"
                 name="lis_person_contact_email_primary"
                 value="{{ lis_person_contact_email_primary }}"
-                readonly
               />
             </div>
 
@@ -76,7 +80,6 @@
                 type="text"
                 name="user_id"
                 value="{{ user_id }}"
-                readonly
               />
             </div>
 
@@ -87,7 +90,6 @@
                 type="text"
                 name="launch_presentation_locale"
                 value="fr"
-                readonly
               />
             </div>
           </div>
@@ -101,7 +103,6 @@
                 type="text"
                 name="context_id"
                 value="{{ context_id }}"
-                readonly
               />
             </div>
 
@@ -112,19 +113,39 @@
                 type="text"
                 name="context_title"
                 value="{{ context_title }}"
-                readonly
               />
             </div>
 
             <div class="input-group">
               <label for="roles"><code>roles</code></label>
-              <select id="roles" name="roles" readonly>
+              <select id="roles" name="roles">
                 <option value="teacher">Teacher</option>
-                <option value="student" selected>Student</option>
+                <option value="student">Student</option>
               </select>
             </div>
 
           </div>
+         
+          <div class="grid">
+
+            <div class="input-group">
+              <label for="tool_consumer_info_product_family_code"><code>tool_consumer_info_product_family_code</code></label>
+              <input
+                id="tool_consumer_info_product_family_code"
+                type="text"
+                name="tool_consumer_info_product_family_code"
+                value="{{ tool_consumer_info_product_family_code }}"
+              />
+            </div>
+
+          </div>
+
+          <input 
+            type="submit"
+            formtarget="_self"
+            formaction=""
+            name="refresh_signature"
+            value="Refresh signature" />
 
           {% for key, value in oauth_dict.items %}
           {% if forloop.first or forloop.counter|divisibleby:"4" %}
@@ -145,7 +166,7 @@
           {% endif %}
           {% endfor %}
 
-          <input type="submit" />
+          <input type="submit" value="Post" />
         </form>
 
         <div class="grid">
@@ -164,4 +185,7 @@
       </section>
     </main>
   </body>
+  <script>
+    document.getElementById('roles').value = '{{ roles }}';
+  </script>
 </html>
