@@ -14,6 +14,7 @@ export interface AppData {
   refresh: string;
   context_title?: string;
   course_info?: CourseData;
+  course_id?: string;
 }
 
 export interface Routes {

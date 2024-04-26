@@ -159,7 +159,7 @@ class LTIRequestViewTestCase(TestCase):
             },
         },
     )
-    def test_views_lti_request_valid(self):
+    def test_views_lti_request_valid_edx(self):
         """Validate that view is correctly rendered."""
         lti_parameters = {
             "lti_message_type": "basic-lti-launch-request",
@@ -207,6 +207,74 @@ class LTIRequestViewTestCase(TestCase):
                 "course_name": "mathematics101",
                 "course_run": "session01",
             },
+        )
+
+        LTIRefreshToken(context["refresh"]).verify()
+        LTIAccessToken(context["access"]).verify()
+
+    @override_settings(
+        ALLOWED_HOSTS=["fake-lms.com"],
+        STORAGES={
+            "default": {
+                "BACKEND": "django.core.files.storage.FileSystemStorage",
+            },
+            "staticfiles": {
+                "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+            },
+        },
+    )
+    def test_views_lti_request_valid_moodle(self):
+        """Validate that view is correctly rendered."""
+        lti_parameters = {
+            "lti_message_type": "basic-lti-launch-request",
+            "lti_version": "LTI-1p0",
+            "resource_link_id": "df7",
+            "context_id": "1234",
+            "context_title": "Mathematics 101",
+            "user_id": "1",
+            "lis_person_contact_email_primary": "contact@example.com",
+            "roles": "teacher",
+            "tool_consumer_info_product_family_code": "moodle",
+        }
+
+        signed_parameters = sign_parameters(
+            self._passport, lti_parameters, f"http://fake-lms.com{TARGET_URL_PATH}"
+        )
+
+        response = self.client.post(
+            TARGET_URL_PATH,
+            urlencode(signed_parameters),
+            content_type=CONTENT_TYPE,
+            HTTP_REFERER="http://fake-lms.com",
+            HTTP_HOST="fake-lms.com",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "<html>")
+
+        # Get the context data passed to the frontend from the DOM
+        match = re.search(
+            '<div id="warren-frontend-data" data-context="(.*)"></div>',
+            response.content.decode("utf-8"),
+        )
+
+        # Load its json content
+        context = json.loads(unescape(match.group(1)))
+
+        # Check that the frontend would route to the 'test' route
+        self.assertEqual(context["lti_route"], "test")
+
+        # Check that the frontend would receive course and context info
+        self.assertEqual(context["context_title"], "Mathematics 101")
+        self.assertEqual(
+            context["course_info"],
+            {
+                "organization": None,
+                "course_name": "Mathematics 101",
+                "course_run": None,
+            },
+        )
+        self.assertEqual(
+            context["course_id"], "http://fake-lms.com/course/view.php?id=1234"
         )
 
         LTIRefreshToken(context["refresh"]).verify()

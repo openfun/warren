@@ -8,10 +8,14 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Send LTI course id to the frontend
+
 ### Changed
 
 - Restrict dashboards access to instructors and administrators
- 
+
 ### Fixed
 
 - Fix Breadcrumb trail order to be `organization > course > session`
