@@ -125,6 +125,12 @@ class LTIRequestView(BaseLTIView, RenderMixin, TokenMixin):
         jwt = self.generate_tokens(lti_request)
         course_info = lti_request.get_course_info()
 
+        course_id = None
+        if lti_request.is_edx_format:
+            course_id = lti_request.get_param("context_id")
+        elif lti_request.is_moodle_format:
+            course_id = lti_request.origin_url
+
         # Rename 'school_name' to a LMS-generic name
         course_info["organization"] = course_info.pop("school_name")
 
@@ -132,6 +138,7 @@ class LTIRequestView(BaseLTIView, RenderMixin, TokenMixin):
             "lti_route": kwargs["selection"] or "demo",
             "context_title": lti_request.context_title,
             "course_info": course_info,
+            "course_id": course_id,
             **jwt,
         }
 
