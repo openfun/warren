@@ -31,7 +31,7 @@ dependencies = [
     "mkdocs-material==9.5.19",
     "mkdocs==1.6.0",
     "neoteroi-mkdocs==1.0.5",
-    "pymdown-extensions==10.8",
+    "pymdown-extensions==10.8.1",
 ]
 
 [project.urls]
