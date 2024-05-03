@@ -1,5 +1,11 @@
 # @openfun/warren-core
 
+## 0.1.2
+
+### Patch Changes
+
+- Export types in build package
+
 ## 0.1.1
 
 ### Patch Changes
