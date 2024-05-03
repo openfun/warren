@@ -2,6 +2,7 @@
 
 import hashlib
 import inspect
+import json
 import logging
 from abc import ABC, abstractmethod
 from functools import cached_property, reduce
@@ -44,10 +45,6 @@ logger = logging.getLogger(__name__)
 class Cacheable(Protocol):
     """A protocol defining the structure for cacheable objects."""
 
-    def get_lrs_query(self):
-        """Get the LRS query for fetching statements."""
-        ...
-
     async def compute(self):
         """Perform operations to get a computed value."""
         ...
@@ -67,17 +64,17 @@ class CacheMixin(Cacheable):
     def cache_key(self) -> str:
         """Calculate the indicator cache key.
 
-        The cache key is composed of the class name and a hexadecimal digest
-        of the LRS query hash (excluding the since and until fields if present),
-        e.g. fooindicator-44709d6fcb83d92a76dcb0b668c98e1b1d3dafe7.
+        The cache key is composed of the class name and a hexadecimal digest of the
+        instance attributes, e.g.
+        fooindicator-44709d6fcb83d92a76dcb0b668c98e1b1d3dafe7.
+
+        Note that instance attributes need to be serializable, or at least implement the
+        __str__ method.
 
         """
-        lrs_query_hash = hashlib.sha256(
-            self.get_lrs_query()
-            .json(exclude={"since", "until"}, exclude_none=True, exclude_unset=True)
-            .encode()
-        ).hexdigest()
-        return f"{self.__class__.__name__.lower()}-{lrs_query_hash}"
+        attributes = json.dumps(vars(self), sort_keys=True, default=str)
+        attributes_hash = hashlib.sha256(attributes.encode()).hexdigest()
+        return f"{self.__class__.__name__.lower()}-{attributes_hash}"
 
     async def get_cache(self) -> Union[CacheEntry, None]:
         """Get cached results matching the cache key from the database."""
@@ -179,6 +176,21 @@ class IncrementalCacheMixin(CacheMixin, CacheableIncrementally, ABC):
     """
 
     frame: Frames
+
+    @cached_property
+    def cache_key(self) -> str:
+        """Calculate the indicator cache key.
+
+        The cache key is composed of the class name and a hexadecimal digest
+        of the class instance attributes (excluding the span_range field if present),
+        e.g. fooindicator-44709d6fcb83d92a76dcb0b668c98e1b1d3dafe7.
+
+        """
+        attr_copy = vars(self).copy()
+        attr_copy.pop("span_range", None)
+        attributes = json.dumps(attr_copy, sort_keys=True, default=str)
+        attributes_hash = hashlib.sha256(attributes.encode()).hexdigest()
+        return f"{self.__class__.__name__.lower()}-{attributes_hash}"
 
     @staticmethod
     @abstractmethod

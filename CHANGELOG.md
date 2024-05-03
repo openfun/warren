@@ -15,6 +15,7 @@ and this project adheres to
 ### Changed
 
 - Restrict dashboards access to instructors and administrators
+- Change cache key to indicator attributes instead of LRS query parameters
 
 ### Fixed
 
