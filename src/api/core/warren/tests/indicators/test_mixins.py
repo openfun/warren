@@ -28,8 +28,10 @@ def test_cache_key_calculation():
     class MyIndicator(BaseIndicator, CacheMixin):
         """Dummy indicator."""
 
-        def get_lrs_query(self) -> LRSStatementsQuery:
-            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
+        course_id: str
+
+        def get_lrs_query(self):
+            pass
 
         async def fetch_statements(self):
             pass
@@ -38,39 +40,26 @@ def test_cache_key_calculation():
             pass
 
     indicator = MyIndicator()
-    lrs_query = '{"verb": "https://w3id.org/xapi/video/verbs/played"}'
-    expected = f"myindicator-{hashlib.sha256(lrs_query.encode()).hexdigest()}"
+    attributes = '{"span_range": null}'
+    expected = f"myindicator-{hashlib.sha256(attributes.encode()).hexdigest()}"
     assert indicator.cache_key == expected
 
-
-def test_cache_key_calculation_with_lrs_query_datetime_range():
-    """Test the cache key calculation when the LRS query as date time range
-    (since/until) parameters set.
-
-    """  # noqa: D205
-
-    class MyIndicator(BaseIndicator, CacheMixin):
-        """Dummy indicator."""
-
-        def get_lrs_query(self) -> LRSStatementsQuery:
-            return LRSStatementsQuery(
-                verb="https://w3id.org/xapi/video/verbs/played",
-                since=datetime(2023, 1, 1),
-                until=datetime(2023, 2, 1),
-            )
-
-        async def fetch_statements(self):
-            pass
-
-        async def compute(self):
-            pass
-
-    indicator = MyIndicator()
-    # We exclude "since" and "until" parameters from the LRS query to calculate
-    # the cache key
-    lrs_query = '{"verb": "https://w3id.org/xapi/video/verbs/played"}'
-    expected = f"myindicator-{hashlib.sha256(lrs_query.encode()).hexdigest()}"
+    indicator = MyIndicator(course_id="test_id")
+    attributes = '{"course_id": "test_id", "span_range": null}'
+    expected = f"myindicator-{hashlib.sha256(attributes.encode()).hexdigest()}"
     assert indicator.cache_key == expected
+
+    span_range = DatetimeRange(since="2023-01-01 10:42", until="2023-01-02 12:22")
+    indicator = MyIndicator(course_id="test_id", span_range=span_range)
+    attributes = (
+        '{"course_id": "test_id", '
+        '"span_range": "since=datetime.datetime(2023, 1, 1, 10, 42, tzinfo=tzutc()) '
+        'until=datetime.datetime(2023, 1, 2, 12, 22, tzinfo=tzutc())"}'
+    )
+    expected = f"myindicator-{hashlib.sha256(attributes.encode()).hexdigest()}"
+    assert indicator.cache_key == expected
+    indicator2 = MyIndicator(span_range=span_range, course_id="test_id")
+    assert indicator2.cache_key == expected
 
 
 @pytest.mark.anyio
@@ -82,7 +71,7 @@ async def test_save_with_single_cache_instance(db_session):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSStatementsQuery:
-            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
+            pass
 
         async def fetch_statements(self):
             pass
@@ -117,7 +106,7 @@ async def test_save_with_multiple_cache_instances(db_session):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSStatementsQuery:
-            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
+            pass
 
         async def fetch_statements(self):
             pass
@@ -162,7 +151,7 @@ async def test_get_cache(db_session):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSStatementsQuery:
-            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
+            pass
 
         async def fetch_statements(self):
             pass
@@ -174,7 +163,7 @@ async def test_get_cache(db_session):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSStatementsQuery:
-            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
+            pass
 
         async def fetch_statements(self):
             pass
@@ -205,7 +194,7 @@ async def test_get_cache_when_no_cache_exists(db_session):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSStatementsQuery:
-            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
+            pass
 
         async def fetch_statements(self):
             pass
@@ -230,7 +219,7 @@ async def test_get_cache_when_unexpected_multiple_cache_exist(db_session):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSStatementsQuery:
-            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
+            pass
 
         async def fetch_statements(self):
             pass
@@ -258,7 +247,7 @@ def test_compute_annotation():
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSStatementsQuery:
-            return None
+            pass
 
         async def fetch_statements(self):
             pass
@@ -364,7 +353,7 @@ async def test_get_or_compute(db_session, monkeypatch):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSStatementsQuery:
-            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
+            pass
 
         async def fetch_statements(self):
             pass
@@ -393,7 +382,7 @@ async def test_get_or_compute(db_session, monkeypatch):
         """Dummy mocked indicator."""
 
         def get_lrs_query(self) -> LRSStatementsQuery:
-            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
+            pass
 
         async def fetch_statements(self):
             pass
@@ -439,7 +428,7 @@ async def test_get_or_compute_for_complex_models(db_session):
         """Dummy indicator."""
 
         def get_lrs_query(self) -> LRSStatementsQuery:
-            return LRSStatementsQuery(verb="https://w3id.org/xapi/video/verbs/played")
+            pass
 
         async def fetch_statements(self):
             pass
