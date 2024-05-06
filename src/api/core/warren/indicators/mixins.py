@@ -136,6 +136,9 @@ class CacheMixin(Cacheable):
         if issubclass(self._compute_annotation, BaseModel):
             value = value.json()
 
+        # Cache entry may have been created during a long compute time
+        cache = await self.get_cache()
+
         if cache is None:
             cache = CacheEntry.parse_obj(
                 CacheEntryCreate(key=self.cache_key, value=value)
