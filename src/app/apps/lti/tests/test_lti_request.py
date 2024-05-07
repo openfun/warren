@@ -234,6 +234,7 @@ class LTIRequestViewTestCase(TestCase):
             "user_id": "1",
             "lis_person_contact_email_primary": "contact@example.com",
             "roles": "teacher",
+            "tool_consumer_instance_name": "FUN",
             "tool_consumer_info_product_family_code": "moodle",
         }
 
@@ -268,7 +269,7 @@ class LTIRequestViewTestCase(TestCase):
         self.assertEqual(
             context["course_info"],
             {
-                "organization": None,
+                "organization": "FUN",
                 "course_name": "Mathematics 101",
                 "course_run": None,
             },
