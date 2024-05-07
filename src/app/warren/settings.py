@@ -369,6 +369,9 @@ class Development(Base):
         "launch_presentation_locale": Value(
             "fr", environ_name="LTI_LAUNCH_PRESENTATION_LOCALE"
         ),
+        "tool_consumer_instance_name": Value(
+            "FUN", environ_name="LTI_TOOL_CONSUMER_INSTANCE_NAME"
+        ),
         "tool_consumer_info_product_family_code": Value(
             "edx", environ_name="LTI_TOOL_CONSUMER_INFO_PRODUCT_FAMILY_CODE"
         ),
