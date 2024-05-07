@@ -1,11 +1,17 @@
 import React, { useMemo, Suspense, useEffect } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { SelectContent } from "../SelectContent";
 import { useLTIContext } from "../../../hooks";
 import { AppData, Routes } from "../../../types";
+import { BoundaryScreenError } from "../../BoundaryScreenError";
 
 export interface AppContentLoaderProps {
   dataContext: AppData;
   routes: Routes;
+}
+
+function fallbackRender({ error }: { error: Error }) {
+  return <BoundaryScreenError message={error.message} />;
 }
 
 /**
@@ -45,8 +51,10 @@ export const AppContentLoader: React.FC<AppContentLoaderProps> = ({
   );
 
   return (
-    <Suspense fallback={<div>loading</div>}>
-      <Content />
-    </Suspense>
+    <ErrorBoundary fallbackRender={fallbackRender}>
+      <Suspense fallback={<div>loading</div>}>
+        <Content />
+      </Suspense>
+    </ErrorBoundary>
   );
 };
