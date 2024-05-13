@@ -5,6 +5,7 @@ from ralph.backends.data.base import DataBackendStatus
 
 from warren.api import health
 from warren.backends import lrs_client
+from warren.db import Session
 
 
 @pytest.mark.anyio
@@ -16,8 +17,9 @@ async def test_api_health_lbheartbeat(http_client):
 
 
 @pytest.mark.anyio
-async def test_api_health_heartbeat(http_client, monkeypatch):
+async def test_api_health_heartbeat(db_session, http_client, monkeypatch):
     """Test the heartbeat healthcheck."""
+    monkeypatch.setattr(Session, "_session", db_session)
 
     async def lrs_ok():
         return DataBackendStatus.OK
