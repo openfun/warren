@@ -21,6 +21,7 @@ def db_engine():
 
     # Pretend to have all migrations applied
     alembic_cfg = Config(settings.ALEMBIC_CFG_PATH)
+    alembic_cfg.set_main_option("sqlalchemy.url", settings.TEST_DATABASE_URL)
     command.stamp(alembic_cfg, "head")
 
     yield engine

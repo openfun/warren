@@ -6,7 +6,6 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
-from warren.conf import settings
 
 # Nota bene: be sure to import all models that need to be migrated here
 from warren.xi.schema import Experience, Relation  # noqa: F401
@@ -21,9 +20,6 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
-# Set Database URL from Warren's configuration
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # add your model's MetaData object here
 # for 'autogenerate' support

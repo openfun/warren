@@ -6,6 +6,7 @@ from alembic.config import Config
 from ..conf import settings
 
 ALEMBIC_CFG: Config = Config(settings.ALEMBIC_CFG_PATH)
+ALEMBIC_CFG.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 
 def current(verbose: bool = False):
