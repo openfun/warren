@@ -239,7 +239,7 @@ migrate-api:  ## run alembic database migrations for the api service
 	@echo "Create api service database…"
 	@$(COMPOSE) exec postgresql bash -c 'psql "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@$(DB_HOST):$(DB_PORT)/postgres" -c "create database \"warren-api\";"' || echo "Duly noted, skipping database creation."
 	@echo "Running migrations for api service…"
-	@bin/alembic upgrade head
+	@bin/warren migration upgrade head
 .PHONY: migrate-api
 
 migrate-app:  ## run django database migrations for the app service

@@ -3,6 +3,7 @@
 declare DOCKER_USER
 DOCKER_USER="$(id -u):$(id -g)"
 
-DOCKER_USER=${DOCKER_USER} docker compose exec \
+DOCKER_USER=${DOCKER_USER} docker compose run \
+  --rm \
   api \
   warren "$@"
