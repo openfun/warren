@@ -9,6 +9,7 @@ from typing import Optional
 from uuid import UUID
 
 import click
+from alembic.util import CommandError
 from pydantic import BaseModel
 
 from warren import __version__ as warren_version
@@ -40,6 +41,15 @@ def cli():
 @cli.group(name="migration")
 def migration():
     """Database migration commands (alembic wrapper)."""
+
+
+@migration.command()
+def check():
+    """Check database migration."""
+    try:
+        alembic_migrations.check()
+    except CommandError:
+        raise click.ClickException("Target database is not up to date.") from None
 
 
 @migration.command()

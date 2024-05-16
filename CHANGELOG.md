@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - Send LTI course id to the frontend
+- Add a warren migration check CLI command
 
 ### Changed
 
