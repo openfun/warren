@@ -2,15 +2,16 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "api.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "api.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "api.selectorLabels" . | nindent 6 }}
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -19,72 +20,48 @@ spec:
       {{- end }}
       labels:
         {{- include "api.labels" . | nindent 8 }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- include "fastapi.imagePullSecrets" . | nindent 6 }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
+        - name: "{{ .Chart.Name }}-fastapi"
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.service.port }}
-              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           livenessProbe:
             httpGet:
               path: /__heartbeat__
               port: http
-              httpHeaders:
-                - name: Host
-                  value: '{{ first .Values.allowedHosts | trimPrefix "https://" }}'
             initialDelaySeconds: 15
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /__lbheartbeat__
               port: http
-              httpHeaders:
-                - name: Host
-                  value: '{{ first .Values.allowedHosts | trimPrefix "https://" }}'
             initialDelaySeconds: 5
             periodSeconds: 5
+          startupProbe:
+            exec:
+              command:
+                - "bash" 
+                - "-c"
+                - "warren migration check"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 120
           env:
-            - name: WARREN_API_SERVER_PORT
-              value: "{{ .Values.service.port }}"
-            - name: WARREN_API_DB_ENGINE
-              value: {{ .Values.database.engine }}
-            - name: WARREN_API_DB_PORT
-              value: {{ .Values.database.port | quote }}
-            - name: WARREN_APP_SIGNING_ALGORITHM
-              value: {{ .Values.signingAlgorithm }}
-            - name: WARREN_ALLOWED_HOSTS
-              value: {{ include "api.allowedHosts" . }}
-          envFrom:
-            - secretRef:
-                name: {{ .Values.envVarsSecret | quote }}
-          {{ with .Values.podCommand }}
+            {{- include "api.envs" . | nindent 12 }}
+          {{ with .Values.fastapi.command }}
           command:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
           volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
+            - name: logging-config
+              mountPath: "/etc/warren/api"
       volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+        - name: logging-config
+          configMap:
+            name: "warren-api-logging-config"
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
