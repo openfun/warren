@@ -9,6 +9,11 @@ ALEMBIC_CFG: Config = Config(settings.ALEMBIC_CFG_PATH)
 ALEMBIC_CFG.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 
+def check():
+    """Check if database has unapplied migrations."""
+    command.check(ALEMBIC_CFG)
+
+
 def current(verbose: bool = False):
     """Get information about the current migration state."""
     command.current(ALEMBIC_CFG, verbose=verbose)

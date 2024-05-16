@@ -1,10 +1,11 @@
 """Test Warren commands functions."""
 
 # ruff: noqa: S106
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 from alembic import command as alembic_command
+from alembic.util import CommandError
 from click import BadParameter
 from click.testing import CliRunner
 from pydantic import BaseModel
@@ -21,6 +22,22 @@ from warren.xi.indexers.moodle.client import Moodle
 from warren.xi.indexers.moodle.etl import CourseContent, Courses
 from warren.xi.models import ExperienceRead, ExperienceReadSnapshot
 from warren.xi.schema import Experience
+
+
+def test_migration_check_command(monkeypatch):
+    """Test warren check command."""
+    monkeypatch.setattr(alembic_command, "check", MagicMock())
+
+    runner = CliRunner()
+    runner.invoke(cli, ["migration", "check"])
+    alembic_command.check.assert_called_with(migrations.ALEMBIC_CFG)
+
+    monkeypatch.setattr(alembic_command, "check", Mock(side_effect=CommandError))
+
+    runner = CliRunner()
+    result = runner.invoke(cli, ["migration", "check"])
+    alembic_command.check.assert_called_with(migrations.ALEMBIC_CFG)
+    assert result.exit_code == 1
 
 
 def test_migration_current_command(monkeypatch):
