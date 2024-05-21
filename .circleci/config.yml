@@ -478,7 +478,7 @@ jobs:
             echo "DOCS_VERSION: ${DOCS_VERSION}"
             echo "DOCS_ALIAS: ${DOCS_ALIAS}"
             # Build docs
-            ~/.local/bin/mike deploy ${DOCS_VERSION} ${DOCS_ALIAS}
+            ~/.local/bin/mike deploy --update-aliases ${DOCS_VERSION} ${DOCS_ALIAS}
             # Set default doc to point to
             ~/.local/bin/mike set-default dev
             # Push build docs
