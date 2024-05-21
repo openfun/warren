@@ -24,14 +24,14 @@ ingress:
   host: ""
   annotations: {}
   tls:
-    enable: false
+    enabled: false
     certificateSecretName: warren-app-certificate
 
 persistence:
   enabled: true
   storageClass: "standard"
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   size: 2Gi
 
 affinity:

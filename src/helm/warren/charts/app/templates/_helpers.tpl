@@ -48,8 +48,8 @@ Selector labels
 {{- define "app.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "app.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
-app: warren-app
-service: app
+app.kubernetes.io/component: app
+app.kubernetes.io/part-of: warren
 {{- end }}
 
 {{/*
@@ -63,7 +63,7 @@ Environment variables
 - name: "WARREN_APP_SECRET_KEY"
   valueFrom:
     secretKeyRef:
-      name: warren-app-secrets
+      name: warren-app-secret-key
       key: WARREN_APP_SECRET_KEY
 - name: "WARREN_APP_ALLOWED_HOSTS"
   value: "{{ .Values.django.allowedHosts | join "," }}"
@@ -74,7 +74,7 @@ Environment variables
 - name: "WARREN_APP_DB_PASSWORD"
   valueFrom:
     secretKeyRef:
-      name: warren-app-secrets
+      name: warren-app-db
       key: WARREN_APP_DB_PASSWORD
 - name: "WARREN_APP_DB_HOST"
   value: "{{ .Values.django.db.host }}"
@@ -85,7 +85,7 @@ Environment variables
 - name: "WARREN_APP_SIGNING_KEY"
   valueFrom:
     secretKeyRef:
-      name: warren-app-secrets
+      name: warren-signing-key
       key: WARREN_APP_SIGNING_KEY 
 - name: "WARREN_APP_ACCESS_TOKEN_LIFETIME"
   value: "{{ .Values.django.accessTokenLifetime }}"

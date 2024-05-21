@@ -31,13 +31,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /__heartbeat__
-              port: http
+              port: {{ .Values.fastapi.port }}
             initialDelaySeconds: 15
             periodSeconds: 30
           readinessProbe:
             httpGet:
               path: /__lbheartbeat__
-              port: http
+              port: {{ .Values.fastapi.port }}
             initialDelaySeconds: 5
             periodSeconds: 5
           startupProbe:
@@ -48,7 +48,7 @@ spec:
                 - "warren migration check"
             initialDelaySeconds: 5
             periodSeconds: 5
-            timeoutSeconds: 120
+            timeoutSeconds: 30
           env:
             {{- include "api.envs" . | nindent 12 }}
           {{ with .Values.fastapi.command }}
@@ -61,7 +61,7 @@ spec:
       volumes:
         - name: logging-config
           configMap:
-            name: "warren-api-logging-config"
+            name: {{ include "api.fullname" . }}-logging-config
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
