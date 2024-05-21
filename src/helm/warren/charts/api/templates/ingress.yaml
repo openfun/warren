@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ template "api.fullname" . }}-ingress
+  name: {{ template "api.fullname" . }}
   labels: {{- include "api.labels" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{ toYaml .Values.commonLabels | nindent 4 }}

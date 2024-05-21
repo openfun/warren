@@ -48,6 +48,8 @@ Selector labels
 {{- define "api.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "api.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: api
+app.kubernetes.io/part-of: warren
 {{- end }}
 
 {{/*
@@ -63,7 +65,7 @@ Environment variables
 - name: "WARREN_API_DB_PASSWORD"
   valueFrom:
     secretKeyRef:
-      name: warren-api-secrets
+      name: warren-api-db-password
       key: WARREN_API_DB_PASSWORD
 - name: "WARREN_API_DB_ENGINE"
   value: "{{ .Values.fastapi.db.engine }}"
@@ -80,14 +82,14 @@ Environment variables
 - name: "WARREN_LRS_AUTH_BASIC_PASSWORD"
   valueFrom:
     secretKeyRef:
-      name: warren-api-secrets
+      name: warren-api-lrs-password
       key: WARREN_LRS_AUTH_BASIC_PASSWORD
 - name: "WARREN_APP_SIGNING_ALGORITHM"
   value: "{{ .Values.fastapi.signingAlgorithm }}"
 - name: "WARREN_APP_SIGNING_KEY"
   valueFrom:
     secretKeyRef:
-      name: warren-api-secrets
+      name: warren-app-signing-key
       key: WARREN_APP_SIGNING_KEY
 {{- range $key, $val := .Values.env.secret }}
 - name: {{ $val.envName }}
