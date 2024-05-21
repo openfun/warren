@@ -19,12 +19,11 @@ spec:
   template:
     metadata:
       labels: {{- include "api.selectorLabels" $ | nindent 8 }}
-        app.kubernetes.io/component: fastapi
     spec:
       {{- include "fastapi.imagePullSecrets" $ | nindent 6 }}
       containers:
-        - name: fastapi-{{ .name }}
-          image: {{ $.Values.image.repository }}:{{ $.Values.image.tag }}
+        - name: "{{ $.Chart.Name }}-{{ .name }}"
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           env:
             {{- include "api.envs" $ | nindent 12 }}
@@ -38,6 +37,6 @@ spec:
       volumes:
         - name: logging-config
           configMap:
-            name: "warren-api-logging-config"
+            name: {{ include "api.fullname" $ }}-logging-config
       restartPolicy: Never
 {{- end }}

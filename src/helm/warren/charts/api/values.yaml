@@ -23,7 +23,7 @@ ingress:
   host: ""
   annotations: {}
   tls:
-    enable: false
+    enabled: false
     certificateSecretName: warren-api-certificate
 
 affinity:
@@ -76,6 +76,7 @@ volumeMounts:
 # API configuration
 fastapi:
   fullname: "api"
+  port: 8100
   allowedHosts: 
     - "*"
   signingAlgorithm: "HS256"
@@ -86,8 +87,11 @@ fastapi:
     host: "warren-postgresql"
     port: 5432
   lrs:
-    hosts: "http://lrs-ralph:8080"
+    host: "http://lrs-ralph:8080"
     username: "admin"
+  xi:
+    lmsBaseUrl: "http://my-moodle-instance"
+    defaultLang: "fr"
   command:
     - "uvicorn"
     - "warren.api:app"
@@ -101,6 +105,18 @@ fastapi:
   jobs:
     - name: dbmigrate
       command: ["warren", "migration", "upgrade", "head"]
+  cronjobs: []
+  # Cronjobs should define a name, a schedule, the schedule suspension 
+  # and a command to execute, e.g.
+    # - name: "index-moodle"
+    #   schedule: "0 1 * * *"
+    #   suspend: false
+    #   command:
+    #     - "warren"
+    #     - "xi"
+    #     - "index"
+    #     - "all"
+    #     - "--ignore-errors"
   resources: {}
 
 loggingConfig:

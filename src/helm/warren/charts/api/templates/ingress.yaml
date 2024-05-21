@@ -2,12 +2,11 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ template "api.fullname" . }}-ingress
+  name: {{ template "api.fullname" . }}
   labels: {{- include "api.labels" . | nindent 4 }}
     {{- if .Values.commonLabels }}
     {{ toYaml .Values.commonLabels | nindent 4 }}
     {{- end }}
-    app.kubernetes.io/component: fastapi
   annotations:
     {{- if .Values.commonAnnotations }}
     {{- toYaml .Values.commonAnnotations | nindent 4 }}
@@ -17,11 +16,11 @@ metadata:
     {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
-  {{- if $.Values.ingress.tls.enable }}
+  {{- if $.Values.ingress.tls.enabled }}
   tls:
     - hosts:
       - {{ $.Values.ingress.host }}
-    secretName: {{ $.Values.ingress.tls.certificateSecretName }}
+      secretName: {{ $.Values.ingress.tls.certificateSecretName }}
   {{- end }}
   rules:
     - host: {{ .Values.ingress.host }}
@@ -31,7 +30,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: {{ include "api.fullname" . }}-service
+                name: {{ include "api.fullname" . }}
                 port:
                   number: {{ .Values.service.port }}
 {{- end }}

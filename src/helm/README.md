@@ -106,10 +106,10 @@ Ralph is also distributed as a Helm chart. Check out the [Ralph Helm chart READM
 
 ### Deploy the dashboard suite: Warren
 
-Let's create secrets needed for Warren deployment with:
+Let's create the secrets needed for Warren deployment:
 ```bash
-kubectl create secret generic warren-api-secrets --from-env-file=warren/charts/api/.secret
-kubectl create secret generic warren-app-secrets --from-env-file=warren/charts/app/.secret
+kubectl apply -f manifests/warren-app-secrets.yaml
+kubectl apply -f manifests/warren-api-secrets.yaml
 ```
 
 We can now deploy Warren along with its dependencies

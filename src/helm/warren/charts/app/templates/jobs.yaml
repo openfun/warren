@@ -19,12 +19,11 @@ spec:
   template:
     metadata:
       labels: {{- include "app.selectorLabels" $ | nindent 8 }}
-        app.kubernetes.io/component: django
     spec:
       {{- include "django.imagePullSecrets" $ | nindent 6 }}
       containers:
-        - name: django-{{ .name }}
-          image: {{ $.Values.image.repository }}:{{ $.Values.image.tag }}
+        - name: "{{ $.Chart.Name }}-{{ .name }}"
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
           imagePullPolicy: {{ $.Values.image.pullPolicy }}
           env:
             {{- include "app.envs" $ | nindent 12 }}
