@@ -65,7 +65,7 @@ Environment variables
 - name: "WARREN_API_DB_PASSWORD"
   valueFrom:
     secretKeyRef:
-      name: warren-api-db-password
+      name: warren-api-db
       key: WARREN_API_DB_PASSWORD
 - name: "WARREN_API_DB_ENGINE"
   value: "{{ .Values.fastapi.db.engine }}"
@@ -82,14 +82,14 @@ Environment variables
 - name: "WARREN_LRS_AUTH_BASIC_PASSWORD"
   valueFrom:
     secretKeyRef:
-      name: warren-api-lrs-password
+      name: warren-api-lrs
       key: WARREN_LRS_AUTH_BASIC_PASSWORD
 - name: "WARREN_APP_SIGNING_ALGORITHM"
   value: "{{ .Values.fastapi.signingAlgorithm }}"
 - name: "WARREN_APP_SIGNING_KEY"
   valueFrom:
     secretKeyRef:
-      name: warren-app-signing-key
+      name: warren-signing-key
       key: WARREN_APP_SIGNING_KEY
 {{- range $key, $val := .Values.env.secret }}
 - name: {{ $val.envName }}

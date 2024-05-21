@@ -74,7 +74,7 @@ Environment variables
 - name: "WARREN_APP_DB_PASSWORD"
   valueFrom:
     secretKeyRef:
-      name: warren-app-db-password
+      name: warren-app-db
       key: WARREN_APP_DB_PASSWORD
 - name: "WARREN_APP_DB_HOST"
   value: "{{ .Values.django.db.host }}"
@@ -85,7 +85,7 @@ Environment variables
 - name: "WARREN_APP_SIGNING_KEY"
   valueFrom:
     secretKeyRef:
-      name: warren-app-signing-key
+      name: warren-signing-key
       key: WARREN_APP_SIGNING_KEY 
 - name: "WARREN_APP_ACCESS_TOKEN_LIFETIME"
   value: "{{ .Values.django.accessTokenLifetime }}"
