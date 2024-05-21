@@ -8,6 +8,9 @@ and this project adheres to
 
 ## [Unreleased]
 
+
+## [0.2.0] - 2024-05-21
+
 ### Added
 
 - Send LTI course id to the frontend
@@ -47,5 +50,6 @@ and this project adheres to
 - Encapsulate statements pre-processing in a Mixin class
 - Factorize Video indicators
 
-[unreleased]: https://github.com/openfun/warren/compare/v0.1.0...main
+[unreleased]: https://github.com/openfun/warren/compare/v0.2.0...main
+[0.2.0]: https://github.com/openfun/warren/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/openfun/warren/compare/abae78e...v0.1.0
