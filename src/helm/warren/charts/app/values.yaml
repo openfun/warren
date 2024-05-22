@@ -24,7 +24,7 @@ ingress:
   host: ""
   annotations: {}
   tls:
-    enable: false
+    enabled: false
     certificateSecretName: warren-app-certificate
 
 persistence:

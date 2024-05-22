@@ -23,7 +23,7 @@ ingress:
   host: ""
   annotations: {}
   tls:
-    enable: false
+    enabled: false
     certificateSecretName: warren-api-certificate
 
 affinity:
@@ -76,6 +76,7 @@ volumeMounts:
 # API configuration
 fastapi:
   fullname: "api"
+  port: 8100
   allowedHosts: 
     - "*"
   signingAlgorithm: "HS256"
@@ -86,7 +87,7 @@ fastapi:
     host: "warren-postgresql"
     port: 5432
   lrs:
-    hosts: "http://lrs-ralph:8080"
+    host: "http://lrs-ralph:8080"
     username: "admin"
   command:
     - "uvicorn"

@@ -76,7 +76,7 @@ Environment variables
 - name: "WARREN_ALLOWED_HOSTS"
   value: {{ printf "%q" .Values.fastapi.allowedHosts | replace " " "," | quote }}
 - name: "WARREN_LRS_HOSTS"
-  value: "{{ .Values.fastapi.lrs.hosts }}"
+  value: "{{ .Values.fastapi.lrs.host }}"
 - name: "WARREN_LRS_AUTH_BASIC_USERNAME"
   value: "{{ .Values.fastapi.lrs.username }}"
 - name: "WARREN_LRS_AUTH_BASIC_PASSWORD"
