@@ -73,7 +73,7 @@ class DevelopmentLTIView(TemplateView):
         request_url = (
             urlparse(self.request.build_absolute_uri())
             ._replace(
-                path=reverse("lti:lti-request-view", kwargs={"selection": "demo"})
+                path=reverse("lti:lti-request-view", kwargs={"selection": "video"})
             )
             .geturl()
         )

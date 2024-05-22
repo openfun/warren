@@ -8,6 +8,13 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Added
+
+- Add dedicated views depending on LTI roles
+
+### Changed
+
+- Remove restricted access to instructors and administrators
 
 ## [0.2.0] - 2024-05-21
 

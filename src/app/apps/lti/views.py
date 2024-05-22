@@ -114,10 +114,6 @@ class LTIRequestView(BaseLTIView, RenderMixin, TokenMixin):
             logger.debug("LTI user is not valid: %s", lti_user_form.errors)
             raise PermissionDenied
 
-        if not (lti_request.is_instructor or lti_request.is_administrator):
-            logger.debug("LTI user has insufficient permissions")
-            raise PermissionDenied
-
         if lti_request.get_param("lti_message_type") != LTIMessageType.LAUNCH_REQUEST:
             logger.debug("LTI message type is not valid")
             raise PermissionDenied
@@ -136,6 +132,7 @@ class LTIRequestView(BaseLTIView, RenderMixin, TokenMixin):
 
         self.app_data = {
             "lti_route": kwargs["selection"] or "demo",
+            "is_instructor": lti_request.is_instructor,
             "context_title": lti_request.context_title,
             "course_info": course_info,
             "course_id": course_id,

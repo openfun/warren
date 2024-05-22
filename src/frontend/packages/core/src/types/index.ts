@@ -12,6 +12,7 @@ export interface AppData {
   lti_route: string;
   access: string;
   refresh: string;
+  is_instructor: boolean;
   context_title?: string;
   course_info?: CourseData;
   course_id?: string;
