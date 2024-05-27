@@ -17,8 +17,8 @@ class Moodle(LMS):
 
     def __init__(self, url: Optional[str] = None, token: Optional[str] = None):
         """Initialize the Moodle HTTP client."""
-        self.url = url or settings.MOODLE_BASE_URL
-        self._token = token or settings.MOODLE_WS_TOKEN
+        self.url = url or settings.XI_LMS_BASE_URL
+        self._token = token or settings.XI_LMS_API_TOKEN
 
         self._client = AsyncClient(
             base_url=f"{self.url}/webservice/rest/server.php",
