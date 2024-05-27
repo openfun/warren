@@ -75,8 +75,8 @@ class Settings(BaseSettings):
     SENTRY_CLI_TRACES_SAMPLE_RATE: float = 1.0
 
     # Experience Index
-    MOODLE_BASE_URL: str = "https://moodle.preprod-fun.apps.openfun.fr"
-    MOODLE_WS_TOKEN: str = "yourWebServicesToken"
+    XI_LMS_BASE_URL: str = "https://lms.example.com"
+    XI_LMS_API_TOKEN: str = "yourLMSAPIToken"
 
     @property
     def DATABASE_URL(self) -> str:
