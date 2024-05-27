@@ -8,6 +8,8 @@ and this project adheres to
 
 ## [Unreleased]
 
+## [0.3.0] - 2024-06-05
+
 ### Added
 
 - Add dedicated views depending on LTI roles
@@ -63,6 +65,7 @@ and this project adheres to
 - Encapsulate statements pre-processing in a Mixin class
 - Factorize Video indicators
 
-[unreleased]: https://github.com/openfun/warren/compare/v0.2.0...main
+[unreleased]: https://github.com/openfun/warren/compare/v0.3.0...main
+[0.3.0]: https://github.com/openfun/warren/compare/v0.2.0...v0.3.0 
 [0.2.0]: https://github.com/openfun/warren/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/openfun/warren/compare/abae78e...v0.1.0
