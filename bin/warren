@@ -3,7 +3,13 @@
 declare DOCKER_USER
 DOCKER_USER="$(id -u):$(id -g)"
 
-DOCKER_USER=${DOCKER_USER} docker compose run \
-  --rm \
+declare DOCKER_COMMAND
+DOCKER_COMMAND="exec"
+
+if [[ "${@}" == *"migration"* ]]; then
+  DOCKER_COMMAND="run --rm"
+fi
+
+DOCKER_USER=${DOCKER_USER} docker compose ${DOCKER_COMMAND} \
   api \
   warren "$@"
