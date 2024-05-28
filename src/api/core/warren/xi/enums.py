@@ -36,7 +36,7 @@ class Structure(str, Enum):
 class AggregationLevel(IntEnum):
     """Enumeration of Experience Aggregation Levels."""
 
-    ONE = 1
-    TWO = 2
-    THREE = 3
-    FOUR = 4
+    ONE = 1  # smallest level, raw media data or fragments
+    TWO = 2  # collection of level 1s, e.g. a lesson
+    THREE = 3  # collection of level 2s, e.g. a course
+    FOUR = 4  # e.g. set of course that leads to a certificate

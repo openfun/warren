@@ -75,6 +75,7 @@ class Settings(BaseSettings):
     SENTRY_CLI_TRACES_SAMPLE_RATE: float = 1.0
 
     # Experience Index
+    XI_DEFAULT_LANG: str = "fr"
     XI_LMS_BASE_URL: str = "https://lms.example.com"
     XI_LMS_API_TOKEN: str = "yourLMSAPIToken"
 

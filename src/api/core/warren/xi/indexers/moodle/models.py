@@ -5,6 +5,7 @@ from typing import List, Optional
 from pydantic import Field
 from pydantic.main import BaseModel
 
+from warren.conf import settings
 from warren.fields import IRI
 
 from ...enums import AggregationLevel, Structure
@@ -60,9 +61,9 @@ class Course(BaseModel, LangStringMixin):
         """Convert course to an experience."""
         return ExperienceCreate(
             iri=f"{base_url}/course/view.php?id={self.id}",
-            title=self.build_lang_string(self.display_name),
-            language=self.language,
-            description=self.build_lang_string(self.summary),
+            title=self.build_lang_string(self.display_name, settings.XI_DEFAULT_LANG),
+            language=self.language or settings.XI_DEFAULT_LANG,
+            description=self.build_lang_string(self.summary, settings.XI_DEFAULT_LANG),
             structure=Structure.HIERARCHICAL,
             aggregation_level=AggregationLevel.THREE,
             technical_datatypes=[],
