@@ -314,9 +314,53 @@ def xi_index_course_content(
     moodle_ws_token: str,
     ignore_errors: bool,
 ):
-    """Index LMS course content."""
+    """Index LMS content of a course."""
     asyncio.run(
         _xi_index_course_content(
             course_id, xi_url, moodle_url, moodle_ws_token, ignore_errors
         )
     )
+
+
+async def _xi_index_all(
+    xi_url: str,
+    moodle_url: str,
+    moodle_ws_token: str,
+    ignore_errors: bool,
+):
+    """Index LMS courses and their content.
+
+    Nota bene: as we are calling multiple asynchronous functions, we need
+    to wrap calls in a single async function called in a synchronous Click
+    command using the asyncio.run method. Calling asyncio.run multiple times
+    can close the execution loop unexpectedly.
+    """
+    lms = Moodle(url=moodle_url, token=moodle_ws_token)
+    xi = ExperienceIndex(url=xi_url)
+
+    indexer_courses = Courses(lms=lms, xi=xi, ignore_errors=ignore_errors)
+    await indexer_courses.execute()
+
+    experiences = await xi.experience.read(aggregation_level=AggregationLevel.THREE)
+    for experience in experiences:
+        course = await xi.experience.get(object_id=experience.id)
+        if course is None:
+            raise click.BadParameter(
+                f"Unknown course {experience.id}. Course indexation has failed!"
+            )
+        indexer_content = CourseContent(
+            course=course, lms=lms, xi=xi, ignore_errors=ignore_errors
+        )
+        await indexer_content.execute()
+
+
+@xi_index.command("all")
+@click.option("--xi-url", "-x", default="")
+@click.option("--moodle-url", "-u", default="")
+@click.option("--moodle-ws-token", "-t", default="")
+@click.option("--ignore-errors/--no-ignore-errors", "-I/-F", default=False)
+def xi_index_all(
+    xi_url: str, moodle_url: str, moodle_ws_token: str, ignore_errors: bool
+):
+    """Index all LMS courses and their content."""
+    asyncio.run(_xi_index_all(xi_url, moodle_url, moodle_ws_token, ignore_errors))

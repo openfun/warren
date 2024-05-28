@@ -463,6 +463,66 @@ def test_xi_index_course_content_command_with_unknown_course(monkeypatch):
     assert "Unknown course fake-course-id. It should be indexed first!" in result.output
 
 
+def test_xi_index_all(monkeypatch):
+    """Test warren xi index all command."""
+    runner = CliRunner()
+
+    moodle_client_mock = MagicMock(return_value=None)
+    courses_indexer_execute_mock = AsyncMock()
+
+    monkeypatch.setattr(Moodle, "__init__", moodle_client_mock)
+    monkeypatch.setattr(Courses, "execute", courses_indexer_execute_mock)
+
+    xi_experience_read_mock = AsyncMock(
+        return_value=[
+            ExperienceRead(
+                **ExperienceFactory.build_dict(
+                    exclude=set(), id="ce0927fa-5f72-4623-9d29-37ef45c39609"
+                )
+            ),
+            ExperienceRead(
+                **ExperienceFactory.build_dict(
+                    exclude=set(), id="a0fb8abc-96d8-4b32-8551-f36a064a6a3f"
+                )
+            ),
+        ]
+    )
+    xi_experience_get_mock = AsyncMock(
+        return_value=ExperienceRead(
+            **ExperienceFactory.build_dict(
+                exclude=set(), id="ce0927fa-5f72-4623-9d29-37ef45c39609"
+            )
+        )
+    )
+    content_indexer_execute_mock = AsyncMock()
+
+    monkeypatch.setattr(CRUDExperience, "read", xi_experience_read_mock)
+    monkeypatch.setattr(CRUDExperience, "get", xi_experience_get_mock)
+    monkeypatch.setattr(CourseContent, "execute", content_indexer_execute_mock)
+
+    result = runner.invoke(
+        cli,
+        [
+            "xi",
+            "index",
+            "all",
+            "--xi-url",
+            "http://xi.foo.com",
+            "--moodle-url",
+            "http://moodle.foo.com",
+            "--moodle-ws-token",
+            "faketoken",
+        ],
+    )
+
+    assert result.exit_code == 0
+    moodle_client_mock.assert_called_with(
+        url="http://moodle.foo.com", token="faketoken"
+    )
+    courses_indexer_execute_mock.assert_called()
+    content_indexer_execute_mock.assert_called()
+
+
 def test_xi_list_courses_command_when_no_course_exists(monkeypatch):
     """Test warren xi list courses command with no indexed course."""
     runner = CliRunner()

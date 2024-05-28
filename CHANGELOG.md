@@ -11,6 +11,7 @@ and this project adheres to
 ### Added
 
 - Add dedicated views depending on LTI roles
+- Add a warren xi index all CLI command
 
 ### Changed
 
