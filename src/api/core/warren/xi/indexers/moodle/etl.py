@@ -49,7 +49,14 @@ class Courses(ETL[Course, ExperienceCreate], ETLRunnerMixin):
 
     def _transform(self, raw: List[Course]) -> Iterator[ExperienceCreate]:
         """Transform courses into experiences."""
-        return (course.to_experience(base_url=self._lms.url) for course in raw)
+        for course in raw:
+            try:
+                yield course.to_experience(base_url=self._lms.url)
+            except ValidationError as err:
+                if not self._ignore_errors:
+                    raise err
+                logger.exception("Skipping invalid course %s", course.id)
+                pass
 
     async def _load(self, data: Iterator[ExperienceCreate]) -> None:
         """Load experiences into the Experience Index (XI)."""
@@ -121,6 +128,7 @@ class CourseContent(ETL[Section, ExperienceCreate], ETLRunnerMixin):
                 if not self._ignore_errors:
                     raise err
                 logger.exception("Skipping invalid module %s", module.id)
+                pass
 
     async def _load(self, data: Iterator[ExperienceCreate]) -> None:
         """Load experiences into the Experience Index (XI) and create relations."""
