@@ -84,6 +84,15 @@ Environment variables
     secretKeyRef:
       name: warren-api-lrs
       key: WARREN_LRS_AUTH_BASIC_PASSWORD
+- name: "WARREN_XI_LMS_BASE_URL"
+  value: "{{ .Values.fastapi.xi.lmsBaseUrl }}"
+- name: "WARREN_XI_LMS_API_TOKEN"
+  valueFrom:
+    secretKeyRef:
+      name: warren-api-lms
+      key: WARREN_XI_LMS_API_TOKEN
+- name: "WARREN_XI_DEFAULT_LANG"
+  value: "{{ .Values.fastapi.xi.defaultLang }}"
 - name: "WARREN_APP_SIGNING_ALGORITHM"
   value: "{{ .Values.fastapi.signingAlgorithm }}"
 - name: "WARREN_APP_SIGNING_KEY"
