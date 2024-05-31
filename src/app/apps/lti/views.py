@@ -22,7 +22,7 @@ from lti_toolbox.views import BaseLTIView
 from oauthlib import oauth1
 from rest_framework_simplejwt.exceptions import TokenError
 
-from .forms import BaseLTIUserForm
+from .forms import BaseLTIContextForm, BaseLTIUserForm
 from .token import LTIContentItemSelectionToken, LTIRefreshToken
 
 logger = logging.getLogger(__name__)
@@ -31,18 +31,35 @@ logger = logging.getLogger(__name__)
 class TokenMixin:
     """Mixin class for handling token generation from an LTI request.
 
-    This mixin provides methods to parse user data from an LTI request
+    This mixin provides methods to parse user and context data from an LTI request
     and generate access and refresh tokens.
     """
+
+    def parse_context_data(self, lti_request: LTI):
+        """Parse user data from the given LTI request and validate it."""
+        lti_context_data = {
+            "consumer_site": lti_request.get_consumer().url,
+            "course_id": (
+                lti_request.origin_url
+                if lti_request.is_moodle_format
+                else lti_request.get_param("context_id")
+            ),
+        }
+
+        lti_context_form = BaseLTIContextForm(lti_context_data)
+        if not lti_context_form.is_valid():
+            logger.debug("LTI context is not valid: %s", lti_context_form.errors)
+            raise PermissionDenied
+
+        return lti_context_data
 
     def parse_user_data(self, lti_request: LTI):
         """Parse user data from the given LTI request and validate it."""
         lti_user_data = {
-            "platform": lti_request.get_consumer().url,
-            "course": lti_request.get_param("context_id"),
-            "user": lti_request.get_param("user_id"),
+            "id": lti_request.get_param("user_id"),
             "email": lti_request.get_param("lis_person_contact_email_primary"),
         }
+
         lti_user_form = BaseLTIUserForm(lti_user_data)
         if not lti_user_form.is_valid():
             logger.debug("LTI user is not valid: %s", lti_user_form.errors)
@@ -52,10 +69,13 @@ class TokenMixin:
 
     def generate_tokens(self, lti_request: LTI):
         """Generate access and refresh tokens using the parsed LTI user data."""
+        lti_context_data = self.parse_context_data(lti_request)
         lti_user_data = self.parse_user_data(lti_request)
 
         session_id = str(uuid.uuid4())
-        refresh_token = LTIRefreshToken.from_lti(lti_request, lti_user_data, session_id)
+        refresh_token = LTIRefreshToken.from_lti(
+            lti_request, lti_context_data, lti_user_data, session_id
+        )
 
         return {
             "access": str(refresh_token.access_token),
@@ -102,30 +122,12 @@ class LTIRequestView(BaseLTIView, RenderMixin, TokenMixin):
 
     def _do_on_success(self, lti_request: LTI, *args, **kwargs) -> HttpResponse:
         """Build the App's data and render the LTI view."""
-        lti_user = {
-            "platform": lti_request.get_consumer().url,
-            "course": lti_request.get_param("context_id"),
-            "user": lti_request.get_param("user_id"),
-            "email": lti_request.get_param("lis_person_contact_email_primary"),
-        }
-
-        lti_user_form = BaseLTIUserForm(lti_user)
-        if not lti_user_form.is_valid():
-            logger.debug("LTI user is not valid: %s", lti_user_form.errors)
-            raise PermissionDenied
-
         if lti_request.get_param("lti_message_type") != LTIMessageType.LAUNCH_REQUEST:
             logger.debug("LTI message type is not valid")
             raise PermissionDenied
 
         jwt = self.generate_tokens(lti_request)
         course_info = lti_request.get_course_info()
-
-        course_id = None
-        if lti_request.is_edx_format:
-            course_id = lti_request.get_param("context_id")
-        elif lti_request.is_moodle_format:
-            course_id = lti_request.origin_url
 
         # Rename 'school_name' to a LMS-generic name
         course_info["organization"] = course_info.pop("school_name")
@@ -135,7 +137,6 @@ class LTIRequestView(BaseLTIView, RenderMixin, TokenMixin):
             "is_instructor": lti_request.is_instructor,
             "context_title": lti_request.context_title,
             "course_info": course_info,
-            "course_id": course_id,
             **jwt,
         }
 

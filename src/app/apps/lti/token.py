@@ -14,13 +14,17 @@ class LTITokenMixin:
     """
 
     @classmethod
-    def from_lti(cls, lti_request: LTI, lti_user: dict, session_id: str):
+    def from_lti(
+        cls, lti_request: LTI, lti_context: dict, lti_user: dict, session_id: str
+    ):
         """Instantiate a token class and update its payload with LTI data."""
         token = cls()
         token.payload.update(
             {
                 "session_id": session_id,
                 "roles": lti_request.roles,
+                "consumer_site": lti_context.get("consumer_site"),
+                "course_id": lti_context.get("course_id"),
                 "user": lti_user,
                 "locale": lti_request.get_param("launch_presentation_locale"),
                 "resource_link_id": lti_request.get_param("resource_link_id"),
