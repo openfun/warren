@@ -3,7 +3,7 @@
 from datetime import datetime
 from functools import reduce
 from itertools import groupby
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set
 
 import arrow
 from lti_toolbox.launch_params import LTIRole
@@ -241,10 +241,8 @@ class DailyUniqueCounts(BaseModel):
 class LTIUser(BaseModel):
     """Model to represent LTI user data."""
 
-    platform: str
-    course: str
+    id: str
     email: str
-    user: str
 
 
 class LTIToken(BaseModel):
@@ -255,7 +253,9 @@ class LTIToken(BaseModel):
     iat: int
     jti: str
     session_id: str
-    roles: List[Union[LTIRole, str]]
+    consumer_site: str
+    course_id: str
+    roles: List[LTIRole]
     user: LTIUser
     locale: str
     resource_link_id: str

@@ -51,14 +51,21 @@ class LTISelectFormAccessTokenTestCase(TestCase):
                 "roles": "Instructor",
             }
         )
+        lti_context = {
+            "consumer_site": "http://my-moodle.com",
+            "course_id": "http://my-moodle.com/course/1",
+        }
         lti_user = {
-            "user_id": 123,
+            "id": 123,
             "username": "lti_user",
+            "email": "contact@example.com",
         }
         session_id = "session123"
 
         # Create an LTIRefreshToken instance from LTI data
-        refresh_token = LTIRefreshToken.from_lti(lti_request, lti_user, session_id)
+        refresh_token = LTIRefreshToken.from_lti(
+            lti_request, lti_context, lti_user, session_id
+        )
 
         # Assert that the refresh token is an instance of LTIRefreshToken
         self.assertIsInstance(refresh_token, LTIRefreshToken)

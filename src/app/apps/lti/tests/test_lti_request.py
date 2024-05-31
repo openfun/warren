@@ -95,6 +95,7 @@ class LTIRequestViewTestCase(TestCase):
             "lti_message_type": "basic-lti-launch-request",
             "lti_version": "LTI-1p0",
             "resource_link_id": "df7",
+            "context_id": "course-v1:openfun+mathematics101+session01",
         }
 
         signed_parameters = sign_parameters(
@@ -112,8 +113,7 @@ class LTIRequestViewTestCase(TestCase):
         mock_logger.assert_called_with(
             "LTI user is not valid: %s",
             {
-                "course": ["Ce champ est obligatoire."],
-                "user": ["Ce champ est obligatoire."],
+                "id": ["Ce champ est obligatoire."],
                 "email": ["Ce champ est obligatoire."],
             },
         )
@@ -243,9 +243,6 @@ class LTIRequestViewTestCase(TestCase):
                 "course_name": "Mathematics 101",
                 "course_run": None,
             },
-        )
-        self.assertEqual(
-            context["course_id"], "http://fake-lms.com/course/view.php?id=1234"
         )
 
         LTIRefreshToken(context["refresh"]).verify()

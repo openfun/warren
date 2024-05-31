@@ -17,6 +17,11 @@ and this project adheres to
 
 - Remove restricted access to instructors and administrators
 
+### Security
+
+- Pass `course_id`, `user_id` and `roles` through JWT token instead of app
+ context data
+
 ## [0.2.0] - 2024-05-21
 
 ### Added

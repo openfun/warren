@@ -270,12 +270,12 @@ class ExperienceIndex(Client):
 
         token = forge_lti_token(
             user=LTIUser(
-                platform="https://fake-lms.com",
-                course="all",
+                id="xi",
                 email="xi@fake-lms.com",
-                user="xi",
             ),
             roles=("administrator",),
+            consumer_site="https://fake-lms.com",
+            course_id="all",
         )
         self._client = AsyncClient(
             base_url=self._url,

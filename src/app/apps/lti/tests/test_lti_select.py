@@ -99,6 +99,7 @@ class LTISelectViewTestCase(TestCase):
             "accept_media_types": "application/vnd.ims.lti.v1.ltilink",
             "accept_presentation_document_targets": "frame,iframe,window",
             "content_item_return_url": "http://testserver/",
+            "context_id": "1",
             "roles": "instructor",
         }
 
@@ -117,8 +118,7 @@ class LTISelectViewTestCase(TestCase):
         mock_logger.assert_called_with(
             "LTI user is not valid: %s",
             {
-                "course": ["Ce champ est obligatoire."],
-                "user": ["Ce champ est obligatoire."],
+                "id": ["Ce champ est obligatoire."],
                 "email": ["Ce champ est obligatoire."],
             },
         )

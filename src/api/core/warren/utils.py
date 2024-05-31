@@ -4,11 +4,12 @@ import datetime
 import logging
 import uuid
 from functools import reduce
-from typing import Callable
+from typing import Callable, List
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+from lti_toolbox.launch_params import LTIRole
 from pydantic import ValidationError
 from typing_extensions import Annotated  # python <3.9 compat
 
@@ -64,17 +65,34 @@ def get_lti_token(token: Annotated[str, Depends(oauth2_scheme)]) -> LTIToken:
     return payload
 
 
+def get_lti_course_id(lti_token: Annotated[LTIToken, Depends(get_lti_token)]) -> str:
+    """Get the course id from the LTI token."""
+    return lti_token.course_id
+
+
+def get_lti_user_id(lti_token: Annotated[LTIToken, Depends(get_lti_token)]) -> str:
+    """Get the user id from the LTI token."""
+    return lti_token.user.id
+
+
+def get_lti_roles(
+    lti_token: Annotated[LTIToken, Depends(get_lti_token)]
+) -> List[LTIRole]:
+    """Check if user is an instructor from the LTI token."""
+    return lti_token.roles
+
+
 JOHN_DOE_USER = LTIUser(
-    platform="http://fake-lms.com",
-    course="course-v1:openfun+mathematics101+session01",
+    id="johndoe",
     email="johndoe@example.com",
-    user="johndoe",
 )
 
 
-def forge_lti_token(
+def forge_lti_token(  # noqa: PLR0913
     user: LTIUser = JOHN_DOE_USER,
     roles: tuple = ("instructor",),
+    consumer_site: str = "http://fake-lms.com",
+    course_id: str = "course-v1:openfun+mathematics101+session01",
     locale: str = "fr",
     resource_link_id: str = "",
     resource_link_description: str = "",
@@ -87,6 +105,8 @@ def forge_lti_token(
         iat=timestamp,
         jti="",
         session_id=str(uuid.uuid4()),
+        consumer_site=consumer_site,
+        course_id=course_id,
         roles=roles,
         user=user,
         locale=locale,
