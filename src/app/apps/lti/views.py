@@ -45,7 +45,7 @@ class TokenMixin:
         }
         lti_user_form = BaseLTIUserForm(lti_user_data)
         if not lti_user_form.is_valid():
-            logger.debug("LTI user is not valid: %s", lti_user_form.errors)
+            logger.error("LTI user is not valid: %s", lti_user_form.errors)
             raise PermissionDenied
 
         return lti_user_data
