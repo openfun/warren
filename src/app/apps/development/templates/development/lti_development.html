@@ -24,18 +24,28 @@
           id="lti_params"
           method="post"
           target="lti_request"
-          action="{% url "lti:lti-request-view" "video" %}"
+          action="{{ launch_url }}"
         >
 
           <div class="grid">
 
             <div class="input-group">
+              <label for="route"><code>route</code></label>
+              <select id="route" name="route">
+                {% for route in lti_routes %}
+                <option value={{route}}>{{ route }} </option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <div class="input-group">
               <label for="lti_message_type"><code>lti_message_type</code></label>
               <input
                 id="lti_message_type"
                 type="text"
+                readonly
                 name="lti_message_type"
-                value="{{ lti_message_type }}"
+                value="{{ lti_parameters.lti_message_type }}"
               />
             </div>
 
@@ -44,8 +54,9 @@
               <input
                 id="lti_version"
                 type="text"
+                readonly
                 name="lti_version"
-                value="{{ lti_version }}"
+                value="{{ lti_parameters.lti_version }}"
               />
             </div>
 
@@ -54,8 +65,9 @@
               <input
                 id="resource_link_id"
                 type="text"
+                readonly
                 name="resource_link_id"
-                value="{{ resource_link_id }}"
+                value="{{ lti_parameters.resource_link_id }}"
               />
             </div>
 
@@ -69,7 +81,7 @@
                 id="lis_person_contact_email_primary"
                 type="text"
                 name="lis_person_contact_email_primary"
-                value="{{ lis_person_contact_email_primary }}"
+                value="{{ lti_parameters.lis_person_contact_email_primary }}"
               />
             </div>
 
@@ -79,7 +91,7 @@
                 id="user_id"
                 type="text"
                 name="user_id"
-                value="{{ user_id }}"
+                value="{{ lti_parameters.user_id }}"
               />
             </div>
 
@@ -102,7 +114,7 @@
                 id="context_id"
                 type="text"
                 name="context_id"
-                value="{{ context_id }}"
+                value="{{ lti_parameters.context_id }}"
               />
             </div>
 
@@ -112,7 +124,7 @@
                 id="context_title"
                 type="text"
                 name="context_title"
-                value="{{ context_title }}"
+                value="{{ lti_parameters.context_title }}"
               />
             </div>
 
@@ -134,7 +146,7 @@
                 id="tool_consumer_instance_name"
                 type="text"
                 name="tool_consumer_instance_name"
-                value="{{ tool_consumer_instance_name }}"
+                value="{{ lti_parameters.tool_consumer_instance_name }}"
               />
             </div>
             
@@ -144,7 +156,7 @@
                 id="tool_consumer_info_product_family_code"
                 type="text"
                 name="tool_consumer_info_product_family_code"
-                value="{{ tool_consumer_info_product_family_code }}"
+                value="{{ lti_parameters.tool_consumer_info_product_family_code }}"
               />
             </div>
 
@@ -152,12 +164,13 @@
 
           <input 
             type="submit"
+            id="refresh_signature"
             formtarget="_self"
             formaction=""
             name="refresh_signature"
             value="Refresh signature" />
 
-          {% for key, value in oauth_dict.items %}
+          {% for key, value in lti_parameters.oauth_dict.items %}
           {% if forloop.first or forloop.counter|divisibleby:"4" %}
           <div class="grid">
           {% endif %}
@@ -196,6 +209,23 @@
     </main>
   </body>
   <script>
-    document.getElementById('roles').value = '{{ roles }}';
+    document.getElementById('roles').value = '{{ lti_parameters.roles }}';
+    if ('{{ selected_route }}') {
+      document.getElementById('route').value = '{{ selected_route }}';
+    }
+    
+    // Disable route field before submitting the form to the LTI request view
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('lti_params');
+      form.addEventListener('submit', function (event) {
+        event.preventDefault;
+        const routeInput = document.getElementById('route');
+        if(event.submitter.id != "refresh_signature") {
+          routeInput.disabled = true;
+          }
+        form.submit();
+      });
+    });
+
   </script>
 </html>

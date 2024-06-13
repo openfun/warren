@@ -27,7 +27,7 @@ class DevelopmentLTIView(TemplateView):
     template_name = "development/lti_development.html"
 
     def get_context_data(self, **kwargs):
-        """Generate a UUID to pre-populate the `uuid` fields in the LTI request form.
+        """Pre-populate fields in the LTI request form.
 
         Parameters
         ----------
@@ -39,9 +39,10 @@ class DevelopmentLTIView(TemplateView):
         dictionary
             context for template rendering.
         """
-        lti_parameters = Development.LTI_PARAMETERS.copy()
-
-        return lti_parameters
+        return {
+            "lti_parameters": Development.LTI_PARAMETERS.copy(),
+            "lti_routes": Development.LTI_ROUTES,
+        }
 
     # pylint: disable=unused-argument
     def post(self, request, *args, **kwargs):
@@ -63,27 +64,28 @@ class DevelopmentLTIView(TemplateView):
             generated from applying the data to the template
 
         """
-        lti_parameters = request.POST.dict()
-        lti_parameters.pop("refresh_signature")
+        request_params = request.POST.dict()
+        route = request_params.get("route")
+        excluded_params = ["route", "refresh_signature"]
         lti_parameters = {
-            key: value for key, value in lti_parameters.items() if "oauth" not in key
+            key: value
+            for key, value in request_params.items()
+            if key not in excluded_params and "oauth" not in key
         }
 
         # use the HTTP_REFERER like to be consistent with the LTI passport
-        request_url = (
+        launch_url = (
             urlparse(self.request.build_absolute_uri())
-            ._replace(
-                path=reverse("lti:lti-request-view", kwargs={"selection": "video"})
-            )
+            ._replace(path=reverse("lti:lti-request-view", kwargs={"selection": route}))
             .geturl()
         )
         try:
-            lti_consumer = LTIConsumer.objects.get(url=request_url)
+            lti_consumer = LTIConsumer.objects.get(url=launch_url)
         except LTIConsumer.DoesNotExist:
             lti_consumer, _ = LTIConsumer.objects.get_or_create(
-                slug="localhost",
-                title="localhost test",
-                url=request_url,
+                slug=f"localhost-{route}",
+                title=f"localhost test - {route}",
+                url=launch_url,
             )
 
         passport, _ = LTIPassport.objects.get_or_create(
@@ -100,7 +102,7 @@ class DevelopmentLTIView(TemplateView):
         # oauth_signature_method="HMAC-SHA1", oauth_consumer_key="",
         # oauth_signature="frVp4JuvT1mVXlxktiAUjQ7%2F1cw%3D"
         _uri, headers, _body = oauth_client.sign(
-            request_url,
+            launch_url,
             http_method="POST",
             body=lti_parameters,
             headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -117,4 +119,11 @@ class DevelopmentLTIView(TemplateView):
         oauth_dict["oauth_nonce"] = oauth_dict.pop("OAuth oauth_nonce")
         lti_parameters.update({"oauth_dict": oauth_dict})
 
-        return self.render_to_response(lti_parameters)
+        return self.render_to_response(
+            {
+                "lti_routes": Development.LTI_ROUTES,
+                "selected_route": route,
+                "lti_parameters": lti_parameters,
+                "launch_url": launch_url,
+            }
+        )
