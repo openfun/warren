@@ -377,6 +377,8 @@ class Development(Base):
         ),
     }
 
+    LTI_ROUTES = ListValue(["video"], environ_name="LTI_ROUTES")
+
     LOGGING = {
         "version": 1,
         "disable_existing_loggers": False,
