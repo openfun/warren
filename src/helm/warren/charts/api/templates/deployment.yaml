@@ -61,7 +61,7 @@ spec:
       volumes:
         - name: logging-config
           configMap:
-            name: "warren-api-logging-config"
+            name: {{ include "api.fullname" . }}-logging-config
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
