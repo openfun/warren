@@ -90,7 +90,8 @@ spec:
             - name: {{ .Values.volumes.media.name }}
               mountPath: /usr/share/nginx/media
             - name: nginx
-              mountPath: /etc/nginx
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
               readOnly: true
           livenessProbe:
             httpGet:

@@ -44,4 +44,5 @@ data:
 
         }
 
+        include /etc/nginx/mime.types;
     }
