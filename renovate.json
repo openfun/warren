@@ -1,10 +1,18 @@
 {
   "extends": [
-          "github>openfun/renovate-configuration"
+    "github>openfun/renovate-configuration"
   ],
   "commitMessagePrefix": "⬆️(project)",
   "commitMessageAction": "upgrade",
   "commitBodyTable": true,
-  "ignoreDeps": ["pydantic", "dev/pytest", "dev/pytest-httpx", "dev/httpx", "Django", "dev/ipython"],
+  "ignoreDeps": [
+    "pydantic",
+    "dev/pytest",
+    "dev/pytest-httpx",
+    "dev/httpx",
+    "Django",
+    "dev/ipython",
+    "ralph-malph"
+  ],
   "dependencyDashboard": true
 }
