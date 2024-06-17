@@ -28,7 +28,7 @@ license = {file = "LICENSE.md"}
 keywords = ["Analytics", "xAPI", "LRS", "LTI"]
 dependencies = [
     "mike==2.1.1",
-    "mkdocs-material==9.5.26",
+    "mkdocs-material==9.5.27",
     "mkdocs==1.6.0",
     "neoteroi-mkdocs==1.0.5",
     "pymdown-extensions==10.8.1",
