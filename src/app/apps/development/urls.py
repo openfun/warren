@@ -2,10 +2,19 @@
 
 from django.urls import path
 
-from .views import DevelopmentLTIView
+from .views import DevelopmentLTIRequestView, DevelopmentLTISelectView
 
 app_name = "development"
 
 urlpatterns = [
-    path("development/", DevelopmentLTIView.as_view(), name="lti-development-view"),
+    path(
+        "development/request",
+        DevelopmentLTIRequestView.as_view(),
+        name="lti-request-view",
+    ),
+    path(
+        "development/select",
+        DevelopmentLTISelectView.as_view(),
+        name="lti-select-view",
+    ),
 ]
