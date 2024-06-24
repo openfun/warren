@@ -37,6 +37,7 @@
     "dayjs": "1.11.10",
     "echarts": "5.4.3",
     "echarts-for-react": "3.0.2",
+    "jwt-decode": "4.0.0",
     "lodash.clonedeep": "4.5.0",
     "react": "18.2.0",
     "react-error-boundary": "4.0.13",
