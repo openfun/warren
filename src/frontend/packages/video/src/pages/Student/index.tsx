@@ -7,10 +7,12 @@
  *
  * @returns {JSX.Element} The JSX for the videos statistics overview dashboard.
  */
-export default () => {
+export const StudentPage = () => {
   return (
     <div className="c__overview">
       No student view available for video indicators
     </div>
   );
 };
+
+export default StudentPage;

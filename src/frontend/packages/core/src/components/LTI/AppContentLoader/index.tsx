@@ -45,8 +45,14 @@ export const AppContentLoader: React.FC<AppContentLoaderProps> = ({
     return <div>Wrong route</div>;
   }
 
+  // const getRoleRoute = (route: RoleViews): React.LazyExoticComponent<() => JSX.Element> => {
+  //   return dataContext.is_instructor ? route.instructor : route.student;
+  // };
+
   const Content = useMemo(
-    () => routes[dataContext.lti_route],
+    () => dataContext.is_instructor ?
+      routes[dataContext.lti_route].instructor :
+      routes[dataContext.lti_route].student,
     [dataContext, routes],
   );
 

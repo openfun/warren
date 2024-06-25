@@ -10,7 +10,7 @@ import { VideoFiltersProvider } from "../../contexts";
  *
  * @returns {JSX.Element} The JSX for the videos statistics overview dashboard.
  */
-export default () => {
+export const InstructorPage = () => {
   return (
     <div className="c__overview">
       <VideoFiltersProvider>
@@ -23,3 +23,5 @@ export default () => {
     </div>
   );
 };
+
+export default InstructorPage;

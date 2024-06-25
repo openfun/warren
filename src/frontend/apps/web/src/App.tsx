@@ -1,4 +1,4 @@
-import React, { lazy } from "react";
+import React, { LazyExoticComponent, lazy } from "react";
 import {
   AppContentLoader,
   parseDataContext,
@@ -9,22 +9,16 @@ import {
 
 const dataContext = parseDataContext(document);
 
+
+const pathName: string = "video";
+const packageName: string = "@openfun/warren-video";
+
 // todo - brainstorm on an autodiscovery mechanism for routes
-const videoRoutes: Routes = {
-  instructor: lazy(() => import("@openfun/warren-video/src/pages/Instructor")),
-  student: lazy(() => import("@openfun/warren-video/src/pages/Student")),
-};
+const routes: Routes = {};
 
-const getVideoRoute = (): React.LazyExoticComponent<() => JSX.Element> => {
-  if (dataContext.is_instructor) {
-    return videoRoutes.instructor;
-  } else {
-    return videoRoutes.student;
-  }
-};
-
-const routes: Routes = {
-  video: getVideoRoute(),
+routes[pathName] = {
+  instructor: lazy(() => import(`../../../node_modules/${packageName}/src/pages/Instructor`)),
+  student: lazy(() => import(`../../../node_modules/${packageName}/src/pages/Student/index.tsx`)),
 };
 
 export const App = () => {

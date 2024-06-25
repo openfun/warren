@@ -18,6 +18,11 @@ export interface AppData {
   course_id?: string;
 }
 
+export interface RoleViews {
+  instructor: React.LazyExoticComponent<() => JSX.Element>;
+  student: React.LazyExoticComponent<() => JSX.Element>;
+}
+
 export interface Routes {
-  [key: string]: React.LazyExoticComponent<() => JSX.Element>;
+  [key: string]: RoleViews;
 }
