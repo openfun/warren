@@ -3,7 +3,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { CunninghamProvider } from "@openfun/cunningham-react";
 import { queryClient } from "../libs";
-import { FiltersProvider, LTIProvider } from "../contexts";
+import { FiltersProvider, LTIProvider, JwtProvider } from "../contexts";
 
 export type AppProviderProps = {
   children: React.ReactNode;
@@ -26,12 +26,14 @@ export type AppProviderProps = {
 export const AppProvider = ({ children }: AppProviderProps) => (
   <CunninghamProvider>
     <LTIProvider>
-      <FiltersProvider>
-        <QueryClientProvider client={queryClient}>
-          {children}
-          <ReactQueryDevtools initialIsOpen />
-        </QueryClientProvider>
-      </FiltersProvider>
+      <JwtProvider>
+        <FiltersProvider>
+          <QueryClientProvider client={queryClient}>
+            {children}
+            <ReactQueryDevtools initialIsOpen />
+          </QueryClientProvider>
+        </FiltersProvider>
+      </JwtProvider>
     </LTIProvider>
   </CunninghamProvider>
 );

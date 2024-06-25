@@ -21,3 +21,23 @@ export interface AppData {
 export interface Routes {
   [key: string]: React.LazyExoticComponent<() => JSX.Element>;
 }
+
+interface DecodedJwtUserLTI {
+  id: string;
+  email: string;
+}
+
+export interface DecodedJwtLTI {
+  consumer_site: string;
+  course_id: string;
+  exp: number;
+  iat: number;
+  jti: string;
+  locale: string;
+  resource_link_description?: string;
+  resource_link_id: string;
+  roles: Array<string>;
+  session_id: string;
+  token_type: string;
+  user: DecodedJwtUserLTI;
+}
