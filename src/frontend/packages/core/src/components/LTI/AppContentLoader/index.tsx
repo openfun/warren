@@ -1,9 +1,10 @@
 import React, { useMemo, Suspense, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { SelectContent } from "../SelectContent";
-import { useLTIContext } from "../../../hooks";
+import { useLTIContext, useJwtContext } from "../../../hooks";
 import { AppData, Routes } from "../../../types";
 import { BoundaryScreenError } from "../../BoundaryScreenError";
+import { decodeJwtLTI } from "../../../utils";
 
 export interface AppContentLoaderProps {
   dataContext: AppData;
@@ -29,9 +30,11 @@ export const AppContentLoader: React.FC<AppContentLoaderProps> = ({
   routes,
 }: AppContentLoaderProps) => {
   const { setAppData } = useLTIContext();
+  const { setDecodedJwt } = useJwtContext();
 
   useEffect(() => {
     setAppData(dataContext);
+    setDecodedJwt(decodeJwtLTI(dataContext.access));
   }, []);
 
   const routesName = useMemo(() => Object.keys(routes), [routes]);

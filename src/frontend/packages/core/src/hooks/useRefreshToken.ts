@@ -1,9 +1,12 @@
 import { AxiosInstance } from "axios";
 import { AppData } from "../types";
+import { decodeJwtLTI } from "../utils";
 import { useLTIContext } from "./useLTIContext";
+import { useJwtContext } from "./useJwtContext";
 
 export const useRefreshToken = (client: AxiosInstance) => {
   const { appData, setAppData } = useLTIContext();
+  const { setDecodedJwt } = useJwtContext();
 
   const refreshAccessToken = async () => {
     const response = await client.post("token/refresh/", {
@@ -17,6 +20,8 @@ export const useRefreshToken = (client: AxiosInstance) => {
       ...prevData,
       access: newAccessToken,
     }));
+    // Decode the new access token as the JWT token
+    setDecodedJwt(decodeJwtLTI(newAccessToken));
 
     return newAccessToken;
   };
