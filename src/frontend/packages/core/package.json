@@ -1,6 +1,6 @@
 {
   "name": "@openfun/warren-core",
-  "version": "0.1.2",
+  "version": "0.3.0",
   "description": "Warren frontend core elements.",
   "private": false,
   "publishConfig": {
