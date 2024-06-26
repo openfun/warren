@@ -1,5 +1,12 @@
 # @openfun/warren-core
 
+## 0.3.0
+
+### Minor Changes
+
+- Add a context to pass data of decoded jwt through the app components
+- Add an error boundary wrapper component
+
 ## 0.1.2
 
 ### Patch Changes
