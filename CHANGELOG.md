@@ -6,7 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.1] - 2024-06-26
+
+### Added
+
+- Add development view for lti select page
 
 ## [0.3.0] - 2024-06-05
 
@@ -65,7 +69,8 @@ and this project adheres to
 - Encapsulate statements pre-processing in a Mixin class
 - Factorize Video indicators
 
-[unreleased]: https://github.com/openfun/warren/compare/v0.3.0...main
+[unreleased]: https://github.com/openfun/warren/compare/v0.3.1...main
+[0.3.1]: https://github.com/openfun/warren/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/openfun/warren/compare/v0.2.0...v0.3.0 
 [0.2.0]: https://github.com/openfun/warren/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/openfun/warren/compare/abae78e...v0.1.0
