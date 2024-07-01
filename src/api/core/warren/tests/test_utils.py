@@ -62,7 +62,7 @@ def test_get_lti_token():
         "iat": timestamp,
         "jti": "",
         "session_id": str(uuid.uuid4()),
-        "roles": ["instructor"],
+        "roles": ["instructor", "urn:lti:sysrole:ims/lis/Administrator"],
         "user": lti_user,
         "consumer_site": "http://fake-lms.com",
         "course_id": "course-v1:openfun+mathematics101+session01",
