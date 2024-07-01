@@ -3,7 +3,7 @@
 from datetime import datetime
 from functools import reduce
 from itertools import groupby
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Union
 
 import arrow
 from lti_toolbox.launch_params import LTIRole
@@ -255,7 +255,7 @@ class LTIToken(BaseModel):
     session_id: str
     consumer_site: str
     course_id: str
-    roles: List[LTIRole]
+    roles: List[Union[LTIRole, str]]
     user: LTIUser
     locale: str
     resource_link_id: str
