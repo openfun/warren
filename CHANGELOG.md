@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.2] - 2024-07-03
+
+### Fixed
+
+- Fix LTI roles model to handle additional roles from Moodle LTI launch requests
+
 ## [0.3.1] - 2024-06-26
 
 ### Added
@@ -69,7 +75,8 @@ and this project adheres to
 - Encapsulate statements pre-processing in a Mixin class
 - Factorize Video indicators
 
-[unreleased]: https://github.com/openfun/warren/compare/v0.3.1...main
+[unreleased]: https://github.com/openfun/warren/compare/v0.3.2...main
+[0.3.2]: https://github.com/openfun/warren/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/openfun/warren/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/openfun/warren/compare/v0.2.0...v0.3.0 
 [0.2.0]: https://github.com/openfun/warren/compare/v0.1.0...v0.2.0
