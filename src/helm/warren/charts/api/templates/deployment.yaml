@@ -51,6 +51,11 @@ spec:
             timeoutSeconds: 30
           env:
             {{- include "api.envs" . | nindent 12 }}
+          {{- if .Values.fastapi.extraEnvVarsCM }}
+          envFrom:
+            - configMapRef:
+                name: {{ .Values.fastapi.extraEnvVarsCM }}
+          {{- end }}
           {{ with .Values.fastapi.command }}
           command:
             {{- toYaml . | nindent 12 }}
