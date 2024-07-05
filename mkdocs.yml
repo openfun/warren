@@ -72,6 +72,7 @@ markdown_extensions:
 nav:
   - "Warren": index.md
   - "Plugins": plugins.md
+  - "Warren-TdBP": tdbp.md
   - "Contributing": contribute.md
   - "About the project":
       - "Changelog": CHANGELOG.md
