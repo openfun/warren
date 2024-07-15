@@ -23,13 +23,13 @@ class LTIRequestViewTestCase(TestCase):
         """Set up an LTI consumer and passport for the tests."""
         super().setUp()
         self._consumer = LTIConsumerFactory(
-            slug="test_lti", title="test consumer", url="http://fake-lms.com"
+            slug="test_lti", title="test consumer", url="http://fake-lms.com/lms1/"
         )
         self._passport = LTIPassportFactory(
             title="test passport", consumer=self._consumer
         )
 
-    @override_settings(ALLOWED_HOSTS=["fake-lms.com"])
+    @override_settings(ALLOWED_HOSTS=["fake-warren.com"])
     @mock.patch.object(Logger, "debug")
     def test_views_lti_request_invalid_request_type(self, mock_logger):
         """Validate that view fails when the LTI request type is a selection."""
@@ -39,7 +39,7 @@ class LTIRequestViewTestCase(TestCase):
             "lti_version": "LTI-1p0",
             "accept_media_types": "application/vnd.ims.lti.v1.ltilink",
             "accept_presentation_document_targets": "frame,iframe,window",
-            "content_item_return_url": "http://fake-lms.com/",
+            "content_item_return_url": "http://fake-lms.com/lms1/",
             "context_id": "1",
             "user_id": "1",
             "lis_person_contact_email_primary": "contact@example.com",
@@ -47,20 +47,21 @@ class LTIRequestViewTestCase(TestCase):
         }
 
         signed_parameters = sign_parameters(
-            self._passport, lti_parameters, f"http://fake-lms.com{TARGET_URL_PATH}"
+            self._passport,
+            lti_parameters,
+            f"http://fake-warren.com{TARGET_URL_PATH}",
         )
 
         response = self.client.post(
             TARGET_URL_PATH,
             urlencode(signed_parameters),
             content_type=CONTENT_TYPE,
-            HTTP_REFERER="http://fake-lms.com",
-            HTTP_HOST="fake-lms.com",
+            HTTP_HOST="fake-warren.com",
         )
         self.assertEqual(response.status_code, 403)
         mock_logger.assert_called_with("LTI message type is not valid")
 
-    @override_settings(ALLOWED_HOSTS=["fake-lms.com", "wrongserver.com"])
+    @override_settings(ALLOWED_HOSTS=["fake-warren.com", "wrongserver.com"])
     @mock.patch.object(Logger, "info")
     def test_views_lti_request_invalid_signature(self, mock_logger):
         """Validate that view fails when the LTI signature is invalid."""
@@ -71,7 +72,7 @@ class LTIRequestViewTestCase(TestCase):
         }
 
         signed_parameters = sign_parameters(
-            self._passport, lti_parameters, f"http://fake-lms.com{TARGET_URL_PATH}"
+            self._passport, lti_parameters, f"http://fake-warren.com{TARGET_URL_PATH}"
         )
 
         # The POST request is initiated from a distinct host compared to
@@ -80,13 +81,12 @@ class LTIRequestViewTestCase(TestCase):
             TARGET_URL_PATH,
             urlencode(signed_parameters),
             content_type=CONTENT_TYPE,
-            HTTP_REFERER="https://wrongserver",
             HTTP_HOST="wrongserver.com",
         )
         self.assertEqual(response.status_code, 403)
         mock_logger.assert_called_with("Valid signature: %s", False)
 
-    @override_settings(ALLOWED_HOSTS=["fake-lms.com"])
+    @override_settings(ALLOWED_HOSTS=["fake-warren.com"])
     @mock.patch.object(Logger, "debug")
     def test_views_lti_request_invalid_user(self, mock_logger):
         """Validate that view fails when the LTI user is invalid."""
@@ -99,15 +99,14 @@ class LTIRequestViewTestCase(TestCase):
         }
 
         signed_parameters = sign_parameters(
-            self._passport, lti_parameters, f"http://fake-lms.com{TARGET_URL_PATH}"
+            self._passport, lti_parameters, f"http://fake-warren.com{TARGET_URL_PATH}"
         )
 
         response = self.client.post(
             TARGET_URL_PATH,
             urlencode(signed_parameters),
             content_type=CONTENT_TYPE,
-            HTTP_REFERER="http://fake-lms.com",
-            HTTP_HOST="fake-lms.com",
+            HTTP_HOST="fake-warren.com",
         )
         self.assertEqual(response.status_code, 403)
         mock_logger.assert_called_with(
@@ -119,7 +118,7 @@ class LTIRequestViewTestCase(TestCase):
         )
 
     @override_settings(
-        ALLOWED_HOSTS=["fake-lms.com"],
+        ALLOWED_HOSTS=["fake-warren.com"],
         STORAGES={
             "default": {
                 "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -143,15 +142,14 @@ class LTIRequestViewTestCase(TestCase):
         }
 
         signed_parameters = sign_parameters(
-            self._passport, lti_parameters, f"http://fake-lms.com{TARGET_URL_PATH}"
+            self._passport, lti_parameters, f"http://fake-warren.com{TARGET_URL_PATH}"
         )
 
         response = self.client.post(
             TARGET_URL_PATH,
             urlencode(signed_parameters),
             content_type=CONTENT_TYPE,
-            HTTP_REFERER="http://fake-lms.com",
-            HTTP_HOST="fake-lms.com",
+            HTTP_HOST="fake-warren.com",
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "<html>")
@@ -183,7 +181,7 @@ class LTIRequestViewTestCase(TestCase):
         LTIAccessToken(context["access"]).verify()
 
     @override_settings(
-        ALLOWED_HOSTS=["fake-lms.com"],
+        ALLOWED_HOSTS=["fake-warren.com"],
         STORAGES={
             "default": {
                 "BACKEND": "django.core.files.storage.FileSystemStorage",
@@ -209,15 +207,14 @@ class LTIRequestViewTestCase(TestCase):
         }
 
         signed_parameters = sign_parameters(
-            self._passport, lti_parameters, f"http://fake-lms.com{TARGET_URL_PATH}"
+            self._passport, lti_parameters, f"http://fake-warren.com{TARGET_URL_PATH}"
         )
 
         response = self.client.post(
             TARGET_URL_PATH,
             urlencode(signed_parameters),
             content_type=CONTENT_TYPE,
-            HTTP_REFERER="http://fake-lms.com",
-            HTTP_HOST="fake-lms.com",
+            HTTP_HOST="fake-warren.com",
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "<html>")
