@@ -1,5 +1,5 @@
 # -- Base image --
-FROM python:3.12-slim as base
+FROM python:3.12-slim AS base
 
 # Upgrade pip to its latest release to speed up dependencies installation
 RUN pip install --upgrade pip
@@ -12,7 +12,7 @@ RUN apt-get update && \
 
 # -- Builder --
 # Core builder (no plugins installed)
-FROM base as core-builder
+FROM base AS core-builder
 
 WORKDIR /build
 
@@ -29,12 +29,12 @@ RUN apt-get update && \
 RUN pip install ./core
 
 # Full distro builder (all official plugins installed)
-FROM core-builder as full-builder
+FROM core-builder AS full-builder
 
 RUN pip install ./plugins/*
 
 # -- Core --
-FROM base as core
+FROM base AS core
 
 COPY --from=core-builder /usr/local /usr/local
 
@@ -44,13 +44,13 @@ COPY ./core/logging-config.prod.yaml /app/core/
 WORKDIR /app
 
 # -- Full --
-FROM core as full
+FROM core AS full
 
 COPY --from=full-builder /usr/local /usr/local
 
 
 # -- Development --
-FROM full as development
+FROM full AS development
 
 # Copy all sources, not only runtime-required files
 COPY . /app/
@@ -65,15 +65,17 @@ RUN pip install -e ./core[dev] && \
     done
 
 # Un-privileged user running the application
-USER ${DOCKER_USER:-1000}
+ARG DOCKER_USER=1000
+USER ${DOCKER_USER}
 
 
 # -- Production --
 # *** Core image ***
-FROM core as production-core
+FROM core AS production-core
 
 # Un-privileged user running the application
-USER ${DOCKER_USER:-1000}
+ARG DOCKER_USER=1000
+USER ${DOCKER_USER}
 
 CMD ["uvicorn", \
      "warren.api:app", \
@@ -86,10 +88,11 @@ CMD ["uvicorn", \
      "8000"]
 
 # *** Full image ***
-FROM full as production-full
+FROM full AS production-full
 
 # Un-privileged user running the application
-USER ${DOCKER_USER:-1000}
+ARG DOCKER_USER=1000
+USER ${DOCKER_USER}
 
 CMD ["uvicorn", \
      "warren.api:app", \

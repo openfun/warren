@@ -1,5 +1,5 @@
 # -- Base image --
-FROM python:3.12-slim as base
+FROM python:3.12-slim AS base
 
 ENV PYTHONUNBUFFERED=1
 
@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED=1
 RUN pip install --upgrade pip
 
 # ---- Back-end builder image ----
-FROM base as builder
+FROM base AS builder
 
 WORKDIR /builder
 
@@ -18,7 +18,7 @@ RUN mkdir /install && \
     pip install --prefix=/install .
 
 # ---- Core application image ----
-FROM base as core
+FROM base AS core
 
 # Install gettext
 RUN apt-get update && \
@@ -50,10 +50,11 @@ RUN mkdir -p /usr/local/etc/gunicorn
 COPY ./docker/files/usr/local/etc/gunicorn/warren.py /usr/local/etc/gunicorn/warren.py
 
 # Un-privileged user running the application
-USER ${DOCKER_USER:-1000}
+ARG DOCKER_USER=1000
+USER ${DOCKER_USER}
 
 # ---- Development image ----
-FROM core as development
+FROM core AS development
 
 # Switch to privileged user to uninstall app
 USER root:root
@@ -64,13 +65,14 @@ RUN pip uninstall -y warren
 RUN pip install -e .[dev]
 
 # Switch back to Un-privileged user to run the application
-USER ${DOCKER_USER:-1000}
+ARG DOCKER_USER=1000
+USER ${DOCKER_USER}
 
 # Run django development server
-CMD python manage.py runserver 0.0.0.0:${WARREN_APP_SERVER_PORT:-8090}
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8090"]
 
 # ---- Production image ----
-from core as production
+FROM core AS production
 
 # The default command runs gunicorn WSGI server
-CMD gunicorn -c /usr/local/etc/gunicorn/warren.py warren.wsgi:application
+CMD ["gunicorn", "-c", "/usr/local/etc/gunicorn/warren.py", "warren.wsgi:application"]
