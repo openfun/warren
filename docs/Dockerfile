@@ -1,5 +1,5 @@
 # -- Base image --
-FROM python:3.12-slim as base
+FROM python:3.12-slim AS base
 
 ARG DOCKER_GID
 ARG DOCKER_UID
@@ -15,7 +15,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # -- Builder --
-FROM base as builder
+FROM base AS builder
 
 WORKDIR /build
 
@@ -24,7 +24,7 @@ COPY pyproject.toml /build/
 RUN pip install .
 
 # -- Core --
-FROM base as core
+FROM base AS core
 
 COPY --from=builder /usr/local /usr/local
 
@@ -34,6 +34,6 @@ RUN getent group ${DOCKER_GID} || addgroup --gid ${DOCKER_GID} docs && \
 
 USER docs
 
-ENV HOME /home/docs
+ENV HOME=/home/docs
 
 WORKDIR /app

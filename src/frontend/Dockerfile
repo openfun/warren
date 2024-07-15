@@ -1,5 +1,5 @@
 # -- Base image --
-FROM node:21.5.0-slim as base
+FROM node:21.5.0-slim AS base
 
 # Upgrade npm to its latest release to speed up dependencies installation
 RUN npm update -g npm
@@ -11,7 +11,7 @@ RUN apt-get update && \
 
 
 # -- Builder --
-FROM base as builder
+FROM base AS builder
 
 WORKDIR /build
 
@@ -21,7 +21,7 @@ RUN yarn install
 
 
 # -- Core --
-FROM base as core
+FROM base AS core
 
 COPY --from=builder /build/node_modules /app/node_modules
 
@@ -32,7 +32,7 @@ WORKDIR /app
 
 
 # -- Development --
-FROM core as development
+FROM core AS development
 
 # Install Git (required for changeset)
 RUN apt-get update && \
@@ -40,11 +40,13 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Un-privileged user running the application
-USER ${DOCKER_USER:-1000}
+ARG DOCKER_USER=1000
+USER ${DOCKER_USER}
 
 
 # -- Production --
-FROM core as production
+FROM core AS production
 
 # Un-privileged user running the application
-USER ${DOCKER_USER:-1000}
+ARG DOCKER_USER=1000
+USER ${DOCKER_USER}
