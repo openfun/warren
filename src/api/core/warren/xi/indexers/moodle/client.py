@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 
-from httpx import AsyncClient
+from httpx import AsyncClient, ReadTimeout
 from pydantic import parse_obj_as
 
 from warren.conf import settings
@@ -15,14 +15,21 @@ from .models import Course, Section
 class Moodle(LMS):
     """Client class for interacting with Moodle's Web Services."""
 
-    def __init__(self, url: Optional[str] = None, token: Optional[str] = None):
+    def __init__(
+        self,
+        url: Optional[str] = None,
+        token: Optional[str] = None,
+        timeout: Optional[float] = None,
+    ):
         """Initialize the Moodle HTTP client."""
         self.url = url or settings.XI_LMS_BASE_URL
         self._token = token or settings.XI_LMS_API_TOKEN
+        self.timeout = timeout or settings.XI_LMS_REQUEST_TIMEOUT
 
         self._client = AsyncClient(
             base_url=f"{self.url}/webservice/rest/server.php",
             params={"wstoken": self._token, "moodlewsrestformat": "json"},
+            timeout=self.timeout,
         )
 
     async def close(self):
@@ -39,10 +46,17 @@ class Moodle(LMS):
         Returns:
             dict: JSON response from the API as a dictionary.
         """
-        response = await self._client.post(
-            "/", data={"wsfunction": wsfunction, **kwargs}
-        )
-        response.raise_for_status()
+        try:
+            response = await self._client.post(
+                "/", data={"wsfunction": wsfunction, **kwargs}
+            )
+            response.raise_for_status()
+        except ReadTimeout as exc:
+            raise IndexerQueryException(
+                "Timed out while receiving data from the host. Try increasing the "
+                "request timeout."
+            ) from exc
+
         # As Moodle's response has a 200 HTTP code when an exception occurs, we
         # need to check the response content instead of only raising for status.
         api_response = response.json()

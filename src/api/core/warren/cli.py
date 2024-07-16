@@ -262,22 +262,28 @@ def xi_index():
 @click.option("--xi-url", "-x", default="")
 @click.option("--moodle-url", "-u", default="")
 @click.option("--moodle-ws-token", "-t", default="")
+@click.option("--timeout", "-T", type=float, default=None)
 @click.option("--ignore-errors/--no-ignore-errors", "-I/-F", default=False)
 def xi_index_courses(
-    xi_url: str, moodle_url: str, moodle_ws_token: str, ignore_errors: bool
+    xi_url: str,
+    moodle_url: str,
+    moodle_ws_token: str,
+    timeout: Optional[float],
+    ignore_errors: bool,
 ):
     """Index LMS courses."""
-    lms = Moodle(url=moodle_url, token=moodle_ws_token)
+    lms = Moodle(url=moodle_url, token=moodle_ws_token, timeout=timeout)
     xi = ExperienceIndex(url=xi_url)
     indexer = Courses(lms=lms, xi=xi, ignore_errors=ignore_errors)
     asyncio.run(indexer.execute())
 
 
-async def _xi_index_course_content(
+async def _xi_index_course_content(  # noqa: PLR0913
     course_id: UUID,
     xi_url: str,
     moodle_url: str,
     moodle_ws_token: str,
+    timeout: Optional[float],
     ignore_errors: bool,
 ):
     """Index LMS course content.
@@ -287,7 +293,7 @@ async def _xi_index_course_content(
     command using the asyncio.run method. Calling asyncio.run multiple times
     can close the execution loop unexpectedly.
     """
-    lms = Moodle(url=moodle_url, token=moodle_ws_token)
+    lms = Moodle(url=moodle_url, token=moodle_ws_token, timeout=timeout)
     xi = ExperienceIndex(url=xi_url)
 
     # Check if the course has been indexed
@@ -306,18 +312,20 @@ async def _xi_index_course_content(
 @click.option("--xi-url", "-x", default="")
 @click.option("--moodle-url", "-u", default="")
 @click.option("--moodle-ws-token", "-t", default="")
+@click.option("--timeout", "-T", type=float, default=None)
 @click.option("--ignore-errors/--no-ignore-errors", "-I/-F", default=False)
-def xi_index_course_content(
+def xi_index_course_content(  # noqa: PLR0913
     course_id: UUID,
     xi_url: str,
     moodle_url: str,
     moodle_ws_token: str,
+    timeout: Optional[float],
     ignore_errors: bool,
 ):
     """Index LMS content of a course."""
     asyncio.run(
         _xi_index_course_content(
-            course_id, xi_url, moodle_url, moodle_ws_token, ignore_errors
+            course_id, xi_url, moodle_url, moodle_ws_token, timeout, ignore_errors
         )
     )
 
@@ -326,6 +334,7 @@ async def _xi_index_all(
     xi_url: str,
     moodle_url: str,
     moodle_ws_token: str,
+    timeout: Optional[float],
     ignore_errors: bool,
 ):
     """Index LMS courses and their content.
@@ -335,7 +344,7 @@ async def _xi_index_all(
     command using the asyncio.run method. Calling asyncio.run multiple times
     can close the execution loop unexpectedly.
     """
-    lms = Moodle(url=moodle_url, token=moodle_ws_token)
+    lms = Moodle(url=moodle_url, token=moodle_ws_token, timeout=timeout)
     xi = ExperienceIndex(url=xi_url)
 
     indexer_courses = Courses(lms=lms, xi=xi, ignore_errors=ignore_errors)
@@ -358,9 +367,16 @@ async def _xi_index_all(
 @click.option("--xi-url", "-x", default="")
 @click.option("--moodle-url", "-u", default="")
 @click.option("--moodle-ws-token", "-t", default="")
+@click.option("--timeout", "-T", type=float, default=None)
 @click.option("--ignore-errors/--no-ignore-errors", "-I/-F", default=False)
 def xi_index_all(
-    xi_url: str, moodle_url: str, moodle_ws_token: str, ignore_errors: bool
+    xi_url: str,
+    moodle_url: str,
+    moodle_ws_token: str,
+    timeout: Optional[float],
+    ignore_errors: bool,
 ):
     """Index all LMS courses and their content."""
-    asyncio.run(_xi_index_all(xi_url, moodle_url, moodle_ws_token, ignore_errors))
+    asyncio.run(
+        _xi_index_all(xi_url, moodle_url, moodle_ws_token, timeout, ignore_errors)
+    )
