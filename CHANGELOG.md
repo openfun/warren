@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- [xi] Make timeout of requests to Moodle configurable
+- [xi] Change default timeout of requests to Moodle from 5s to 60s
 
 ## [0.4.0] - 2024-07-16
 

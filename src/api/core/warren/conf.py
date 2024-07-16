@@ -78,6 +78,7 @@ class Settings(BaseSettings):
     XI_DEFAULT_LANG: str = "fr"
     XI_LMS_BASE_URL: str = "https://lms.example.com"
     XI_LMS_API_TOKEN: str = "yourLMSAPIToken"
+    XI_LMS_REQUEST_TIMEOUT: float = 60.0
 
     @property
     def DATABASE_URL(self) -> str:

@@ -379,12 +379,14 @@ def test_xi_index_courses_command(monkeypatch):
             "http://moodle.foo.com",
             "--moodle-ws-token",
             "faketoken",
+            "--timeout",
+            "42.0",
         ],
     )
 
     assert result.exit_code == 0
     moodle_client_mock.assert_called_with(
-        url="http://moodle.foo.com", token="faketoken"
+        url="http://moodle.foo.com", token="faketoken", timeout=42.0
     )
     xi_client_mock.assert_called_with(url="http://xi.foo.com")
     indexer_execute_mock.assert_called()
@@ -420,12 +422,14 @@ def test_xi_index_course_content_command(monkeypatch):
             "--moodle-ws-token",
             "faketoken",
             "ce0927fa-5f72-4623-9d29-37ef45c39609",
+            "--timeout",
+            "42.0",
         ],
     )
 
     assert result.exit_code == 0
     moodle_client_mock.assert_called_with(
-        url="http://moodle.foo.com", token="faketoken"
+        url="http://moodle.foo.com", token="faketoken", timeout=42.0
     )
     xi_experience_get_mock.assert_called_with(
         object_id="ce0927fa-5f72-4623-9d29-37ef45c39609"
@@ -512,12 +516,14 @@ def test_xi_index_all(monkeypatch):
             "http://moodle.foo.com",
             "--moodle-ws-token",
             "faketoken",
+            "--timeout",
+            "42.0",
         ],
     )
 
     assert result.exit_code == 0
     moodle_client_mock.assert_called_with(
-        url="http://moodle.foo.com", token="faketoken"
+        url="http://moodle.foo.com", token="faketoken", timeout=42.0
     )
     courses_indexer_execute_mock.assert_called()
     content_indexer_execute_mock.assert_called()

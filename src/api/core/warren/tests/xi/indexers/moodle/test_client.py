@@ -3,7 +3,7 @@
 import re
 
 import pytest
-from httpx import HTTPError
+from httpx import HTTPError, ReadTimeout
 from pydantic import ValidationError
 from pytest_httpx import HTTPXMock
 
@@ -22,6 +22,15 @@ async def test_get(httpx_mock: HTTPXMock):
         method="POST", url=re.compile(r".*webservice.*"), status_code=404
     )
     with pytest.raises(HTTPError):
+        await client._get(wsfunction="foo.")
+
+    # Assert '_get' raises exception when encountering a ReadTimeout error
+    httpx_mock.add_exception(ReadTimeout("Unable to read within timeout"))
+    with pytest.raises(
+        IndexerQueryException,
+        match="Timed out while receiving data from the host. Try increasing the "
+        "request timeout.",
+    ):
         await client._get(wsfunction="foo.")
 
     # Assert '_get' raises exception when encountering Moodle exception
