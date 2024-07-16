@@ -8,6 +8,9 @@ and this project adheres to
 
 ## [Unreleased]
 
+
+## [0.4.0] - 2024-07-16
+
 ### Changed
 
 - Upgrade `django-lti-toolbox` to 2.0.0 to be compatible with Moodle instances
@@ -82,7 +85,8 @@ and this project adheres to
 - Encapsulate statements pre-processing in a Mixin class
 - Factorize Video indicators
 
-[unreleased]: https://github.com/openfun/warren/compare/v0.3.2...main
+[unreleased]: https://github.com/openfun/warren/compare/v0.4.0...main
+[0.4.0]: https://github.com/openfun/warren/compare/v0.3.2...v0.4.0
 [0.3.2]: https://github.com/openfun/warren/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/openfun/warren/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/openfun/warren/compare/v0.2.0...v0.3.0 
