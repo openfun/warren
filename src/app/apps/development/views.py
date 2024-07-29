@@ -44,7 +44,6 @@ class DevelopmentLTIRequestView(TemplateView):
             "lti_routes": Development.LTI_ROUTES,
         }
 
-    # pylint: disable=unused-argument
     def post(self, request, *args, **kwargs):
         """Respond to POST request on the refresh button.
 
@@ -174,7 +173,6 @@ class DevelopmentLTISelectView(TemplateView):
             "accept_media_types": "application/vnd.ims.lti.v1.ltilink",
         }
 
-    # pylint: disable=unused-argument
     def post(self, request, *args, **kwargs):
         """Respond to POST request on the refresh button.
 
