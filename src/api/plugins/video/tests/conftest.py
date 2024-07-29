@@ -1,6 +1,5 @@
 """Video plugin test fixtures."""
 
-# pylint: disable=unused-import
 # ruff: noqa: F401
 
 import pytest

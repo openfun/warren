@@ -13,7 +13,6 @@ from warren.conf import settings
 from warren.filters import BaseQueryFilters, DatetimeRange
 
 
-# pylint: disable=no-member
 def test_datetime_range_model():
     """Test the DatetimeRange model."""
     # Arrow supports various input string formats, let's just test one
@@ -63,7 +62,6 @@ def test_datetime_range_model():
         period.since = arrow.get("2023-01-01T00:00:00+04:00")
 
 
-# pylint: disable=no-member
 def test_datetime_range_model_defaults(monkeypatch):
     """Test the DatetimeRange model defaults."""
     utcnow = arrow.utcnow()

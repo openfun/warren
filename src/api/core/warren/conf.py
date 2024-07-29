@@ -98,13 +98,11 @@ class Settings(BaseSettings):
             f"{self.API_DB_HOST}/{self.API_TEST_DB_NAME}"
         )
 
-    # pylint: disable=invalid-name
     @property
     def SERVER_URL(self) -> str:
         """Get the full server URL."""
         return f"{self.SERVER_PROTOCOL}://{self.SERVER_HOST}:{self.SERVER_PORT}"
 
-    # pylint: disable=invalid-name
     @property
     def XI_BASE_URL(self) -> str:
         """Get the Experience Index (XI) base URL."""
