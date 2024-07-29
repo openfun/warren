@@ -31,7 +31,6 @@ MANIFEST
 
 # Test & lint
 .coverage
-.pylint.d
 .pytest_cache
 
 # -- Front end

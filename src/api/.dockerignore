@@ -37,7 +37,5 @@ Makefile
 .env.dist
 .git
 .gitignore
-.pylint.d
-.pylintrc
 .pytest_cache
 .vscode
