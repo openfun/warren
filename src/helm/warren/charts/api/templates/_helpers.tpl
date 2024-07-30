@@ -48,11 +48,76 @@ Selector labels
 {{- define "api.selectorLabels" -}}
 app.kubernetes.io/name: {{ include "api.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/component: api
+app.kubernetes.io/part-of: warren
 {{- end }}
 
 {{/*
-Allowed hosts string (environment variable value)
+Environment variables
 */}}
-{{- define "api.allowedHosts" -}}
-{{- printf "%q" .Values.allowedHosts | replace " " "," | quote -}}
+{{- define "api.envs" -}}
+- name: "WARREN_API_SERVER_PORT"
+  value: "{{ .Values.service.port }}"
+- name: "WARREN_API_DB_NAME"
+  value: "{{ .Values.fastapi.db.name }}"
+- name: "WARREN_API_DB_USER"
+  value: "{{ .Values.fastapi.db.user }}"
+- name: "WARREN_API_DB_PASSWORD"
+  valueFrom:
+    secretKeyRef:
+      name: warren-api-db
+      key: WARREN_API_DB_PASSWORD
+- name: "WARREN_API_DB_ENGINE"
+  value: "{{ .Values.fastapi.db.engine }}"
+- name: "WARREN_API_DB_HOST"
+  value: "{{ .Values.fastapi.db.host }}"
+- name: "WARREN_API_DB_PORT"
+  value: "{{ .Values.fastapi.db.port }}"
+- name: "WARREN_ALLOWED_HOSTS"
+  value: {{ printf "%q" .Values.fastapi.allowedHosts | replace " " "," | quote }}
+- name: "WARREN_LRS_HOSTS"
+  value: "{{ .Values.fastapi.lrs.host }}"
+- name: "WARREN_LRS_AUTH_BASIC_USERNAME"
+  value: "{{ .Values.fastapi.lrs.username }}"
+- name: "WARREN_LRS_AUTH_BASIC_PASSWORD"
+  valueFrom:
+    secretKeyRef:
+      name: warren-api-lrs
+      key: WARREN_LRS_AUTH_BASIC_PASSWORD
+- name: "WARREN_XI_LMS_BASE_URL"
+  value: "{{ .Values.fastapi.xi.lmsBaseUrl }}"
+- name: "WARREN_XI_LMS_API_TOKEN"
+  valueFrom:
+    secretKeyRef:
+      name: warren-api-lms
+      key: WARREN_XI_LMS_API_TOKEN
+- name: "WARREN_XI_DEFAULT_LANG"
+  value: "{{ .Values.fastapi.xi.defaultLang }}"
+- name: "WARREN_APP_SIGNING_ALGORITHM"
+  value: "{{ .Values.fastapi.signingAlgorithm }}"
+- name: "WARREN_APP_SIGNING_KEY"
+  valueFrom:
+    secretKeyRef:
+      name: warren-signing-key
+      key: WARREN_APP_SIGNING_KEY
+{{- range $key, $val := .Values.env.secret }}
+- name: {{ $val.envName }}
+  valueFrom:
+    secretKeyRef:
+      name: {{ $val.secretName }}
+      key: {{ $val.keyName }}
+{{- end }}
+{{- end }}
+
+{{/*
+ImagePullSecrets
+*/}}
+{{- define "fastapi.imagePullSecrets" -}}
+{{- $pullSecrets := .Values.imagePullSecrets }}
+{{- if (not (empty $pullSecrets)) }}
+imagePullSecrets:
+{{- range $pullSecrets }}
+- name: {{ . }}
+{{ end }}
+{{- end -}}
 {{- end }}

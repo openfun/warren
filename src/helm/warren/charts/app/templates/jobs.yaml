@@ -1,0 +1,42 @@
+{{- range .Values.django.jobs }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "app.fullname" $ }}-{{ .name }}
+  namespace: {{ $.Release.Namespace | quote }}
+  labels: {{- include "app.labels" $ | nindent 4 }}
+    {{- if $.Values.commonLabels }}
+    {{ toYaml $.Values.commonLabels | nindent 4 }}
+    {{- end }}
+  annotations:
+{{- if $.Values.commonAnnotations }}
+{{- toYaml $.Values.commonAnnotations | nindent 4 }}
+{{- end }}
+    "helm.sh/hook": post-upgrade,post-install
+    "helm.sh/hook-weight": "0"
+spec:
+  template:
+    metadata:
+      labels: {{- include "app.selectorLabels" $ | nindent 8 }}
+    spec:
+      {{- include "django.imagePullSecrets" $ | nindent 6 }}
+      containers:
+        - name: "{{ $.Chart.Name }}-{{ .name }}"
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          env:
+            {{- include "app.envs" $ | nindent 12 }}
+          command: {{ .command | toJson }}
+          {{- if $.Values.resources }}
+          resources: {{ toYaml $.Values.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: {{ $.Values.volumes.media.name }}
+              mountPath: {{ $.Values.volumes.media.mountPath }}
+      volumes:
+        - name: {{ $.Values.volumes.media.name }}
+          persistentVolumeClaim:
+            claimName: {{ $.Values.volumes.media.claimName }}
+      restartPolicy: Never
+{{- end }}
