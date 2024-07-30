@@ -22,9 +22,9 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # LRS backend
-    LRS_HOSTS: Union[List[AnyHttpUrl], AnyHttpUrl]
-    LRS_AUTH_BASIC_USERNAME: str
-    LRS_AUTH_BASIC_PASSWORD: str
+    LRS_HOSTS: Union[List[AnyHttpUrl], AnyHttpUrl] = "http://ralph:8200"  # type: ignore
+    LRS_AUTH_BASIC_USERNAME: str = "ralph"
+    LRS_AUTH_BASIC_PASSWORD: str = "secret"
 
     # Warren server
     SERVER_PROTOCOL: str = "http"
@@ -65,8 +65,8 @@ class Settings(BaseSettings):
     API_TEST_DB_NAME: str = "test-warren-api"
 
     # Token
-    APP_SIGNING_ALGORITHM: str
-    APP_SIGNING_KEY: str
+    APP_SIGNING_ALGORITHM: str = "HS256"
+    APP_SIGNING_KEY: str = "SigningKeyToChange__NOT_SUITABLE_FOR_PRODUCTION"
 
     # Sentry
     SENTRY_DSN: Optional[str] = None

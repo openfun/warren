@@ -49,6 +49,7 @@ theme:
 markdown_extensions:
   - admonition
   - attr_list
+  - mkdocs_click
   - smarty
   - toc:
       permalink: True
@@ -71,6 +72,7 @@ markdown_extensions:
 
 nav:
   - "Warren": index.md
+  - "CLI": cli.md
   - "Plugins": plugins.md
   - "Warren-TdBP": tdbp.md
   - "Contributing": contribute.md
