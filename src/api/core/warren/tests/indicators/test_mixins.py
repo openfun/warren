@@ -265,7 +265,7 @@ def test_compute_annotation():
         async def compute(self) -> list:
             pass
 
-    assert NewIndicator()._compute_annotation == list
+    assert NewIndicator()._compute_annotation is list
 
 
 @pytest.mark.anyio
@@ -878,7 +878,7 @@ async def test_incremental_compute_annotation():
         )
     )
 
-    assert indicator._compute_annotation == dict
+    assert indicator._compute_annotation is dict
 
     class MyType(BaseModel):
         foo: str

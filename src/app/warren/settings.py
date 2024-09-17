@@ -40,7 +40,7 @@ DEFAULT_ENVIRON_PREFIX = "WARREN_APP"
 class Value(values.Value):
     """Custom Value instance that overrides default Value configuration."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(
         self,
         default=None,
         environ=True,
