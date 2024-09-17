@@ -54,7 +54,6 @@ dev = [
     "factory-boy==3.3.1",
     "Faker==28.4.1",
     "ipdb==0.13.13",
-    "ipython==8.27.0",
     "pytest==8.3.3",
     "pytest-cov==5.0.0",
     "pytest-django==4.9.0",
