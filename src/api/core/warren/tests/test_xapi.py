@@ -117,7 +117,7 @@ def test_statements_transformer_add_actor_uid():
     statements = StatementsTransformer.to_datetime(statements)
     statements = StatementsTransformer.add_actor_uid_column(statements)
 
-    assert type(statements) == pd.DataFrame
+    assert type(statements) is pd.DataFrame
     assert "actor.uid" in statements.columns
     assert statements["actor.uid"].notna
     # Check that 2 identical actors have the same UID
@@ -198,7 +198,7 @@ def test_statements_transformer_preprocess_statements_workflow():
 
     statements = StatementsTransformer.preprocess(raw_statements)
 
-    assert type(statements) == pd.DataFrame
+    assert type(statements) is pd.DataFrame
     assert "actor.uid" in statements.columns
     assert statements["actor.uid"].notna
     assert statements["timestamp"].equals(
