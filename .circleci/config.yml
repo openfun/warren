@@ -229,7 +229,7 @@ jobs:
           working_directory: src/api
       - run:
           name: Lint code with ruff
-          command: ~/.local/bin/ruff --config core/pyproject.toml core plugins
+          command: ~/.local/bin/ruff check --config core/pyproject.toml core plugins
           working_directory: src/api
       - run:
           name: Lint code with mypy
@@ -324,7 +324,7 @@ jobs:
           working_directory: src/app
       - run:
           name: Lint code with ruff
-          command: ~/.local/bin/ruff --config ./pyproject.toml apps warren manage.py
+          command: ~/.local/bin/ruff check --config ./pyproject.toml apps warren manage.py
           working_directory: src/app
 
   test-app:
