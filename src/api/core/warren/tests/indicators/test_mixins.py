@@ -7,19 +7,24 @@ from itertools import chain
 from typing import Union
 from unittest.mock import AsyncMock
 
+import pandas as pd
 import pytest
 from arrow import Arrow
+from dateutil.tz import tzoffset
 from freezegun import freeze_time
 from pydantic import BaseModel
 from ralph.backends.lrs.base import LRSStatementsQuery
 from sqlalchemy import func
 from sqlalchemy.exc import MultipleResultsFound
 from sqlmodel import select
+from warren_video.indicators import BaseDailyEvent, DailyEvent
 
+from warren.factories.base import BaseXapiStatementFactory
 from warren.filters import DatetimeRange
 from warren.indicators.base import BaseIndicator
 from warren.indicators.mixins import CacheMixin, IncrementalCacheMixin
 from warren.indicators.models import CacheEntry
+from warren.xapi import StatementsTransformer
 
 
 def test_cache_key_calculation():
@@ -1203,3 +1208,95 @@ async def test_incremental_get_or_compute_update_and_create(db_session):
     assert len(results) == 31
     assert [result.get("day") for result in results] == list(range(1, 32))
     assert [result.get("views") for result in results] == list(range(3, 34))
+
+
+def test_base_daily_event_subclass_verb_id():
+    """Test '__init_subclass__' for the BaseDailyEvent class."""
+
+    class MyIndicator(DailyEvent):
+        verb_id = "test"
+
+    # the __init_subclass__ is called when the class itself is constructed.
+    # It should raise an error because the 'verb_id' class attribute is missing.
+    with pytest.raises(TypeError) as exception:
+
+        class MyIndicatorMissingAttribute(DailyEvent):
+            wrong_attribute = "test"
+
+    assert str(exception.value) == "Indicators must declare a 'verb_id' class attribute"
+
+
+def test_base_daily_event_span_range_timezone():
+    """Test 'to_span_range_timezone' for the BaseDailyEvent class."""
+    # Create source statements
+    raw_statements = [
+        BaseXapiStatementFactory.build(
+            mutations=[{"timestamp": "2023-01-01T00:10:00.000000+00:00"}]
+        ).dict(),
+        BaseXapiStatementFactory.build(
+            mutations=[{"timestamp": "2023-01-03T00:10:00.000000+00:00"}]
+        ).dict(),
+    ]
+    source_statements = StatementsTransformer.preprocess(raw_statements)
+
+    class MyIndicator(BaseDailyEvent):
+        def merge(self):
+            pass
+
+        def compute(self):
+            pass
+
+    # Create an indicator with a DateTimeRange in UTC
+    indicator_utc = MyIndicator(
+        span_range=DatetimeRange(since="2023-01-01", until="2023-01-03"),
+        object_id="Test",
+    )
+    # Convert statements' timestamp
+    statements = indicator_utc.to_span_range_timezone(source_statements)
+
+    expected_statements = pd.to_datetime(
+        pd.Series(
+            [
+                "2023-01-01T00:10:00+00:00",
+                "2023-01-03T00:10:00+00:00",
+            ],
+            name="timestamp",
+        )
+    )
+
+    # Statements' timestamp should be in UTC.
+    assert statements["timestamp"].equals(expected_statements)
+
+    # Create an indicator with a DateTimeRange in UTC+02:00
+    indicator_with_timezone = MyIndicator(
+        span_range=DatetimeRange(
+            since="2023-01-01T00:00:00+02:00", until="2023-01-03T00:00:00+02:00"
+        ),
+        object_id="Test",
+    )
+    # Convert statements' timestamp
+    statements = indicator_with_timezone.to_span_range_timezone(source_statements)
+
+    # Statements' timestamp should be in UTC+02:00
+    assert statements["timestamp"].equals(
+        expected_statements.dt.tz_convert(tzoffset(None, 7200))
+    )
+
+
+def test_base_daily_event_add_date_column():
+    """Test 'add_date_column' for the BaseDailyEvent class."""
+    raw_statements = [
+        BaseXapiStatementFactory.build(
+            mutations=[{"timestamp": "2023-01-01T00:10:00.000000+00:00"}]
+        ).dict(),
+        BaseXapiStatementFactory.build(
+            mutations=[{"timestamp": "2023-01-03T00:10:00.000000+00:00"}]
+        ).dict(),
+    ]
+    source_statements = StatementsTransformer.preprocess(raw_statements)
+    statements = BaseDailyEvent.extract_date_from_timestamp(source_statements)
+
+    assert statements["date"].equals(
+        pd.to_datetime(pd.Series(["2023-01-01", "2023-01-03"], name="date")).dt.date
+    )
+    assert "timestamp" not in statements.columns

@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [Unreleased]
 
+### Changed
+
+- Moved daily indicator calculation to project core for reuse across plugins as
+  mixins.
 
 ## [0.5.0] - 2024-07-16
 
