@@ -44,7 +44,7 @@ async def views(
         (False, False): DailyViews,
     }
     indicator = klass_mapping.get((complete, unique), DailyViews)(
-        video_id=video_id, span_range=DatetimeRange.parse_obj(filters)
+        object_id=video_id, span_range=DatetimeRange.parse_obj(filters)
     )  # type: ignore[abstract]
     logger.debug("Will compute indicator %s", type(indicator).__name__)
     logger.debug(
@@ -78,7 +78,7 @@ async def downloads(
     logger.debug("Start computing 'downloads' indicator")
     indicator_klass = DailyUniqueDownloads if unique else DailyDownloads
     indicator = indicator_klass(
-        video_id=video_id, span_range=DatetimeRange.parse_obj(filters)
+        object_id=video_id, span_range=DatetimeRange.parse_obj(filters)
     )
     logger.debug("Will compute indicator %s", type(indicator).__name__)
     logger.debug(

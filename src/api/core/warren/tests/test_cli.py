@@ -137,7 +137,7 @@ def test_indicator_inspect_command(monkeypatch):
         ["indicator", "inspect", "warren_video.indicators:DailyUniqueCompletedViews"],
     )
     assert (
-        "video_id\tPOSITIONAL_OR_KEYWORD\tdefault='no'\t<class 'str'>\n"
+        "object_id\tPOSITIONAL_OR_KEYWORD\tdefault='no'\t<class 'str'>\n"
         "span_range\tPOSITIONAL_OR_KEYWORD\tdefault='no'\t"
         "<class 'warren.filters.DatetimeRange'>\n"
     ) == result.output
@@ -166,7 +166,7 @@ def test_indicator_compute_command_usage():
             "indicator",
             "compute",
             "warren_video.indicators:DailyUniqueCompletedViews",
-            'video_id="uuid://foo"',
+            'object_id="uuid://foo"',
         ],
     )
     assert result.exit_code == 2
@@ -179,7 +179,7 @@ def test_indicator_compute_command_usage():
             "indicator",
             "compute",
             "warren_video.indicators:DailyUniqueCompletedViews",
-            'video_id="uuid://foo"',
+            'object_id="uuid://foo"',
             "foo=1",
         ],
     )
@@ -202,7 +202,7 @@ def test_indicator_compute_command_for_standard_type_return(monkeypatch):
             "indicator",
             "compute",
             "warren_video.indicators:DailyUniqueCompletedViews",
-            'video_id="uuid://foo"',
+            'object_id="uuid://foo"',
             "span_range={}",
         ],
     )
@@ -227,7 +227,7 @@ def test_indicator_compute_command_for_pydantic_type_return(monkeypatch):
             "indicator",
             "compute",
             "warren_video.indicators:DailyUniqueCompletedViews",
-            'video_id="uuid://foo"',
+            'object_id="uuid://foo"',
             "span_range={}",
         ],
     )
@@ -249,7 +249,7 @@ def test_indicator_compute_command_no_annotated_type_return(monkeypatch):
             "indicator",
             "compute",
             "warren_video.indicators:DailyUniqueCompletedViews",
-            'video_id="uuid://foo"',
+            'object_id="uuid://foo"',
             "span_range={}",
         ],
     )
@@ -288,7 +288,7 @@ def test_indicator_compute_command_with_iri_parameter(monkeypatch):
     runner = CliRunner()
 
     async def compute(self) -> dict:
-        return self.video_id
+        return self.object_id
 
     monkeypatch.setattr(DailyUniqueCompletedViews, "compute", compute)
 
@@ -299,7 +299,7 @@ def test_indicator_compute_command_with_iri_parameter(monkeypatch):
             "indicator",
             "compute",
             "warren_video.indicators:DailyUniqueCompletedViews",
-            'video_id="uuid://foo?id=1"',
+            'object_id="uuid://foo?id=1"',
             "span_range={}",
         ],
     )
@@ -349,7 +349,7 @@ def test_indicator_compute_command_with_cache(monkeypatch):
             "compute",
             "-c",
             "warren_video.indicators:DailyUniqueCompletedViews",
-            'video_id="uuid://foo"',
+            'object_id="uuid://foo"',
             "span_range={}",
         ],
     )
