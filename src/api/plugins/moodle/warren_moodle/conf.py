@@ -8,6 +8,9 @@ from pydantic import BaseSettings
 class Settings(BaseSettings):
     """Pydantic model for Warren's moodle configuration settings."""
 
+    # Experience Index
+    BASE_XI_URL: str = "http://localhost:8100/api/v1"
+
     class Config:
         """Pydantic Configuration."""
 
