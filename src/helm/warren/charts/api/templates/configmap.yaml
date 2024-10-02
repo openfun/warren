@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: "{{ .Values.loggingConfigConfigMap }}"
+  name: "{{ include "api.fullname" . }}-logging-config"
   labels:
     {{- include "api.labels" . | nindent 4 }}
 data:
