@@ -21,7 +21,7 @@ class Module(BaseModel, LangStringMixin):
     id: int
     url: Optional[IRI]
     name: str
-    modname: str  # todo - should it be an enum
+    modname: str
     description: Optional[str]
 
     def to_experience(self, language: str) -> ExperienceCreate:
