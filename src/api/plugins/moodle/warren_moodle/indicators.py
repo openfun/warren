@@ -1,81 +1,71 @@
-""""Warren video indicators."""
+""""Warren Moodle indicators."""
 
-from typing import TYPE_CHECKING, List
+from abc import abstractmethod
+from dataclasses import dataclass
+from typing import List
 
-import pandas as pd
 from ralph.backends.lrs.base import LRSStatementsQuery
-from ralph.models.xapi.concepts.constants.video import RESULT_EXTENSION_TIME
-from warren.indicators import BaseDailyEvent, DailyEvent, DailyUniqueEvent
-from warren.xi.client import ExperienceIndex
+from warren.indicators import BaseIndicator, CacheMixin, DailyEvent, DailyUniqueEvent
+from warren.xi import ExperienceIndex
 from warren.xi.exceptions import ExperienceIndexException
 
 from .conf import settings as moodle_plugin_settings
 
-if TYPE_CHECKING:
-    _Base = BaseDailyEvent
-else:
-    _Base = object
+
+@dataclass
+class ActivityViews:
+    """Total view counts of an activity."""
+    id: str
+    modname: str
+    views: int = 0  # Default views is set to 0
 
 
-class DailyViewsMixin(_Base):
-    """Daily Views mixin.
+@dataclass
+class ActivityUniqueViews:
+    """Unique view counts of an activity."""
+    id: str
+    modname: str
+    unique_views: int = 0  # Default unique views is set to 0
 
-    Calculate the total and daily counts of views.
+
+class DailyViews(DailyEvent):
+    """Daily Views indicator.
+
+    Calculate the total and daily counts of activities' views.
+
+    Inherit from DailyEvent, which provides functionality for calculating
+    indicators based on different xAPI verbs.
     """
 
-    def __init__(self, span_range, object_id, activities):
-        super().__init__(span_range=span_range, object_id=object_id)
-        self.activities = activities
+    verb_id: str = "http://id.tincanapi.com/verb/viewed"
 
-    def filter_statements(self, statements: pd.DataFrame) -> pd.DataFrame:
-        """Filter view statements based on additional conditions.
 
-        This method filters the view statements inherited from the base indicator.
-        In addition to the base filtering, view statements are further filtered
-        based on their duration to match a minimum viewing threshold.
-        """
-        statements = super().filter_statements(statements)
+class DailyUniqueViews(DailyUniqueEvent):
+    """Daily Unique Views indicator.
 
-        # FIXME
-        def filter_view_duration(row):
-            return (
-                row[f"result.extensions.{RESULT_EXTENSION_TIME}"]
-                <= moodle_plugin_settings.VIEWS_COUNT_TIME_THRESHOLD
-            )
+    Calculate the total, unique and daily counts of activities' views.
 
-        return statements[statements.apply(filter_view_duration, axis=1)]
+    Inherit from DailyUniqueEvent, which provides functionality for calculating
+    indicators based on different xAPI verbs and users.
+    """
 
-    async def get_course_activities(self) -> List[str]:
-        """Return activities related to course read from Experience Index."""
-        relations = []
+    verb_id: str = "http://id.tincanapi.com/verb/viewed"
 
-        xi = ExperienceIndex(url=moodle_plugin_settings.BASE_XI_URL)
-        # Get the course given its experience UUID
-        experience = await xi.experience.get(object_id=self.course_id)
-        if experience is None:
-            raise ExperienceIndexException(
-                f"Unknown course {self.course_id}. It should be indexed first!"
-            )
-        if not experience.relations_target:
-            raise ExperienceIndexException(
-                f"No content indexed for course {self.course_id}"
-            )
 
-        for source in experience.relations_target:
-            # Iterate over Moodle activities related to the course
-            content = await xi.experience.get(object_id=source.source_id)
-            if content is None:
-                raise ExperienceIndexException(
-                    f"Cannot find content with id {source.source_id} for "
-                    f"course {self.course_id}"
-                )
-            # Filter only on activity types matching required types from API
-            elif content.technical_datatypes[0] in self.activities:
-                relations.append(content.iri)
-            else:
-                continue
+class CourseDailyMixin(BaseIndicator, CacheMixin):
+    """Mixin class for computing daily and unique views of course activities.
 
-        return relations
+    This class provides a common interface for fetching activities and computing
+    views or unique views for course-related activities.
+    """
+
+    def __init__(self, course_id, span_range, modname):
+        """Instantiate the mixin for course daily indicator."""
+        super().__init__(
+            object_id=course_id,
+            span_range=span_range,
+        )
+        self.modname = modname
 
     def get_lrs_query(self):
         """Construct the LRS query for statements whose object is the course.
@@ -83,40 +73,84 @@ class DailyViewsMixin(_Base):
         WARNING: this method is used only for key cache computing as the LRS
         query requires to look for statements which object is related to the course.
         """
-        return LRSStatementsQuery(
-            activity=self.course_id,
-            verb=self.verb_id,
-            until=self.until,
-            since=self.since,
-        )
+        return LRSStatementsQuery(activity=self.course_id, until=self.until)
 
-    def _get_lrs_query_for_activity(self, activity):
-        """Return LRS query for a course-related activity."""
-        return LRSStatementsQuery(
-            activity=activity, verb=self.verb_id, until=self.until, since=self.since
-        )
+    @abstractmethod
+    def get_activity_class(self):
+        """Return the dataclass for activity views."""
+        pass
+
+    @abstractmethod
+    def get_views_indicator_class(self):
+        """Return the views indicator class."""
+        pass
+
+    async def fetch_activities(self):
+        """Fetch activities related to the course from the Experience Index."""
+        activities = []
+
+        xi = ExperienceIndex(url=moodle_plugin_settings.BASE_XI_URL)
+        experience = await xi.experience.get(object_id=self.object_id)
+        if experience is None:
+            raise ExperienceIndexException(
+                f"Unknown course {self.object_id}. It should be indexed first!"
+            )
+        if not experience.relations_target:
+            raise ExperienceIndexException(
+                f"No content indexed for course {self.object_id}"
+            )
+
+        for source in experience.relations_target:
+            content = await xi.experience.get(object_id=source.source_id)
+            if content is None:
+                raise ExperienceIndexException(
+                    f"Cannot find content with id {source.source_id}"
+                    f" for course {self.object_id}"
+                )
+            if content.technical_datatypes[0] in self.modname or self.modname is None:
+                activities.append(
+                    self.get_activity_class()(
+                        modname=content.technical_datatypes[0], id=content.iri
+                    )
+                )
+
+        return activities
+
+    async def compute(self) -> List:
+        """Compute and return the views of course-related activities."""
+        activities = await self.fetch_activities()
+        views_class = self.get_views_indicator_class()
+
+        # Compute views for each activity and update the views field value if
+        # views statements are fetched from the LRS
+        for activity in activities:
+            views = await views_class(
+                object_id=activity.id, span_range=self.span_range
+            ).get_or_compute()
+            activity.views = views
+
+        return activities
 
 
-class DailyViews(DailyViewsMixin, DailyEvent):
-    """Daily Views indicator.
+class CourseDailyViews(CourseDailyMixin):
+    """Class to compute daily views for course-related activities."""
 
-    Calculate the total and daily counts of views.
+    def get_activity_class(self):
+        """Return the ActivityViews class for standard views."""
+        return ActivityViews
 
-    Inherit from DailyEvent, which provides functionality for calculating
-    indicators based on different xAPI verbs.
-    """
-
-    # FIXME
-    verb_id: str = "http://id.tincanapi.com/verb/viewed"
+    def get_views_indicator_class(self):
+        """Return the DailyViews class for calculating views."""
+        return DailyViews
 
 
-class DailyUniqueViews(DailyViewsMixin, DailyUniqueEvent):
-    """Daily Unique Views indicator.
+class CourseDailyUniqueViews(CourseDailyMixin):
+    """Class to compute daily unique views for course-related activities."""
 
-    Calculate the total, unique and daily counts of views.
+    def get_activity_class(self):
+        """Return the ActivityUniqueViews class for unique views."""
+        return ActivityUniqueViews
 
-    Inherit from DailyUniqueEvent, which provides functionality for calculating
-    indicators based on different xAPI verbs and users.
-    """
-
-    verb_id: str = "http://id.tincanapi.com/verb/viewed"
+    def get_views_indicator_class(self):
+        """Return the DailyUniqueViews class for calculating unique views."""
+        return DailyUniqueViews

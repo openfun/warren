@@ -4,6 +4,8 @@ from enum import Enum
 
 
 class Activities(Enum):
+    """Moodle activities' types."""
+
     ASSIGNMENT = "mod_assign"
     LIVE_SESSION = "mod_bigbluebuttonbn"
     BOOK = "mod_book"
@@ -30,6 +32,8 @@ class Activities(Enum):
 
 
 class Events(Enum):
+    """Moodle Logstore xAPI events types."""
+
     COURSE_COMPLETED = "\\core\\event\\course_completed"
     COURSE_VIEWED = "\\core\\event\\course_viewed"
     USER_CREATED = "\\core\\event\\user_created"
@@ -109,6 +113,8 @@ class Events(Enum):
 
 
 class ViewsEvents(Enum):
+    """Moodle Logstore xAPI views events types."""
+
     COURSE_VIEWED = Events.COURSE_VIEWED
     ACTIVITY_VIEWED = Events.ACTIVITY_VIEWED
     ACTIVITY_MANAGEMENT_VIEWED = Events.ACTIVITY_MANAGEMENT_VIEWED
@@ -142,6 +148,8 @@ class ViewsEvents(Enum):
 
 
 class ViewsActivities(Enum):
+    """Moodle activities views' types."""
+
     ASSIGNMENT = Activities.ASSIGNMENT
     LIVE_SESSION = Activities.LIVE_SESSION
     BOOK = Activities.BOOK
