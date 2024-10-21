@@ -11,21 +11,21 @@
   "dependencies": {
     "@openfun/warren-core": "*",
     "@openfun/warren-video": "*",
-    "@openfun/cunningham-react": "2.4.0",
-    "@vitejs/plugin-react": "4.2.1",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "sass": "1.69.7",
-    "vite": "5.0.11"
+    "@openfun/cunningham-react": "2.9.4",
+    "@vitejs/plugin-react": "4.3.3",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "sass": "1.80.3",
+    "vite": "5.4.9"
   },
   "devDependencies": {
-    "@babel/core": "7.23.7",
-    "@types/node": "20.11.3",
-    "@types/react": "18.2.48",
-    "@types/react-dom": "18.2.18",
-    "eslint": "8.56.0",
+    "@babel/core": "7.25.8",
+    "@types/node": "20.16.13",
+    "@types/react": "18.3.11",
+    "@types/react-dom": "18.3.1",
+    "eslint": "9.13.0",
     "eslint-config-custom": "*",
     "tsconfig": "*",
-    "typescript": "5.3.3"
+    "typescript": "5.6.3"
   }
 }
