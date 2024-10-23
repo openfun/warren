@@ -1,0 +1,46 @@
+#
+# Warren Document package
+#
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "warren-document"
+description = "The document activity plugin for warren"
+readme = "README.md"
+authors = [
+  { name="Open FUN (France Universite Numerique)", email="fun.dev@fun-mooc.fr" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.9"
+license = {file = "LICENSE.md"}
+keywords = ["Analytics", "xAPI", "LRS", "LTI", "Document"]
+dependencies = [
+    "warren-api",
+]
+dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://github.com/openfun/warren"
+"Bug Tracker" = "https://github.com/openfun/warren/issues"
+
+[project.entry-points."warren.routers"]
+document = "warren_document.api:router"
+
+[project.entry-points."warren.indicators"]
+daily_downloads = "warren_document.indicators:DailyDownloads"
+daily_unique_downloads = "warren_document.indicators:DailyUniqueDownloads"
+
+[tool.setuptools.dynamic]
+version = { attr = "warren_document.__version__" }
