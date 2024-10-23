@@ -93,14 +93,18 @@ def test_migration_upgrade_command(monkeypatch):
 
 def test_get_indicator_entrypoints():
     """Test _get_indicator_entrypoints utility."""
+    sorted_entry_points = sorted(_get_indicator_entrypoints(), key=lambda ep: ep.value)
+
     assert [
+        "daily_downloads",
+        "daily_unique_downloads",
         "daily_completed_views",
         "daily_downloads",
         "daily_unique_completed_views",
         "daily_unique_downloads",
         "daily_unique_views",
         "daily_views",
-    ] == [e.name for e in _get_indicator_entrypoints()]
+    ] == [e.name for e in sorted_entry_points]
 
 
 def test_get_indicator():
@@ -120,6 +124,8 @@ def test_indicator_list_command():
     runner = CliRunner()
     result = runner.invoke(cli, ["indicator", "list"])
     assert (
+        "warren_document.indicators:DailyDownloads\n"
+        "warren_document.indicators:DailyUniqueDownloads\n"
         "warren_video.indicators:DailyCompletedViews\n"
         "warren_video.indicators:DailyDownloads\n"
         "warren_video.indicators:DailyUniqueCompletedViews\n"
