@@ -100,6 +100,8 @@ def test_get_indicator_entrypoints():
         "daily_unique_downloads",
         "daily_unique_views",
         "daily_views",
+        "daily_downloads",
+        "daily_unique_downloads"
     ] == [e.name for e in _get_indicator_entrypoints()]
 
 
@@ -126,6 +128,8 @@ def test_indicator_list_command():
         "warren_video.indicators:DailyUniqueDownloads\n"
         "warren_video.indicators:DailyUniqueViews\n"
         "warren_video.indicators:DailyViews\n"
+        "warren_document.indicators:DailyDownloads\n"
+        "warren_document.indicators:DailyUniqueDownloads\n"
     ) == result.output
 
 
