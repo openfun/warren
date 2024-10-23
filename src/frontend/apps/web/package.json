@@ -11,6 +11,7 @@
   "dependencies": {
     "@openfun/warren-core": "*",
     "@openfun/warren-video": "*",
+    "@openfun/warren-document": "*",
     "@openfun/cunningham-react": "2.4.0",
     "@vitejs/plugin-react": "4.2.1",
     "react": "18.2.0",
