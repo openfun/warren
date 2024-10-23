@@ -1,0 +1,89 @@
+
+.c__metrics-tabs__card {
+  padding-top: 0;
+}
+
+.c__plot-header {
+  display: flex;
+  justify-content: space-between;
+
+  &__controls {
+    margin-right: 1rem;
+    margin-top: 1rem;
+  }
+  &__controls,.c__button {
+    border-radius: 50%;
+  }
+
+  .c__metrics-tabs {
+    // FIXME - use px-to-rem
+    $tab-height: 100px;
+
+    display: flex;
+    height: $tab-height;
+    // FIXME - use px-to-rem
+    min-width: 650px;
+
+    &__tab {
+      max-height: $tab-height;
+      padding: 0 1.5rem;
+      flex-grow: 0;
+
+      background: none;
+      border: none;
+
+      position: relative;
+
+      .c__metric-condensed {
+        &__title {
+          opacity: 0.6;
+        }
+        &__value {
+          opacity: 0.5;
+        }
+      }
+
+      &--selected {
+        .c__metric-condensed {
+          &__title, &__value {
+            opacity: 1;
+          }
+
+          &__title {
+            color: #312783;
+          }
+        }
+
+        &::before {
+          // FIXME - use px-to-rem
+          $selector-height: 4px;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: $selector-height;
+          width: 70%;
+          content: "";
+          background-color: #312783;
+          margin-left: auto;
+          margin-right: auto;
+          border-radius: 0 0 $selector-height $selector-height;
+          border-top-width: $selector-height;
+        }
+      }
+
+      &:hover {
+        border-radius: 0.5rem;
+        background-color: #f8f9fa;
+        cursor: pointer;
+
+        .c__metric-condensed {
+          &__title, &__value {
+            opacity: 1;
+          }
+        }
+      }
+    }
+  }
+
+}
