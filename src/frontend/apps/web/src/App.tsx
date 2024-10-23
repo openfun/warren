@@ -23,8 +23,24 @@ const getVideoRoute = (): React.LazyExoticComponent<() => JSX.Element> => {
   }
 };
 
+const documentRoutes: Routes = {
+  instructor: lazy(
+    () => import("@openfun/warren-document/src/pages/Instructor"),
+  ),
+  student: lazy(() => import("@openfun/warren-document/src/pages/Student")),
+};
+
+const getDocumentRoute = (): React.LazyExoticComponent<() => JSX.Element> => {
+  if (dataContext.is_instructor) {
+    return documentRoutes.instructor;
+  } else {
+    return documentRoutes.student;
+  }
+};
+
 const routes: Routes = {
   video: getVideoRoute(),
+  document: getDocumentRoute(),
 };
 
 export const App = () => {
