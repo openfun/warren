@@ -102,7 +102,9 @@ def _get_indicator(name: str) -> EntryPoint:
 @indicator.command("list")
 def indicator_list():
     """List registered active indicators."""
-    for entry_point in _get_indicator_entrypoints():
+    # Get and sort the entry points by value in alphabetical order
+    sorted_entry_points = sorted(_get_indicator_entrypoints(), key=lambda ep: ep.value)
+    for entry_point in sorted_entry_points:
         click.echo(entry_point.value)
 
 
