@@ -98,6 +98,10 @@ def test_get_indicator_entrypoints():
     assert [
         "daily_downloads",
         "daily_unique_downloads",
+        "course_daily_unique_views",
+        "course_daily_views",
+        "daily_unique_views",
+        "daily_views",
         "daily_completed_views",
         "daily_downloads",
         "daily_unique_completed_views",
@@ -126,6 +130,10 @@ def test_indicator_list_command():
     assert (
         "warren_document.indicators:DailyDownloads\n"
         "warren_document.indicators:DailyUniqueDownloads\n"
+        "warren_moodle.indicators:CourseDailyUniqueViews\n"
+        "warren_moodle.indicators:CourseDailyViews\n"
+        "warren_moodle.indicators:DailyUniqueViews\n"
+        "warren_moodle.indicators:DailyViews\n"
         "warren_video.indicators:DailyCompletedViews\n"
         "warren_video.indicators:DailyDownloads\n"
         "warren_video.indicators:DailyUniqueCompletedViews\n"
