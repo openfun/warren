@@ -1,0 +1,44 @@
+#
+# Warren Moodle package
+#
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "warren-moodle"
+description = "The Moodle plugin for warren"
+readme = "README.md"
+authors = [
+  { name="Open FUN (France Universite Numerique)", email="fun.dev@fun-mooc.fr" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.9"
+license = {file = "LICENSE.md"}
+keywords = ["Analytics", "xAPI", "LRS", "LTI", "Moodle"]
+dependencies = [
+    "warren-api",
+]
+dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://github.com/openfun/warren"
+"Bug Tracker" = "https://github.com/openfun/warren/issues"
+
+[project.entry-points."warren.routers"]
+moodle = "warren_moodle.api:router"
+
+[project.entry-points."warren.indicators"]
+
+[tool.setuptools.dynamic]
+version = { attr = "warren_moodle.__version__" }
