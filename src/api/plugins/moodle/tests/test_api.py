@@ -7,7 +7,8 @@ import httpx
 import pytest
 from pytest_httpx import HTTPXMock
 from warren.backends import lrs_client
-from warren.models import DailyCounts, DailyUniqueCounts
+from warren.models import DailyCounts, DailyUniqueCount, DailyUniqueCounts
+from warren.utils import forge_lti_token
 from warren_moodle.indicators import (
     CourseDailyUniqueViews,
     CourseDailyViews,
@@ -117,9 +118,7 @@ async def test_views_missing_auth_headers(http_client: httpx.AsyncClient):
 
 
 @pytest.mark.anyio
-async def test_views_daily_views(
-    http_client: httpx.AsyncClient, auth_headers: dict
-):
+async def test_views_daily_views(http_client: httpx.AsyncClient, auth_headers: dict):
     """Test the activity views endpoint for daily views."""
     activity_id = "uuid://c16e5e8e-d0c3-47a8-81b6-0d8fb971d2e0"
 
@@ -161,9 +160,9 @@ async def test_views_daily_unique_views(
     mock_daily_unique_counts = {
         "total": 1,
         "counts": [
-            DailyUniqueCounts(date="2023-01-01", count=1, users={"john_doe"}),
-            DailyUniqueCounts(date="2023-01-02", count=0, users=set()),
-            DailyUniqueCounts(date="2023-01-03", count=0, users=set()),
+            DailyUniqueCount(date="2023-01-01", count=1, users={"john_doe"}),
+            DailyUniqueCount(date="2023-01-02", count=0, users=set()),
+            DailyUniqueCount(date="2023-01-03", count=0, users=set()),
         ],
     }
 
@@ -231,32 +230,39 @@ async def test_course_views_daily_views_with_no_modname(
     http_client: httpx.AsyncClient, auth_headers: dict
 ):
     """Test the course views endpoint for daily views with no `modname` filter."""
-    course_id = "uuid://c16e5e8e-d0c3-47a8-81b6-0d8fb971d2e0"
+    token = forge_lti_token(course_id="uuid://c16e5e8e-d0c3-47a8-81b6-0d8fb971d2e0")
 
     # Create a mock return value for the `get_or_compute` method
-    mock_course_daily_counts = {
-        "id": "activity1",
-        "modname": "mod_forum",
-        "views": DailyCounts(total=1, counts=[{"date": "2023-01-01", "count": 1}]),
-    }
-
+    mock_course_daily_counts = [
+        {
+            "id": "activity1",
+            "modname": "mod_forum",
+            "views": DailyCounts(total=1, counts=[{"date": "2023-01-01", "count": 1}]),
+        }
+    ]
     # Patch `DailyViews.get_or_compute` to return the mock result
     with patch.object(
         CourseDailyViews, "get_or_compute", return_value=mock_course_daily_counts
     ) as mock_get_or_compute:
         response = await http_client.get(
-            f"/api/v1/moodle/{course_id}/views",
-            params={"since": "2023-01-01", "until": "2023-01-31", "unique": "false"},
-            headers=auth_headers,
+            "/api/v1/moodle/views",
+            params={"since": "2023-01-01", "until": "2023-01-03", "unique": "false"},
+            headers={"Authorization": f"Bearer {token}"},
         )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "total": 1,  # The mocked total views count
-        "counts": [
-            {"date": "2023-01-01", "count": 1},
-        ],
-    }
+    assert response.json() == [
+        {
+            "id": "activity1",
+            "modname": "mod_forum",
+            "views": {
+                "total": 1,  # The mocked total views count
+                "counts": [
+                    {"date": "2023-01-01", "count": 1},
+                ],
+            },
+        }
+    ]
 
     # Ensure the method was called correctly
     mock_get_or_compute.assert_called_once()
@@ -267,7 +273,7 @@ async def test_course_views_daily_views_with_modname(
     http_client: httpx.AsyncClient, auth_headers: dict
 ):
     """Test the course views endpoint for daily views with `modname` filter."""
-    course_id = "uuid://c16e5e8e-d0c3-47a8-81b6-0d8fb971d2e0"
+    token = forge_lti_token(course_id="uuid://c16e5e8e-d0c3-47a8-81b6-0d8fb971d2e0")
 
     # Create a mock return value for the `get_or_compute` method
     mock_course_daily_counts = [
@@ -288,23 +294,29 @@ async def test_course_views_daily_views_with_modname(
         CourseDailyViews, "get_or_compute", return_value=mock_course_daily_counts
     ) as mock_get_or_compute:
         response = await http_client.get(
-            f"/api/v1/moodle/{course_id}/views",
+            "/api/v1/moodle/views",
             params={
                 "since": "2023-01-01",
-                "until": "2023-01-31",
+                "until": "2023-01-03",
                 "unique": "false",
                 "modname": ["mod_chat", "mod_forum"],
             },
-            headers=auth_headers,
+            headers={"Authorization": f"Bearer {token}"},
         )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "total": 1,  # The mocked total views count
-        "counts": [
-            {"date": "2023-01-01", "count": 1},
-        ],
-    }
+    assert response.json() == [
+        {
+            "id": "activity1",
+            "modname": "mod_forum",
+            "views": {"total": 1, "counts": [{"date": "2023-01-01", "count": 1}]},
+        },
+        {
+            "id": "activity2",
+            "modname": "mod_chat",
+            "views": {"total": 1, "counts": [{"date": "2023-01-02", "count": 12}]},
+        },
+    ]
 
     # Ensure the method was called correctly
     mock_get_or_compute.assert_called_once()
@@ -316,17 +328,19 @@ async def test_course_views_daily_unique_views_with_no_modname(
 ):
     """Test the course views endpoint for daily unique views with no `modname`
     filter.
-    """ # noqa: D205
-    course_id = "uuid://c16e5e8e-d0c3-47a8-81b6-0d8fb971d2e0"
+    """  # noqa: D205
+    token = forge_lti_token(course_id="uuid://c16e5e8e-d0c3-47a8-81b6-0d8fb971d2e0")
 
     # Create a mock return value for the `get_or_compute` method
-    mock_course_daily_unique_counts = {
-        "id": "activity1",
-        "modname": "mod_forum",
-        "unique_views": DailyUniqueCounts(
-            total=1, counts=[{"date": "2023-01-01", "count": 1}]
-        ),
-    }
+    mock_course_daily_unique_counts = [
+        {
+            "id": "activity1",
+            "modname": "mod_forum",
+            "unique_views": DailyUniqueCounts(
+                total=1, counts=[{"date": "2023-01-01", "count": 1}]
+            ),
+        }
+    ]
 
     # Patch `DailyViews.get_or_compute` to return the mock result
     with patch.object(
@@ -335,18 +349,22 @@ async def test_course_views_daily_unique_views_with_no_modname(
         return_value=mock_course_daily_unique_counts,
     ) as mock_get_or_compute:
         response = await http_client.get(
-            f"/api/v1/moodle/{course_id}/views",
-            params={"since": "2023-01-01", "until": "2023-01-31", "unique": "true"},
-            headers=auth_headers,
+            "/api/v1/moodle/views",
+            params={"since": "2023-01-01", "until": "2023-01-03", "unique": "true"},
+            headers={"Authorization": f"Bearer {token}"},
         )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "total": 1,  # The mocked total views count
-        "counts": [
-            {"date": "2023-01-01", "count": 1},
-        ],
-    }
+    assert response.json() == [
+        {
+            "id": "activity1",
+            "modname": "mod_forum",
+            "unique_views": {
+                "total": 1,
+                "counts": [{"date": "2023-01-01", "count": 1, "users": []}],
+            },
+        }
+    ]
 
     # Ensure the method was called correctly
     mock_get_or_compute.assert_called_once()
@@ -357,7 +375,7 @@ async def test_course_views_daily_unique_views_with_modname(
     http_client: httpx.AsyncClient, auth_headers: dict
 ):
     """Test the course views endpoint for daily unique views with modname filter."""
-    course_id = "uuid://c16e5e8e-d0c3-47a8-81b6-0d8fb971d2e0"
+    token = forge_lti_token(course_id="uuid://c16e5e8e-d0c3-47a8-81b6-0d8fb971d2e0")
 
     # Create a mock return value for the `get_or_compute` method
     mock_course_daily_unique_counts = [
@@ -384,23 +402,35 @@ async def test_course_views_daily_unique_views_with_modname(
         return_value=mock_course_daily_unique_counts,
     ) as mock_get_or_compute:
         response = await http_client.get(
-            f"/api/v1/moodle/{course_id}/views",
+            "/api/v1/moodle/views",
             params={
                 "since": "2023-01-01",
                 "until": "2023-01-31",
                 "unique": "true",
                 "modname": ["mod_chat", "mod_forum"],
             },
-            headers=auth_headers,
+            headers={"Authorization": f"Bearer {token}"},
         )
 
     assert response.status_code == 200
-    assert response.json() == {
-        "total": 1,  # The mocked total views count
-        "counts": [
-            {"date": "2023-01-01", "count": 1},
-        ],
-    }
+    assert response.json() == [
+        {
+            "id": "activity1",
+            "modname": "mod_forum",
+            "views": {
+                "total": 1,
+                "counts": [{"date": "2023-01-01", "count": 1, "users": []}],
+            },
+        },
+        {
+            "id": "activity2",
+            "modname": "mod_chat",
+            "unique_views": {
+                "total": 1,
+                "counts": [{"date": "2023-01-02", "count": 12, "users": []}],
+            },
+        },
+    ]
 
     # Ensure the method was called correctly
     mock_get_or_compute.assert_called_once()

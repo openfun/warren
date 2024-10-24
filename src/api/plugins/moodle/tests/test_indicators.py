@@ -37,6 +37,7 @@ async def test_daily_views(httpx_mock: HTTPXMock, db_session):
 
     class LocalURLViewedFactory(URLViewedFactory):
         """Custom URLViewedFactory with a modified template for testing."""
+
         template: dict = local_template
 
     def lrs_response(request: httpx.Request):
@@ -114,6 +115,7 @@ async def test_daily_unique_views(httpx_mock: HTTPXMock, db_session):
 
     class LocalURLViewedFactory(URLViewedFactory):
         """Custom URLViewedFactory with a modified template for testing unique views."""
+
         template: dict = local_template
 
     def lrs_response(request: httpx.Request):
@@ -185,7 +187,7 @@ async def test_daily_unique_views(httpx_mock: HTTPXMock, db_session):
 def test_course_daily_mixin_initialization():
     """Test initialization of CourseDailyMixin with course_id, span_range, and
     modname.
-    """ # noqa: D205
+    """  # noqa: D205
 
     class TestCourseDailyMixin(CourseDailyMixin):
         """Test class inheriting from CourseDailyMixin for testing initialization."""
@@ -243,7 +245,7 @@ async def test_course_daily_mixin_fetch_activities_with_no_indexed_course_conten
 ):
     """Test fetch_activities raises an exception when no content is indexed for
     the course.
-    """ # noqa: D205
+    """  # noqa: D205
 
     class TestCourseDailyMixin(CourseDailyMixin):
         """Test class inheriting from CourseDailyMixin for fetching activities."""
@@ -283,7 +285,7 @@ async def test_course_daily_mixin_fetch_activities_course_content_not_found(
 ):
     """Test fetch_activities raises an exception when content is not found for a
     source.
-    """ # noqa: D205
+    """  # noqa: D205
 
     class TestCourseDailyMixin(CourseDailyMixin):
         """Test class inheriting from CourseDailyMixin for fetching activities."""
