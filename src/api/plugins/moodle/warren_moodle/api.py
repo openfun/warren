@@ -70,7 +70,7 @@ async def course_views(
     token: Annotated[LTIToken, Depends(get_lti_token)],
     unique: bool = False,
     modname: List[str] = None,
-) -> List[DailyCounts]:
+):
     """Number of views of course ressources in the `since` -> `until` date range."""
     # Switch/case pattern matching with the unique boolean tuple
     logger.debug("Start computing 'views' indicator")
@@ -79,7 +79,7 @@ async def course_views(
         False: CourseDailyViews,
     }
     indicator = klass_mapping.get(unique, CourseDailyViews)(
-        object_id=course_id,
+        course_id=course_id,
         span_range=DatetimeRange.parse_obj(filters),
         modname=modname,
     )  # type: ignore[abstract]

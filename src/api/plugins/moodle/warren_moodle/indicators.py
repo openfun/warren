@@ -6,7 +6,7 @@ from typing import List
 
 from ralph.backends.lrs.base import LRSStatementsQuery
 from warren.indicators import BaseIndicator, CacheMixin, DailyEvent, DailyUniqueEvent
-from warren.models import DailyCounts, DailyUniqueCounts
+from warren.models import DailyCount, DailyUniqueCount
 from warren.xi.client import ExperienceIndex
 from warren.xi.exceptions import ExperienceIndexException
 
@@ -19,7 +19,7 @@ class ActivityViews:
 
     id: str
     modname: str
-    views: DailyCounts = None
+    views: List[DailyCount] = None
 
 
 @dataclass
@@ -28,7 +28,7 @@ class ActivityUniqueViews:
 
     id: str
     modname: str
-    unique_views: DailyUniqueCounts = None
+    unique_views: List[DailyUniqueCount] = None
 
 
 class DailyViews(DailyEvent):
@@ -64,7 +64,7 @@ class CourseDailyMixin(BaseIndicator, CacheMixin):
 
     def __init__(self, course_id, span_range, modname):
         """Instantiate the mixin for course daily indicator."""
-        super().__init__(object_id=course_id, span_range=span_range, modname=modname)
+        super().__init__(course_id=course_id, span_range=span_range, modname=modname)
 
     def get_lrs_query(self):
         """Construct the LRS query for statements whose object is the course.
