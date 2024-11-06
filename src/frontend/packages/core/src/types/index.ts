@@ -41,3 +41,31 @@ export interface DecodedJwtLTI {
   token_type: string;
   user: DecodedJwtUserLTI;
 }
+
+export interface ResourceMetricsResponseItem {
+  date: string;
+  count: number;
+}
+
+export interface ResourceMetricsResponse {
+  id: string;
+  total: number;
+  counts: Array<ResourceMetricsResponseItem>;
+}
+
+export interface ResourceMetricsQueryParams {
+  since: string;
+  until: string;
+  unique?: boolean;
+  complete?: boolean;
+}
+
+export interface Resource {
+  id: string;
+  title: string;
+}
+
+export interface UseResourceMetricsReturn {
+  resourceMetrics: ResourceMetricsResponse[];
+  isFetching: boolean;
+}

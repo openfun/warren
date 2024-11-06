@@ -6,12 +6,15 @@ import ReactECharts from "echarts-for-react";
 import classNames from "classnames";
 import dayjs from "dayjs";
 import { Button } from "@openfun/cunningham-react";
-import { Card, useFilters } from "@openfun/warren-core";
-import { DocumentDownloadsResponse } from "../../types";
+import {
+  Card,
+  RESOURCES,
+  useDateFilters,
+  useResourceFilters,
+  ResourceMetricsResponse,
+} from "@openfun/warren-core";
 import { useDocumentDownloads } from "../../api";
-import { useDocumentFilters } from "../../hooks";
 import { DownloadsMetric, DownloadsMetricProps } from "../Metrics";
-import { DOCUMENTS } from "../DocumentFilters";
 
 export type Series = {
   id: string;
@@ -60,8 +63,8 @@ const baseOption: EChartsOption = {
 export const DailyDownloads: React.FC = () => {
   const {
     date: [since, until],
-  } = useFilters();
-  const { documents } = useDocumentFilters();
+  } = useDateFilters();
+  const { resources } = useResourceFilters();
 
   const [isStacked, setIsStacked] = useState(false);
 
@@ -78,16 +81,16 @@ export const DailyDownloads: React.FC = () => {
   }, []);
   const [selectedMetric, setSelectedMetric] = useState(metrics[0]);
 
-  const { documentDownloads: selectedData } = useDocumentDownloads(documents, {
+  const { resourceMetrics: selectedData } = useDocumentDownloads(resources, {
     since,
     until,
     ...selectedMetric,
   });
 
   // Convert API response to an EChart series.
-  const parseSeries = (item: DocumentDownloadsResponse): Series => ({
+  const parseSeries = (item: ResourceMetricsResponse): Series => ({
     id: item?.id,
-    name: DOCUMENTS.find((document) => document.id === item.id)?.title || "",
+    name: RESOURCES.find((document) => document.id === item.id)?.title || "",
     data: item.counts.map((day) => day.count) || [],
     type: "line",
     smooth: 0.2,
@@ -98,7 +101,7 @@ export const DailyDownloads: React.FC = () => {
     ...(isStacked && { stack: "Total", areaStyle: {} }),
   });
 
-  const parseXAxis = (item: DocumentDownloadsResponse): Array<string> =>
+  const parseXAxis = (item: ResourceMetricsResponse): Array<string> =>
     item.counts.map((day) => dayjs(day.date).format("MM/DD")) || [];
 
   const formattedOption = useMemo(() => {

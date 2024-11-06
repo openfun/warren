@@ -1,9 +1,13 @@
 import React, { useMemo } from "react";
 import { SimpleDataGrid } from "@openfun/cunningham-react";
-import { Card, useFilters } from "@openfun/warren-core";
-import { useDocumentFilters } from "../../hooks";
+import {
+  Card,
+  useDateFilters,
+  useResourceFilters,
+  Resource,
+  ResourceMetricsResponse,
+} from "@openfun/warren-core";
 import { useDocumentDownloads } from "../../api";
-import { Document, DocumentDownloadsResponse } from "../../types";
 
 /**
  * A React component for displaying a data grid of selected documents within a specified date range.
@@ -17,28 +21,25 @@ import { Document, DocumentDownloadsResponse } from "../../types";
 export const DocumentsData: React.FC = () => {
   const {
     date: [since, until],
-  } = useFilters();
-  const { documents } = useDocumentFilters();
+  } = useDateFilters();
+  const { resources } = useResourceFilters();
 
-  const { documentDownloads: downloadsData } = useDocumentDownloads(documents, {
+  const { resourceMetrics: downloadsData } = useDocumentDownloads(resources, {
     since,
     until,
   });
-  const { documentDownloads: downloadersData } = useDocumentDownloads(
-    documents,
-    {
-      since,
-      until,
-      unique: true,
-    },
-  );
+  const { resourceMetrics: downloadersData } = useDocumentDownloads(resources, {
+    since,
+    until,
+    unique: true,
+  });
 
-  const extractTotal = (data: DocumentDownloadsResponse[], id: string) =>
+  const extractTotal = (data: ResourceMetricsResponse[], id: string) =>
     data?.find((i) => i.id === id)?.total || "-";
 
   const rows = useMemo(
     () =>
-      documents.map((document: Document) => {
+      resources.map((document: Resource) => {
         return {
           id: document.id,
           title: document.title,
@@ -46,7 +47,7 @@ export const DocumentsData: React.FC = () => {
           downloader: extractTotal(downloadersData, document.id),
         };
       }),
-    [documents, downloadsData, downloadersData],
+    [resources, downloadsData, downloadersData],
   );
 
   return (

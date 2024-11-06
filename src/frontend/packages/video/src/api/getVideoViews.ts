@@ -1,7 +1,13 @@
 import { useQueries } from "@tanstack/react-query";
 import { AxiosInstance } from "axios";
-import { useTokenInterceptor, apiAxios } from "@openfun/warren-core";
-import { VideoViewsQueryParams, VideoViewsResponse, Video } from "../types";
+import {
+  useTokenInterceptor,
+  apiAxios,
+  ResourceMetricsQueryParams,
+  ResourceMetricsResponse,
+  Resource,
+  UseResourceMetricsReturn,
+} from "@openfun/warren-core";
 
 export const DEFAULT_BASE_QUERY_KEY = "videoViews";
 
@@ -10,14 +16,14 @@ export const DEFAULT_BASE_QUERY_KEY = "videoViews";
  *
  * @param {AxiosInstance} client - Axios instance for making the API request.
  * @param {string} videoId - The ID of the video to fetch views for.
- * @param {VideoViewsQueryParams} queryParams - Optional filters for the request.
- * @returns {Promise<VideoViewsResponse>} A promise that resolves to the video views data.
+ * @param {ResourceMetricsQueryParams} queryParams - Optional filters for the request.
+ * @returns {Promise<ResourceMetricsResponse>} A promise that resolves to the video views data.
  */
 const getVideoViews = async (
   client: AxiosInstance,
   videoId: string,
-  queryParams: VideoViewsQueryParams,
-): Promise<VideoViewsResponse> => {
+  queryParams: ResourceMetricsQueryParams,
+): Promise<ResourceMetricsResponse> => {
   const response = await client.get(`video/${videoId}/views`, {
     params: Object.fromEntries(
       Object.entries(queryParams).filter(([, value]) => !!value),
@@ -29,26 +35,21 @@ const getVideoViews = async (
   };
 };
 
-export type UseVideoViewsReturn = {
-  videoViews: VideoViewsResponse[];
-  isFetching: boolean;
-};
-
 /**
  * A custom hook for fetching video views data for multiple videos in parallel.
  *
- * @param {Array<Video>} videos - An array of videos to fetch views for.
- * @param {VideoViewsQueryParams} queryParams - Optional filters for the requests.
+ * @param {Array<Resource>} videos - An array of videos to fetch views for.
+ * @param {ResourceMetricsQueryParams} queryParams - Optional filters for the requests.
  * @param {boolean} wait - Optional flag to control the order of execution.
  * @param {string} baseQueryKey - Optional base query key.
  * @returns {UseVideoViewsReturn} An object containing the fetched data and loading status.
  */
 export const useVideosViews = (
-  videos: Array<Video>,
-  queryParams: VideoViewsQueryParams,
+  videos: Array<Resource>,
+  queryParams: ResourceMetricsQueryParams,
   wait: boolean = false,
   baseQueryKey: string = DEFAULT_BASE_QUERY_KEY,
-): UseVideoViewsReturn => {
+): UseResourceMetricsReturn => {
   const { since, until, unique, complete } = queryParams;
 
   // Get the API client, set with the authorization headers and refresh mechanism
@@ -75,12 +76,12 @@ export const useVideosViews = (
   const isFetching = queryResults.some((r) => r.isFetching);
 
   // Extract the data from the successful query results
-  const videoViews = queryResults
+  const resourceMetrics = queryResults
     .filter((r) => r.isSuccess)
-    .map((queryResult) => queryResult.data) as VideoViewsResponse[];
+    .map((queryResult) => queryResult.data) as ResourceMetricsResponse[];
 
   return {
-    videoViews,
+    resourceMetrics,
     isFetching,
   };
 };

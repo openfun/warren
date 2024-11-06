@@ -1,9 +1,13 @@
 import React, { useMemo } from "react";
 import { SimpleDataGrid } from "@openfun/cunningham-react";
-import { Card, useFilters } from "@openfun/warren-core";
-import { useVideoFilters } from "../../hooks";
+import {
+  Card,
+  useDateFilters,
+  useResourceFilters,
+  ResourceMetricsResponse,
+  Resource,
+} from "@openfun/warren-core";
 import { useVideosViews } from "../../api";
-import { Video, VideoViewsResponse } from "../../types";
 
 /**
  * A React component for displaying a data grid of selected videos within a specified date range.
@@ -17,22 +21,25 @@ import { Video, VideoViewsResponse } from "../../types";
 export const VideosData: React.FC = () => {
   const {
     date: [since, until],
-  } = useFilters();
-  const { videos } = useVideoFilters();
+  } = useDateFilters();
+  const { resources } = useResourceFilters();
 
-  const { videoViews: viewsData } = useVideosViews(videos, { since, until });
-  const { videoViews: viewersData } = useVideosViews(videos, {
+  const { resourceMetrics: viewsData } = useVideosViews(resources, {
+    since,
+    until,
+  });
+  const { resourceMetrics: viewersData } = useVideosViews(resources, {
     since,
     until,
     unique: true,
   });
 
-  const extractTotal = (data: VideoViewsResponse[], id: string) =>
+  const extractTotal = (data: ResourceMetricsResponse[], id: string) =>
     data?.find((i) => i.id === id)?.total || "-";
 
   const rows = useMemo(
     () =>
-      videos.map((video: Video) => {
+      resources.map((video: Resource) => {
         return {
           id: video.id,
           title: video.title,
@@ -40,7 +47,7 @@ export const VideosData: React.FC = () => {
           viewer: extractTotal(viewersData, video.id),
         };
       }),
-    [videos, viewsData, viewersData],
+    [resources, viewsData, viewersData],
   );
 
   return (

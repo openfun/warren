@@ -1,7 +1,9 @@
-import { Flexgrid } from "@openfun/warren-core";
-import { DailyViews, VideoFilters, VideosData } from "../../components";
-import { VideoFiltersProvider } from "../../contexts";
-
+import {
+  Flexgrid,
+  ResourceFilters,
+  ResourceFiltersProvider,
+} from "@openfun/warren-core";
+import { DailyViews, VideosData } from "../../components";
 /**
  * A React component responsible for rendering a dashboard overview of video statistics.
  *
@@ -13,13 +15,13 @@ import { VideoFiltersProvider } from "../../contexts";
 export default () => {
   return (
     <div className="c__overview">
-      <VideoFiltersProvider>
-        <VideoFilters />
+      <ResourceFiltersProvider>
+        <ResourceFilters label="Videos" />
         <Flexgrid>
           <DailyViews />
           <VideosData />
         </Flexgrid>
-      </VideoFiltersProvider>
+      </ResourceFiltersProvider>
     </div>
   );
 };
