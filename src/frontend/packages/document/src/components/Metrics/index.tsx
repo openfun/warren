@@ -1,34 +1,15 @@
 import React, { useMemo } from "react";
-import dayjs from "dayjs";
 import { useIsFetching } from "@tanstack/react-query";
 import {
-  formatDates,
   Metric,
   MetricCondensed,
   MetricProps,
-  useFilters,
+  getPreviousPeriod,
+  useDateFilters,
+  useResourceFilters,
+  sumMetrics,
 } from "@openfun/warren-core";
-import { useDocumentFilters } from "../../hooks";
 import { DEFAULT_BASE_QUERY_KEY, useDocumentDownloads } from "../../api";
-import { sumDownloads } from "../../utils";
-
-/**
- * Calculate the previous time period based on the provided since and until dates.
- *
- * This function calculates the start and end dates of the previous time period relative to the given 'since' and 'until' dates.
- * It computes the duration of the selected period and calculates the previous period's start and end dates accordingly.
- *
- * @param {string} since - The start date of the current period.
- * @param {string} until - The end date of the current period.
- * @returns {string[]} An array of two ISO date strings representing the start and end dates of the previous time period.
- */
-const previousPeriod = (since: string, until: string) => {
-  const periodDuration = dayjs(until).diff(since, "day") + 1;
-  return formatDates([
-    dayjs(since).subtract(periodDuration, "day"),
-    dayjs(since).subtract(1, "day"),
-  ]);
-};
 
 export interface DownloadsMetricProps extends Omit<MetricProps, "metric"> {
   unique?: boolean;
@@ -60,47 +41,42 @@ export const DownloadsMetric: React.FC<DownloadsMetricProps> = ({
   const fetchingCount = useIsFetching({ queryKey: [DEFAULT_BASE_QUERY_KEY] });
   const {
     date: [since, until],
-  } = useFilters();
-  const { documents } = useDocumentFilters();
+  } = useDateFilters();
+  const { resources } = useResourceFilters();
 
   const params = { unique };
 
-  const { documentDownloads, isFetching } = useDocumentDownloads(documents, {
+  const { resourceMetrics, isFetching } = useDocumentDownloads(resources, {
     since,
     until,
     ...params,
   });
-  const total = useMemo(
-    () => sumDownloads(documentDownloads),
-    [documentDownloads],
-  );
+  const total = useMemo(() => sumMetrics(resourceMetrics), [resourceMetrics]);
 
   const [comparisonSince, comparisonUntil] = useMemo(
-    () => previousPeriod(since, until),
+    () => getPreviousPeriod(since, until),
     [since, until],
   );
 
   // Wait until the before last document downloads has resolved
   const isComparisonWaiting = useMemo(
-    () => !documentDownloads.length || fetchingCount > 1,
-    [isFetching, documentDownloads],
+    () => !resourceMetrics.length || fetchingCount > 1,
+    [isFetching, resourceMetrics],
   );
 
-  const {
-    documentDownloads: comparisonData,
-    isFetching: isComparisonFetching,
-  } = useDocumentDownloads(
-    documents,
-    {
-      since: comparisonSince,
-      until: comparisonUntil,
-      ...params,
-    },
-    isComparisonWaiting,
-    DEFAULT_BASE_QUERY_KEY + "Comparison",
-  );
+  const { resourceMetrics: comparisonData, isFetching: isComparisonFetching } =
+    useDocumentDownloads(
+      resources,
+      {
+        since: comparisonSince,
+        until: comparisonUntil,
+        ...params,
+      },
+      isComparisonWaiting,
+      DEFAULT_BASE_QUERY_KEY + "Comparison",
+    );
   const comparison = useMemo(
-    () => sumDownloads(comparisonData),
+    () => sumMetrics(comparisonData),
     [comparisonData],
   );
 

@@ -1,11 +1,9 @@
-import { Flexgrid } from "@openfun/warren-core";
 import {
-  DailyDownloads,
-  DocumentFilters,
-  DocumentsData,
-} from "../../components";
-import { DocumentFiltersProvider } from "../../contexts";
-
+  Flexgrid,
+  ResourceFilters,
+  ResourceFiltersProvider,
+} from "@openfun/warren-core";
+import { DocumentsData, DailyDownloads } from "../../components";
 /**
  * A React component responsible for rendering a dashboard overview of document statistics.
  *
@@ -17,13 +15,13 @@ import { DocumentFiltersProvider } from "../../contexts";
 export default () => {
   return (
     <div className="c__overview">
-      <DocumentFiltersProvider>
-        <DocumentFilters />
+      <ResourceFiltersProvider>
+        <ResourceFilters label="Documents" />
         <Flexgrid>
           <DailyDownloads />
           <DocumentsData />
         </Flexgrid>
-      </DocumentFiltersProvider>
+      </ResourceFiltersProvider>
     </div>
   );
 };

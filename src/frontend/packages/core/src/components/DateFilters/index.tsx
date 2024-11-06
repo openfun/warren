@@ -1,10 +1,10 @@
 import React, { ReactNode } from "react";
 import { DateRangePicker } from "@openfun/cunningham-react";
 import dayjs from "dayjs";
-import { useFilters } from "../../hooks";
+import { useDateFilters } from "../../hooks";
 import { formatDates, getDefaultDates } from "../../utils";
 
-export type FiltersProps = {
+export type DateFiltersProps = {
   children: ReactNode;
 };
 
@@ -14,8 +14,10 @@ export type FiltersProps = {
  * @component
  * @returns {JSX.Element} - The rendered Filters component with date range picker.
  */
-export const Filters: React.FC<FiltersProps> = ({ children }: FiltersProps) => {
-  const { date, setDate } = useFilters();
+export const DateFilters: React.FC<DateFiltersProps> = ({
+  children,
+}: DateFiltersProps) => {
+  const { date, setDate } = useDateFilters();
 
   const handleDateChange = (value: [string, string] | null): void => {
     if (value) {

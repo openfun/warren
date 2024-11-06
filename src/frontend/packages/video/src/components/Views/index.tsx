@@ -6,12 +6,15 @@ import ReactECharts from "echarts-for-react";
 import classNames from "classnames";
 import dayjs from "dayjs";
 import { Button } from "@openfun/cunningham-react";
-import { Card, useFilters } from "@openfun/warren-core";
-import { VideoViewsResponse } from "../../types";
+import {
+  RESOURCES,
+  Card,
+  useDateFilters,
+  useResourceFilters,
+  ResourceMetricsResponse,
+} from "@openfun/warren-core";
 import { useVideosViews } from "../../api";
-import { useVideoFilters } from "../../hooks";
 import { ViewsMetric, ViewsMetricProps } from "../Metrics";
-import { VIDEOS } from "../VideoFilters";
 
 export type Series = {
   id: string;
@@ -60,8 +63,8 @@ const baseOption: EChartsOption = {
 export const DailyViews: React.FC = () => {
   const {
     date: [since, until],
-  } = useFilters();
-  const { videos } = useVideoFilters();
+  } = useDateFilters();
+  const { resources } = useResourceFilters();
 
   const [isStacked, setIsStacked] = useState(false);
 
@@ -91,16 +94,16 @@ export const DailyViews: React.FC = () => {
   }, []);
   const [selectedMetric, setSelectedMetric] = useState(metrics[0]);
 
-  const { videoViews: selectedData } = useVideosViews(videos, {
+  const { resourceMetrics: selectedData } = useVideosViews(resources, {
     since,
     until,
     ...selectedMetric,
   });
 
   // Convert API response to an EChart series.
-  const parseSeries = (item: VideoViewsResponse): Series => ({
+  const parseSeries = (item: ResourceMetricsResponse): Series => ({
     id: item?.id,
-    name: VIDEOS.find((video) => video.id === item.id)?.title || "",
+    name: RESOURCES.find((video) => video.id === item.id)?.title || "",
     data: item.counts.map((day) => day.count) || [],
     type: "line",
     smooth: 0.2,
@@ -111,7 +114,7 @@ export const DailyViews: React.FC = () => {
     ...(isStacked && { stack: "Total", areaStyle: {} }),
   });
 
-  const parseXAxis = (item: VideoViewsResponse): Array<string> =>
+  const parseXAxis = (item: ResourceMetricsResponse): Array<string> =>
     item.counts.map((day) => dayjs(day.date).format("MM/DD")) || [];
 
   const formattedOption = useMemo(() => {
