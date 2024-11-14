@@ -253,7 +253,7 @@ jobs:
           WARREN_LRS_AUTH_BASIC_PASSWORD: fake-news!
           WARREN_APP_SIGNING_KEY: your-very-secret-key
           WARREN_APP_SIGNING_ALGORITHM: HS256
-      - image: cimg/postgres:13.16
+      - image: cimg/postgres:16.4
         auth:
           username: $DOCKER_HUB_USER
           password: $DOCKER_HUB_PASS
@@ -343,7 +343,7 @@ jobs:
           WARREN_APP_DB_HOST: localhost
           WARREN_APP_SIGNING_KEY: your-very-secret-key
           WARREN_APP_SIGNING_ALGORITHM: HS256
-      - image: cimg/postgres:13.16
+      - image: cimg/postgres:16.4
         auth:
           username: $DOCKER_HUB_USER
           password: $DOCKER_HUB_PASS
