@@ -1,6 +1,6 @@
 """introduce experience index
 
-Revision ID: a113f2ab4dc9
+Revision ID: 77a0f0fbb8ab
 Revises: 05e3da68582b
 Create Date: 2023-11-09 10:33:53.610165
 
@@ -14,7 +14,7 @@ import sqlmodel
 
 
 # revision identifiers, used by Alembic.
-revision: str = "a113f2ab4dc9"
+revision: str = "77a0f0fbb8ab"
 down_revision: Union[str, None] = "05e3da68582b"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -45,14 +45,15 @@ def upgrade() -> None:
             sa.Enum("ONE", "TWO", "THREE", "FOUR", name="aggregationlevel"),
             nullable=True,
         ),
-        sa.Column("format", sa.JSON(), nullable=True),
+        sa.Column("technical_datatypes", sa.JSON(), nullable=True),
         sa.Column("id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.Column("iri", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
         sa.Column(
             "language", sqlmodel.sql.sqltypes.AutoString(length=100), nullable=False
         ),
         sa.Column("duration", sa.Integer(), nullable=True),
-        sa.CheckConstraint("duration >= 0", name="positive-duration"),
+        sa.CheckConstraint("created_at <= updated_at", name="pre-creation-update"),
+        sa.CheckConstraint("duration > 0", name="positive-duration"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("iri"),
     )
@@ -82,6 +83,7 @@ def upgrade() -> None:
         sa.Column("id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.Column("source_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.Column("target_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
+        sa.CheckConstraint("created_at <= updated_at", name="pre-creation-update"),
         sa.CheckConstraint("source_id != target_id", name="no-self-referential"),
         sa.ForeignKeyConstraint(
             ["source_id"],
