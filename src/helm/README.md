@@ -102,56 +102,24 @@ Our Elasticsearch cluster is all set. In the next section, we will now deploy
 
 ### Deploy the LRS: Ralph
 
-Ralph is also distributed as a Helm chart that can be deployed with a single
-line of code:
-
-```bash
-helm install \
-    --values charts/ralph/values.yaml \
-    --set envSecrets.RALPH_BACKENDS__DATABASE__ES__HOSTS=https://elastic:"${ELASTIC_PASSWORD}"@data-lake-es-http:9200 \
-    lrs oci://registry-1.docker.io/openfuncharts/ralph
-```
-
-One can check if the server is running by opening a network tunnel to the
-service using the `port-forward` sub-command:
-
-
-```bash
-kubectl port-forward svc/lrs-ralph 8080:8080
-```
-
-And then send a request to the server using this tunnel:
-
-```bash
-curl --user admin:password localhost:8080/whoami
-```
-
-We expect a valid JSON response stating about the user you are using for this
-request.
-
-If everything went well, we can send 22k xAPI statements to the LRS using:
-
-```bash
-gunzip -c ../../data/statements.jsonl.gz | \
-  sed "s/@timestamp/timestamp/g" | \
-  jq -s . | \
-  curl -Lk \
-    --user admin:password \
-    -X POST \
-    -H "Content-Type: application/json" \
-    http://localhost:8080/xAPI/statements/ -d @-
-```
+Ralph is also distributed as a Helm chart. Check out the [Ralph Helm chart README](https://github.com/openfun/ralph/blob/main/src/helm/README.md) to deploy it!
 
 ### Deploy the dashboard suite: Warren
 
-Now that the LRS is running, we can deploy warren along with its dependencies
+Let's create the secrets needed for Warren deployment:
+```bash
+kubectl apply -f manifests/warren-app-secrets.yaml
+kubectl apply -f manifests/warren-api-secrets.yaml
+```
+
+We can now deploy Warren along with its dependencies
 using:
 
 ```bash
 # Fetch dependencies
-cd warren && helm dependency build
+helm dependency build ./warren
 
-# Deploy postgresql for Warren `app` service (Django)
+# Install Warren
 helm install warren ./warren --values development.yaml --debug --atomic
 ```
 
@@ -159,6 +127,5 @@ If you want to upgrade your deployment (after a change in a template or a
 value), you can upgrade deployed version using:
 
 ```bash
-# Deploy postgresql for Warren `app` service (Django)
 helm upgrade --install warren ./warren --values development.yaml --debug --atomic
 ```
