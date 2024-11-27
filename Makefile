@@ -206,31 +206,36 @@ drop-api-test-db: ## drop API test database
 	@$(COMPOSE) exec postgresql bash -c 'psql "postgresql://$${POSTGRES_USER}:$${POSTGRES_PASSWORD}@$(DB_HOST):$(DB_PORT)/postgres" -c "drop database \"$(WARREN_API_TEST_DB_NAME)\";"' || echo "Duly noted, skipping database deletion."
 .PHONY: drop-api-test-db
 
-fixtures: ## load test data
-fixtures: \
-  bin/patch_statements_date.py \
-  data/statements.jsonl.gz \
-	run-api
+seed-lrs: ## seed the LRS with test data
+seed-lrs: \
+	# Reset the Elasticsearch index
 	curl -X DELETE "$(ES_URL)/$(ES_INDEX)?pretty" || true
 	curl -X PUT "$(ES_URL)/$(ES_INDEX)?pretty"
 	curl -X PUT $(ES_URL)/$(ES_INDEX)/_settings \
 		-H 'Content-Type: application/json' \
 		-d '{"index": {"number_of_replicas": 0}}'
-	zcat < data/statements.jsonl.gz | \
-		$(COMPOSE) exec -T api python /opt/src/patch_statements_date.py | \
+	
+	# Process all files in the "data" directory
+	for file in data/*.jsonl.gz; do \
+	    zcat < "$$file" | \
 		sed "s/@timestamp/timestamp/g" | \
-		$(COMPOSE_RUN) -T ralph ralph write \
-	    --backend es \
-	    --es-default-index "$(ES_INDEX)" \
-	    --es-hosts "$(ES_COMPOSE_URL)" \
-	    --chunk-size 300 \
-	    --operation-type create
-.PHONY: fixtures
+	    $(COMPOSE) exec -T api python /opt/src/patch_statements_date.py | \
+	    $(COMPOSE_RUN) -T ralph ralph write \
+	        --backend es \
+	        --es-default-index "$(ES_INDEX)" \
+	        --es-hosts "$(ES_COMPOSE_URL)" \
+	        --chunk-size 300 \
+	        --operation-type create; \
+	done
+.PHONY: seed-lrs
 
-seed-experience-index:  ## seed the experience index with test data
-	@echo "Seeding the experience index…"
+seed-xi:  ## seed the experience index with test data
+	@echo "Seeding the experience index for videos…"
 	@$(COMPOSE) exec -T api python /opt/src/seed_experience_index.py
-.PHONY: seed-experience-index
+	@echo "Seeding the experience index for Moodle resources…"
+	zcat data/moodle-statements.jsonl.gz | \
+		$(COMPOSE_RUN_API) python /opt/src/seed_moodle_experience_index.py
+.PHONY: seed-xi
 
 migrate-api:  ## run alembic database migrations for the api service
 	@echo "Running api service database engine…"

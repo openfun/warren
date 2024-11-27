@@ -57,7 +57,6 @@ export interface ResourceMetricsQueryParams {
   since: string;
   until: string;
   unique?: boolean;
-  complete?: boolean;
 }
 
 export interface Resource {

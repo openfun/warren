@@ -38,9 +38,23 @@ const getDocumentRoute = (): React.LazyExoticComponent<() => JSX.Element> => {
   }
 };
 
+const moodleRoutes: Routes = {
+  instructor: lazy(() => import("@openfun/warren-moodle/src/pages/Instructor")),
+  student: lazy(() => import("@openfun/warren-moodle/src/pages/Student")),
+};
+
+const getMoodleRoute = (): React.LazyExoticComponent<() => JSX.Element> => {
+  if (dataContext.is_instructor) {
+    return moodleRoutes.instructor;
+  } else {
+    return moodleRoutes.student;
+  }
+};
+
 const routes: Routes = {
   video: getVideoRoute(),
   document: getDocumentRoute(),
+  moodle: getMoodleRoute(),
 };
 
 export const App = () => {

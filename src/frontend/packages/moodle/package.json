@@ -1,0 +1,45 @@
+{
+  "name": "@openfun/warren-moodle",
+  "version": "0.0.1",
+  "description": "Warren frontend moodle elements.",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist/"
+  ],
+  "scripts": {
+    "lint": "eslint . '**/*.{ts,tsx}'",
+    "build": "tsup src/index.ts src/index.scss --format cjs,esm --dts src/index.ts",
+    "dev": "yarn run build -- --watch"
+  },
+  "devDependencies": {
+    "@types/lodash.clonedeep": "4.5.9",
+    "@types/react": "18.2.47",
+    "esbuild-sass-plugin": "3.1.0",
+    "eslint": "8.56.0",
+    "eslint-config-custom": "*",
+    "tsconfig": "*",
+    "typescript": "5.3.3",
+    "tsup": "8.0.1"
+  },
+  "dependencies": {
+    "@openfun/warren-core": "*",
+    "@openfun/cunningham-react": "2.4.0",
+    "@tanstack/react-query": "5.17.12",
+    "@tanstack/react-query-devtools": "5.17.12",
+    "axios": "1.6.5",
+    "classnames": "2.5.1",
+    "dayjs": "1.11.10",
+    "echarts": "5.4.3",
+    "echarts-for-react": "3.0.2",
+    "lodash.clonedeep": "4.5.0",
+    "react": "18.2.0",
+    "react-top-loading-bar": "2.3.1"
+  }
+}

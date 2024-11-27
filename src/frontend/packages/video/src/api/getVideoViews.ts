@@ -11,18 +11,22 @@ import {
 
 export const DEFAULT_BASE_QUERY_KEY = "videoViews";
 
+type VideoViewsQueryParams = ResourceMetricsQueryParams & {
+  complete?: boolean;
+};
+
 /**
  * Retrieves video views data for a specific video with optional filters.
  *
  * @param {AxiosInstance} client - Axios instance for making the API request.
  * @param {string} videoId - The ID of the video to fetch views for.
- * @param {ResourceMetricsQueryParams} queryParams - Optional filters for the request.
+ * @param {VideoViewsQueryParams} queryParams - Optional filters for the request.
  * @returns {Promise<ResourceMetricsResponse>} A promise that resolves to the video views data.
  */
 const getVideoViews = async (
   client: AxiosInstance,
   videoId: string,
-  queryParams: ResourceMetricsQueryParams,
+  queryParams: VideoViewsQueryParams,
 ): Promise<ResourceMetricsResponse> => {
   const response = await client.get(`video/${videoId}/views`, {
     params: Object.fromEntries(
@@ -39,14 +43,14 @@ const getVideoViews = async (
  * A custom hook for fetching video views data for multiple videos in parallel.
  *
  * @param {Array<Resource>} videos - An array of videos to fetch views for.
- * @param {ResourceMetricsQueryParams} queryParams - Optional filters for the requests.
+ * @param {VideoViewsQueryParams} queryParams - Optional filters for the requests.
  * @param {boolean} wait - Optional flag to control the order of execution.
  * @param {string} baseQueryKey - Optional base query key.
  * @returns {UseVideoViewsReturn} An object containing the fetched data and loading status.
  */
 export const useVideosViews = (
   videos: Array<Resource>,
-  queryParams: ResourceMetricsQueryParams,
+  queryParams: VideoViewsQueryParams,
   wait: boolean = false,
   baseQueryKey: string = DEFAULT_BASE_QUERY_KEY,
 ): UseResourceMetricsReturn => {

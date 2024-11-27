@@ -50,6 +50,7 @@ services:
       - ./src/api:/app
       - ./bin/patch_statements_date.py:/opt/src/patch_statements_date.py
       - ./bin/seed_experience_index.py:/opt/src/seed_experience_index.py
+      - ./bin/seed_moodle_experience_index.py:/opt/src/seed_moodle_experience_index.py
     depends_on:
       - ralph
       - postgresql
