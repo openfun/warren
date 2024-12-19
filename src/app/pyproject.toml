@@ -30,16 +30,16 @@ keywords = ["Analytics", "xAPI", "LRS", "LTI"]
 dependencies = [
     "Django==4.2.7",
     "django-configurations==2.5.1",
-    "django-cors-headers==4.4.0",
+    "django-cors-headers==4.6.0",
     "django-lti-toolbox==2.0.0",
     "djangorestframework_simplejwt==5.3.1",
     "dockerflow==2024.4.2",
     "gunicorn==23.0.0",
     "oauthlib==3.2.2",
-    "psycopg2-binary==2.9.9",
-    "sentry-sdk==2.14.0",
+    "psycopg2-binary==2.9.10",
+    "sentry-sdk==2.19.2",
     "urllib3==2.2.3",
-    "whitenoise==6.7.0",
+    "whitenoise==6.8.2",
 ]
 dynamic = ["version"]
 
@@ -49,19 +49,19 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = [
-    "black==24.8.0",
-    "build==1.2.2",
+    "black==24.10.0",
+    "build==1.2.2.post1",
     "factory-boy==3.3.1",
-    "Faker==28.4.1",
+    "Faker==33.1.0",
     "ipdb==0.13.13",
-    "pytest==8.3.3",
-    "pytest-cov==5.0.0",
+    "pytest==8.3.4",
+    "pytest-cov==6.0.0",
     "pytest-django==4.9.0",
-    "ruff==0.6.5",
-    "xmltodict==0.13.0",
+    "ruff==0.8.4",
+    "xmltodict==0.14.2",
 ]
 ci = [
-    "twine==5.1.1",
+    "twine==6.0.1",
 ]
 
 [tool.setuptools]
