@@ -20,26 +20,26 @@
   },
   "devDependencies": {
     "@types/lodash.clonedeep": "4.5.9",
-    "@types/react": "18.2.47",
-    "esbuild-sass-plugin": "3.1.0",
-    "eslint": "8.56.0",
+    "@types/react": "19.0.2",
+    "esbuild-sass-plugin": "3.3.1",
+    "eslint": "9.17.0",
     "eslint-config-custom": "*",
     "tsconfig": "*",
-    "typescript": "5.3.3",
-    "tsup": "8.0.1"
+    "typescript": "5.7.2",
+    "tsup": "8.3.5"
   },
   "dependencies": {
     "@openfun/warren-core": "*",
-    "@openfun/cunningham-react": "2.4.0",
-    "@tanstack/react-query": "5.17.12",
-    "@tanstack/react-query-devtools": "5.17.12",
-    "axios": "1.6.5",
+    "@openfun/cunningham-react": "2.9.4",
+    "@tanstack/react-query": "5.62.8",
+    "@tanstack/react-query-devtools": "5.62.8",
+    "axios": "1.7.9",
     "classnames": "2.5.1",
-    "dayjs": "1.11.10",
-    "echarts": "5.4.3",
+    "dayjs": "1.11.13",
+    "echarts": "5.5.1",
     "echarts-for-react": "3.0.2",
     "lodash.clonedeep": "4.5.0",
-    "react": "18.2.0",
+    "react": "19.0.0",
     "react-top-loading-bar": "2.3.1"
   }
 }
