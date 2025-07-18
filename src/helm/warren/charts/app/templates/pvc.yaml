@@ -1,11 +1,9 @@
 {{- if .Values.persistence.enabled }}
-{{- if not .Values.persistence.volumes.media.claimName }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "app.fullname" . }}-media
-  labels:
-    {{- include "app.labels" . | nindent 4 }}
+  name: {{ .Values.volumes.media.claimName }}
+  namespace: {{ .Release.Namespace | quote }}
 spec:
   accessModes:
   {{ with .Values.persistence.accessModes }}
@@ -14,22 +12,5 @@ spec:
   storageClassName: {{ .Values.persistence.storageClass }}
   resources:
     requests:
-      storage: {{ .Values.persistence.volumes.media.size }}
-{{- end }}
-{{- if not .Values.persistence.volumes.static.claimName }}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: {{ include "app.fullname" . }}-static
-spec:
-  accessModes:
-  {{ with .Values.persistence.accessModes }}
-    {{- toYaml . | indent 4 }}
-  {{- end }}
-  storageClassName: {{ .Values.persistence.storageClass }}
-  resources:
-    requests:
-      storage: {{ .Values.persistence.volumes.static.size }}
-{{- end }}
+      storage: {{ .Values.persistence.size }}
 {{- end }}

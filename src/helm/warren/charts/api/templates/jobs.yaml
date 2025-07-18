@@ -1,0 +1,42 @@
+{{- range .Values.fastapi.jobs }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "api.fullname" $ }}-{{ .name }}
+  namespace: {{ $.Release.Namespace | quote }}
+  labels: {{- include "api.labels" $ | nindent 4 }}
+    {{- if $.Values.commonLabels }}
+    {{ toYaml $.Values.commonLabels | nindent 4 }}
+    {{- end }}
+  annotations:
+{{- if $.Values.commonAnnotations }}
+{{- toYaml $.Values.commonAnnotations | nindent 4 }}
+{{- end }}
+    "helm.sh/hook": post-upgrade,post-install
+    "helm.sh/hook-weight": "0"
+spec:
+  template:
+    metadata:
+      labels: {{- include "api.selectorLabels" $ | nindent 8 }}
+    spec:
+      {{- include "fastapi.imagePullSecrets" $ | nindent 6 }}
+      containers:
+        - name: "{{ $.Chart.Name }}-{{ .name }}"
+          image: "{{ $.Values.image.repository }}:{{ $.Values.image.tag }}"
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          env:
+            {{- include "api.envs" $ | nindent 12 }}
+          command: {{ .command | toJson }}
+          {{- if $.Values.resources }}
+          resources: {{ toYaml $.Values.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: logging-config
+              mountPath: "/etc/warren/api"
+      volumes:
+        - name: logging-config
+          configMap:
+            name: {{ include "api.fullname" $ }}-logging-config
+      restartPolicy: Never
+{{- end }}
